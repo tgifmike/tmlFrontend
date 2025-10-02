@@ -49,6 +49,10 @@ export const updateUserAppRole = async (id: string, appRole: string) => {
 
 };
 
+//delete user
+export const deleteUser = async (id: string) => {
+	return await api.delete(`/users/delete/${id}`);
+};
 
 // Example usage: create a user
 // export const createUser = async (user: User) => {
