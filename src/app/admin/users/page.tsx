@@ -21,6 +21,7 @@ import { UserStatusSwitch } from '@/components/tableComponents/UserStatusSwitch'
 import { AccessRoleSelect } from '@/components/tableComponents/AccessRoleSelect';
 import { AppRoleSelect } from '@/components/tableComponents/AppRoleSelect';
 import { DeleteUserButton } from '@/components/tableComponents/DeleteUserButton';
+import Spinner from '@/components/spinner/Spinner';
 
 const Page = () => {
 	const [users, setUsers] = useState<User[]>([]);
@@ -106,7 +107,14 @@ const Page = () => {
     }
 
     //show loadding state
-	if (loading) return <p>Loading...</p>;
+	if (loading || users == null)
+		return (
+			<div className="flex justify-center items-center py-40  text-chart-3 text-xl">
+				<Spinner />
+				<span className="ml-4">Loading Users…</span>
+			</div>
+		);
+
 
 	return (
 		<main className="p-4">
