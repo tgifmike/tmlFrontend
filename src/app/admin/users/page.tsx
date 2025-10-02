@@ -20,6 +20,7 @@ import { AccessRole, AppRole, User } from '@/app/types';
 import { UserStatusSwitch } from '@/components/tableComponents/UserStatusSwitch';
 import { AccessRoleSelect } from '@/components/tableComponents/AccessRoleSelect';
 import { AppRoleSelect } from '@/components/tableComponents/AppRoleSelect';
+import { DeleteUserButton } from '@/components/tableComponents/DeleteUserButton';
 
 const Page = () => {
 	const [users, setUsers] = useState<User[]>([]);
@@ -177,9 +178,14 @@ const Page = () => {
 										}
 									/>
 								</TableCell>
-								<TableCell className="flex justify-center gap-4">
+								<TableCell className="flex justify-center gap-4 items-center">
 									<Pencil className="text-chart-2 cursor-pointer" />
-									<Trash2 className="text-destructive cursor-pointer" />
+									<DeleteUserButton
+										user={user}
+										onDelete={(id) =>
+											setUsers((prev) => prev.filter((u) => u.id !== id))
+										}
+									/>
 								</TableCell>
 							</TableRow>
 						))}
@@ -251,7 +257,12 @@ const Page = () => {
 							</div>
 							<div className="flex justify-center gap-4 mt-2">
 								<Pencil className="text-chart-2 cursor-pointer" />
-								<Trash2 className="text-destructive cursor-pointer" />
+								<DeleteUserButton
+									user={user}
+									onDelete={(id) =>
+										setUsers((prev) => prev.filter((u) => u.id !== id))
+									}
+								/>
 							</div>
 						</div>
 					</div>
