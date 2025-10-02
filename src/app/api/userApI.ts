@@ -1,6 +1,7 @@
 import axios, { AxiosRequestConfig } from "axios";
 import { User } from "../types";
 import api from "./axios";
+import { toast } from "sonner";
 
 
 
@@ -53,6 +54,38 @@ export const updateUserAppRole = async (id: string, appRole: string) => {
 export const deleteUser = async (id: string) => {
 	return await api.delete(`/users/delete/${id}`);
 };
+
+//update user name and email
+export interface UpdateUserPayload {
+	name?: string;
+	email?: string;
+}
+
+export const updateUser = async (userId: string, data: UpdateUserPayload) => {
+	try {
+		const response = await api.put(
+			`/users/update/${userId}`, // URL
+			{
+				name: data.name, // <-- body
+				email: data.email, // <-- body
+			}
+			// optional config as third argument
+		);
+		return response.data;
+	} catch (error: any) {
+		if (axios.isAxiosError(error) && error.response) {
+			// throw meaningful error up to caller
+			const message =
+				error.response.data?.message ||
+				error.response.data?.error ||
+				'Failed to update user';
+			throw new Error(message);
+		}
+		throw new Error('Failed to update user');
+	}
+};
+
+
 
 // Example usage: create a user
 // export const createUser = async (user: User) => {
