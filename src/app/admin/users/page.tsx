@@ -11,10 +11,14 @@ import {
 	TableRow,
 } from '@/components/ui/table';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Pencil, Trash2, UserRound } from 'lucide-react';
-import { Switch } from '@/components/ui/switch';
-import { Select, SelectContent, SelectItem, SelectTrigger } from '@/components/ui/select';
-import { getAllUsers, toggleUserActive, updateUserAccessRole, updateUserAppRole } from '@/app/api/userApI';
+import { Pencil, UserRound } from 'lucide-react';
+import {
+	getAllUsers,
+	toggleUserActive,
+	updateUser,
+	updateUserAccessRole,
+	updateUserAppRole,
+} from '@/app/api/userApI';
 import { toast } from 'sonner';
 import { AccessRole, AppRole, User } from '@/app/types';
 import { UserStatusSwitch } from '@/components/tableComponents/UserStatusSwitch';
@@ -22,12 +26,13 @@ import { AccessRoleSelect } from '@/components/tableComponents/AccessRoleSelect'
 import { AppRoleSelect } from '@/components/tableComponents/AppRoleSelect';
 import { DeleteUserButton } from '@/components/tableComponents/DeleteUserButton';
 import Spinner from '@/components/spinner/Spinner';
+import { EditUserDialog } from '@/components/tableComponents/EditUserDialog';
 
 const Page = () => {
 	const [users, setUsers] = useState<User[]>([]);
 	const [loading, setLoading] = useState(true);
 
-    //fetch users on component mount
+	//fetch users on component mount
 	useEffect(() => {
 		const fetchUsers = async () => {
 			try {
@@ -42,7 +47,7 @@ const Page = () => {
 		fetchUsers();
 	}, []);
 
-    //toggle user active status
+	//toggle user active status
 	const handleToggleActive = async (userId: string, checked: boolean) => {
 		try {
 			await toggleUserActive(userId, checked);
@@ -60,53 +65,70 @@ const Page = () => {
 		} catch (error: any) {
 			toast.error('Failed to update user status: ' + error.message);
 		}
-    };
-    
-    //update user access role
-    const handleAccessRoleChange = async (
-			userId: string,
-			newRole: AccessRole
-		) => {
-			try {
-				await updateUserAccessRole(userId, newRole);
+	};
 
-				setUsers((prev) =>
-					prev.map((u) => (u.id === userId ? { ...u, accessRole: newRole } : u))
-				);
-				const updatedUser = users.find((u) => u.id === userId);
-				toast.success(
-					`User:  ${
-						updatedUser?.userName ?? 'unknown'
-					} access role updated to ${newRole}`
-				);
-			} catch (error: any) {
-				toast.error('Failed to update user access role: ' + error.message);
-			}
-    };
-    
-    //
-    const handleAppRoleChange = async (
-        userId: string,
-        newRole: AppRole
-    ) => { 
-        try {
-            await updateUserAppRole(userId, newRole);
+	//update user access role
+	const handleAccessRoleChange = async (
+		userId: string,
+		newRole: AccessRole
+	) => {
+		try {
+			await updateUserAccessRole(userId, newRole);
 
-            setUsers((prev) =>
-                prev.map((u) => (u.id === userId ? { ...u, appRole: newRole } : u))
-            );
-            const updatedUser = users.find((u) => u.id === userId);
-            toast.success(
-                `User:  ${
-                    updatedUser?.userName ?? 'unknown'
-                } app role updated to ${newRole}`
-            );
-        } catch (error: any) {
-            toast.error('Failed to update user app role: ' + error.message);
-        }
-    }
+			setUsers((prev) =>
+				prev.map((u) => (u.id === userId ? { ...u, accessRole: newRole } : u))
+			);
+			const updatedUser = users.find((u) => u.id === userId);
+			toast.success(
+				`User:  ${
+					updatedUser?.userName ?? 'unknown'
+				} access role updated to ${newRole}`
+			);
+		} catch (error: any) {
+			toast.error('Failed to update user access role: ' + error.message);
+		}
+	};
 
-    //show loadding state
+	// edit app role
+	const handleAppRoleChange = async (userId: string, newRole: AppRole) => {
+		try {
+			await updateUserAppRole(userId, newRole);
+
+			setUsers((prev) =>
+				prev.map((u) => (u.id === userId ? { ...u, appRole: newRole } : u))
+			);
+			const updatedUser = users.find((u) => u.id === userId);
+			toast.success(
+				`User:  ${
+					updatedUser?.userName ?? 'unknown'
+				} app role updated to ${newRole}`
+			);
+		} catch (error: any) {
+			toast.error('Failed to update user app role: ' + error.message);
+		}
+	};
+
+	//updating user name and email
+	const handleUpdateUser = async (id: string, name: string, email: string) => {
+		try {
+			const result = await updateUser(id, { name, email });
+
+			// Update frontend state
+			setUsers((prev) =>
+				prev.map((u) =>
+					u.id === id ? { ...u, userName: name, userEmail: email } : u
+				)
+			);
+
+			toast.success(result); // show "User updated successfully"
+		} catch (error: any) {
+			const message =
+				error.response?.data || error.message || 'Failed to update user';
+			toast.error(message);
+		}
+	};
+
+	//show loadding state
 	if (loading || users == null)
 		return (
 			<div className="flex justify-center items-center py-40  text-chart-3 text-xl">
@@ -114,7 +136,6 @@ const Page = () => {
 				<span className="ml-4">Loading Users…</span>
 			</div>
 		);
-
 
 	return (
 		<main className="p-4">
@@ -139,7 +160,7 @@ const Page = () => {
 					</TableHeader>
 					<TableBody>
 						{users.map((user) => (
-							<TableRow key={user.id} className="text-md">
+							<TableRow key={user.id} className="text-lg">
 								<TableCell>
 									<Avatar>
 										<AvatarImage src={user.userImage ?? undefined} />
@@ -187,7 +208,19 @@ const Page = () => {
 									/>
 								</TableCell>
 								<TableCell className="flex justify-center gap-4 items-center">
-									<Pencil className="text-chart-2 cursor-pointer" />
+									<EditUserDialog
+										user={user}
+										onUpdate={(id, name, email) =>
+											setUsers((prev) =>
+												prev.map((u) =>
+													u.id === id
+														? { ...u, userName: name, userEmail: email }
+														: u
+												)
+											)
+										}
+									/>
+
 									<DeleteUserButton
 										user={user}
 										onDelete={(id) =>
@@ -263,8 +296,19 @@ const Page = () => {
 									}
 								/>
 							</div>
-							<div className="flex justify-center gap-4 mt-2">
-								<Pencil className="text-chart-2 cursor-pointer" />
+							<div className="flex justify-center gap-2 mt-2">
+								<EditUserDialog
+									user={user}
+									onUpdate={(id, name, email) =>
+										setUsers((prev) =>
+											prev.map((u) =>
+												u.id === id
+													? { ...u, userName: name, userEmail: email }
+													: u
+											)
+										)
+									}
+								/>
 								<DeleteUserButton
 									user={user}
 									onDelete={(id) =>
