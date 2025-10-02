@@ -87,8 +87,35 @@ export const updateUser = async (userId: string, data: UpdateUserPayload) => {
 
 
 
-// Example usage: create a user
-// export const createUser = async (user: User) => {
-// 	return request<User>({ method: 'POST', url: '/users', data: user });
-// };
+// create a user
+type CreateUserPayload = {
+	userName: string;
+	userEmail: string;
+	userImage?: string;
+};
+
+export const createUser = async (
+	data: CreateUserPayload
+): Promise<User | null> => {
+	try {
+		const response = await api.post<User>(
+			'/users/create',
+			data
+		);
+		//toast.success(`User ${data.userName} was created successfully`);
+		return response.data;
+	} catch (error: any) {
+		// Axios error with response
+		if (axios.isAxiosError(error) && error.response) {
+			const message =
+				error.response.data?.message ||
+				error.response.data ||
+				'Failed to create user';
+			toast.error(message);
+		} else {
+			toast.error('Failed to create user');
+		}
+		return null;
+	}
+};
 

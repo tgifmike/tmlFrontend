@@ -27,6 +27,7 @@ import { AppRoleSelect } from '@/components/tableComponents/AppRoleSelect';
 import { DeleteUserButton } from '@/components/tableComponents/DeleteUserButton';
 import Spinner from '@/components/spinner/Spinner';
 import { EditUserDialog } from '@/components/tableComponents/EditUserDialog';
+import CreateUserDialog from '@/components/tableComponents/CreateUserForm';
 
 const Page = () => {
 	const [users, setUsers] = useState<User[]>([]);
@@ -143,6 +144,14 @@ const Page = () => {
 			<Link href="/" className="text-blue-600 underline">
 				Home
 			</Link>
+
+			<div>
+				<CreateUserDialog
+					onUserCreated={
+						(newUser) => setUsers((prev) => [newUser, ...prev]) // prepend new user
+					}
+				/>
+			</div>
 
 			{/* Desktop Table */}
 			<div className="hidden md:block mt-8 bg-accent p-4 rounded-2xl text-chart-3 w-3/4 mx-auto">
