@@ -28,6 +28,16 @@ import { DeleteUserButton } from '@/components/tableComponents/DeleteUserButton'
 import Spinner from '@/components/spinner/Spinner';
 import { EditUserDialog } from '@/components/tableComponents/EditUserDialog';
 import CreateUserDialog from '@/components/tableComponents/CreateUserForm';
+import { ReusableTable } from '@/components/tableComponents/ReusableTableProps';
+import {
+	Card,
+	CardContent,
+	CardDescription,
+	CardFooter,
+	CardHeader,
+	CardTitle,
+} from '@/components/ui/card';
+import { DataCard } from '@/components/cards/DataCard';
 
 const Page = () => {
 	const [users, setUsers] = useState<User[]>([]);
@@ -155,32 +165,120 @@ const Page = () => {
 
 			{/* Desktop Table */}
 			<div className="hidden md:block mt-8 bg-accent p-4 rounded-2xl text-chart-3 w-3/4 mx-auto">
-				<Table className="min-w-full">
-					<TableHeader>
-						<TableRow className="text-lg font-semibold uppercase">
-							<TableHead></TableHead>
-							<TableHead>User Name</TableHead>
-							<TableHead>Email</TableHead>
-							<TableHead className="text-center">Status</TableHead>
-							<TableHead>Access Role</TableHead>
-							<TableHead>App Role</TableHead>
-							<TableHead className="text-center">Actions</TableHead>
-						</TableRow>
-					</TableHeader>
-					<TableBody>
-						{users.map((user) => (
-							<TableRow key={user.id} className="text-lg">
-								<TableCell>
-									<Avatar>
-										<AvatarImage src={user.userImage ?? undefined} />
-										<AvatarFallback>
-											<UserRound className="h-5 w-5 text-chart-3" />
-										</AvatarFallback>
-									</Avatar>
-								</TableCell>
-								<TableCell>{user.userName}</TableCell>
-								<TableCell>{user.userEmail}</TableCell>
-								<TableCell className="flex justify-center">
+				<ReusableTable
+					data={users}
+					rowKey={(u) => u.id!}
+					columns={[
+						{
+							header: '',
+							render: (u) => (
+								<Avatar>
+									<AvatarImage src={u.userImage ?? undefined} />
+									<AvatarFallback>
+										<UserRound className="h-5 w-5 text-chart-3" />
+									</AvatarFallback>
+								</Avatar>
+							),
+						},
+						{ header: 'User Name', render: (u) => u.userName },
+						{ header: 'Email', render: (u) => u.userEmail },
+						{
+							header: 'Status',
+							className: 'text-center',
+							render: (u) => (
+								<UserStatusSwitch
+									user={u}
+									onStatusChange={(id, checked) =>
+										setUsers((prev) =>
+											prev.map((user) =>
+												user.id === id ? { ...user, userActive: checked } : user
+											)
+										)
+									}
+								/>
+							),
+						},
+						{
+							header: 'Access Role',
+							render: (u) => (
+								<AccessRoleSelect
+									user={u}
+									onRoleChange={(id, role) =>
+										setUsers((prev) =>
+											prev.map((user) =>
+												user.id === id ? { ...user, accessRole: role } : user
+											)
+										)
+									}
+								/>
+							),
+						},
+						{
+							header: 'App Role',
+							render: (u) => (
+								<AppRoleSelect
+									user={u}
+									onRoleChange={(id, role) =>
+										setUsers((prev) =>
+											prev.map((user) =>
+												user.id === id ? { ...user, appRole: role } : user
+											)
+										)
+									}
+								/>
+							),
+						},
+						{
+							header: 'Actions',
+							className: 'text-center',
+							render: (u) => (
+								<div className="flex justify-center gap-4 items-center">
+									<EditUserDialog
+										user={u}
+										onUpdate={(id, name, email) =>
+											setUsers((prev) =>
+												prev.map((user) =>
+													user.id === id
+														? { ...user, userName: name, userEmail: email }
+														: user
+												)
+											)
+										}
+									/>
+									<DeleteUserButton
+										user={u}
+										onDelete={(id) =>
+											setUsers((prev) => prev.filter((user) => user.id !== id))
+										}
+									/>
+								</div>
+							),
+						},
+					]}
+				/>
+			</div>
+
+		
+
+			{/* Mobile Cards */}
+			<div className="block md:hidden mt-6 space-y-4">
+				{users.map((user) => (
+					<DataCard
+						key={user.id}
+						title={user.userName ?? 'No Name'}
+						description={user.userEmail ?? undefined}
+						avatar={
+							<Avatar>
+								<AvatarImage src={user.userImage ?? undefined} />
+								<AvatarFallback>
+									<UserRound className="h-5 w-5 text-chart-3" />
+								</AvatarFallback>
+							</Avatar>
+						}
+						fields={[
+							{
+								label: 'Status',
+								value: (
 									<UserStatusSwitch
 										user={user}
 										onStatusChange={(id, checked) =>
@@ -191,8 +289,11 @@ const Page = () => {
 											)
 										}
 									/>
-								</TableCell>
-								<TableCell>
+								),
+							},
+							{
+								label: 'Access Role',
+								value: (
 									<AccessRoleSelect
 										user={user}
 										onRoleChange={(id, role) =>
@@ -203,8 +304,11 @@ const Page = () => {
 											)
 										}
 									/>
-								</TableCell>
-								<TableCell>
+								),
+							},
+							{
+								label: 'App Role',
+								value: (
 									<AppRoleSelect
 										user={user}
 										onRoleChange={(id, role) =>
@@ -215,118 +319,27 @@ const Page = () => {
 											)
 										}
 									/>
-								</TableCell>
-								<TableCell className="flex justify-center gap-4 items-center">
-									<EditUserDialog
-										user={user}
-										onUpdate={(id, name, email) =>
-											setUsers((prev) =>
-												prev.map((u) =>
-													u.id === id
-														? { ...u, userName: name, userEmail: email }
-														: u
-												)
-											)
-										}
-									/>
-
+								),
+							},
+						]}
+						actions={[
+							{
+								element: (
+									<EditUserDialog user={user} onUpdate={handleUpdateUser} />
+								),
+							},
+							{
+								element: (
 									<DeleteUserButton
 										user={user}
 										onDelete={(id) =>
 											setUsers((prev) => prev.filter((u) => u.id !== id))
 										}
 									/>
-								</TableCell>
-							</TableRow>
-						))}
-					</TableBody>
-				</Table>
-			</div>
-
-			{/* Mobile Cards */}
-			<div className="block md:hidden mt-6 space-y-4 text-chart-3">
-				{users.map((user) => (
-					<div
-						key={user.id}
-						className="p-4 border rounded-xl bg-accent space-y-3"
-					>
-						<div className="flex items-center gap-3">
-							<Avatar>
-								<AvatarImage src={user.userImage ?? undefined} />
-								<AvatarFallback>
-									<UserRound className="h-5 w-5 text-chart-3" />
-								</AvatarFallback>
-							</Avatar>
-							<div>
-								<p className="font-semibold">{user.userName}</p>
-								<p className="text-sm text-muted-foreground">
-									{user.userEmail}
-								</p>
-							</div>
-						</div>
-
-						<div className="flex flex-col gap-2">
-							<div className="flex justify-between text-sm">
-								<span>Status</span>
-								<UserStatusSwitch
-									user={user}
-									onStatusChange={(id, checked) =>
-										setUsers((prev) =>
-											prev.map((u) =>
-												u.id === id ? { ...u, userActive: checked } : u
-											)
-										)
-									}
-								/>
-							</div>
-							<div className="flex justify-between items-center text-sm">
-								<span>Access Role</span>
-								<AccessRoleSelect
-									user={user}
-									onRoleChange={(id, role) =>
-										setUsers((prev) =>
-											prev.map((u) =>
-												u.id === id ? { ...u, accessRole: role } : u
-											)
-										)
-									}
-								/>
-							</div>
-							<div className="flex justify-between items-center text-sm">
-								<span>App Role</span>
-								<AppRoleSelect
-									user={user}
-									onRoleChange={(id, role) =>
-										setUsers((prev) =>
-											prev.map((u) =>
-												u.id === id ? { ...u, appRole: role } : u
-											)
-										)
-									}
-								/>
-							</div>
-							<div className="flex justify-center gap-2 mt-2">
-								<EditUserDialog
-									user={user}
-									onUpdate={(id, name, email) =>
-										setUsers((prev) =>
-											prev.map((u) =>
-												u.id === id
-													? { ...u, userName: name, userEmail: email }
-													: u
-											)
-										)
-									}
-								/>
-								<DeleteUserButton
-									user={user}
-									onDelete={(id) =>
-										setUsers((prev) => prev.filter((u) => u.id !== id))
-									}
-								/>
-							</div>
-						</div>
-					</div>
+								),
+							},
+						]}
+					/>
 				))}
 			</div>
 		</main>
