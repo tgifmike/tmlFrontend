@@ -2,16 +2,8 @@
 
 import Link from 'next/link';
 import React, { useEffect, useState } from 'react';
-import {
-	Table,
-	TableBody,
-	TableCell,
-	TableHead,
-	TableHeader,
-	TableRow,
-} from '@/components/ui/table';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Pencil, UserRound } from 'lucide-react';
+import { UserRound } from 'lucide-react';
 import {
 	getAllUsers,
 	toggleUserActive,
@@ -29,19 +21,14 @@ import Spinner from '@/components/spinner/Spinner';
 import { EditUserDialog } from '@/components/tableComponents/EditUserDialog';
 import CreateUserDialog from '@/components/tableComponents/CreateUserForm';
 import { ReusableTable } from '@/components/tableComponents/ReusableTableProps';
-import {
-	Card,
-	CardContent,
-	CardDescription,
-	CardFooter,
-	CardHeader,
-	CardTitle,
-} from '@/components/ui/card';
 import { DataCard } from '@/components/cards/DataCard';
+import { Switch } from '@/components/ui/switch';
+
 
 const Page = () => {
 	const [users, setUsers] = useState<User[]>([]);
 	const [loading, setLoading] = useState(true);
+	const [showActiveOnly, setShowActiveOnly] = useState(false);
 
 	//fetch users on component mount
 	useEffect(() => {
@@ -139,6 +126,11 @@ const Page = () => {
 		}
 	};
 
+	//toggle showing only active users
+	const filteredUsers = users.filter((user) =>
+		showActiveOnly ? user.userActive : true
+	);
+
 	//show loadding state
 	if (loading || users == null)
 		return (
@@ -163,10 +155,15 @@ const Page = () => {
 				/>
 			</div>
 
+			<div className="flex items-center gap-2 mb-4 mx-auto p-4">
+				<label className="text-sm font-medium">Show Active Only</label>
+				<Switch checked={showActiveOnly} onCheckedChange={setShowActiveOnly} />
+			</div>
+
 			{/* Desktop Table */}
 			<div className="hidden md:block mt-8 bg-accent p-4 rounded-2xl text-chart-3 w-3/4 mx-auto">
 				<ReusableTable
-					data={users}
+					data={filteredUsers}
 					rowKey={(u) => u.id!}
 					columns={[
 						{
@@ -258,11 +255,9 @@ const Page = () => {
 				/>
 			</div>
 
-		
-
 			{/* Mobile Cards */}
 			<div className="block md:hidden mt-6 space-y-4">
-				{users.map((user) => (
+				{filteredUsers.map((user) => (
 					<DataCard
 						key={user.id}
 						title={user.userName ?? 'No Name'}
