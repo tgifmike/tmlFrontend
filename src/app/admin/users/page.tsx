@@ -23,12 +23,26 @@ import CreateUserDialog from '@/components/tableComponents/CreateUserForm';
 import { ReusableTable } from '@/components/tableComponents/ReusableTableProps';
 import { DataCard } from '@/components/cards/DataCard';
 import { Switch } from '@/components/ui/switch';
-
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Pagination } from '@/components/tableComponents/Pagination';
+import { UserControls } from '@/components/tableComponents/UserControls';
 
 const Page = () => {
 	const [users, setUsers] = useState<User[]>([]);
 	const [loading, setLoading] = useState(true);
 	const [showActiveOnly, setShowActiveOnly] = useState(false);
+	const [searchTerm, setSearchTerm] = useState('');
+	const [currentPage, setCurrentPage] = useState(() => {
+		// Load from localStorage if exists, else default to 1
+		return Number(localStorage.getItem('usersCurrentPage')) || 1;
+	});
+
+	const [pageSize, setPageSize] = useState(() => {
+		return Number(localStorage.getItem('usersPageSize')) || 10;
+	});
+
 
 	//fetch users on component mount
 	useEffect(() => {
@@ -126,9 +140,34 @@ const Page = () => {
 		}
 	};
 
-	//toggle showing only active users
-	const filteredUsers = users.filter((user) =>
-		showActiveOnly ? user.userActive : true
+	//toggle showing only active users and search
+	const filteredUsers = users.filter((user) => {
+		const name = user.userName ?? '';
+		const email = user.userEmail ?? '';
+
+		const matchesSearch =
+			name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+			email.toLowerCase().includes(searchTerm.toLowerCase());
+
+		const matchesActive = showActiveOnly ? user.userActive : true;
+
+		return matchesSearch && matchesActive;
+	});
+
+	//pagination
+	useEffect(() => {
+		localStorage.setItem('usersCurrentPage', String(currentPage));
+	}, [currentPage]);
+
+	useEffect(() => {
+		localStorage.setItem('usersPageSize', String(pageSize));
+		setCurrentPage(1); // reset to first page when pageSize changes
+	}, [pageSize]);
+
+	// slice for current page
+	const paginatedUsers = filteredUsers.slice(
+		(currentPage - 1) * pageSize,
+		currentPage * pageSize
 	);
 
 	//show loadding state
@@ -147,23 +186,19 @@ const Page = () => {
 				Home
 			</Link>
 
-			<div>
-				<CreateUserDialog
-					onUserCreated={
-						(newUser) => setUsers((prev) => [newUser, ...prev]) // prepend new user
-					}
-				/>
-			</div>
-
-			<div className="flex items-center gap-2 mb-4 mx-auto p-4">
-				<label className="text-sm font-medium">Show Active Only</label>
-				<Switch checked={showActiveOnly} onCheckedChange={setShowActiveOnly} />
-			</div>
+			{/* table header */}
+			<UserControls
+				showActiveOnly={showActiveOnly}
+				setShowActiveOnly={setShowActiveOnly}
+				searchTerm={searchTerm}
+				setSearchTerm={setSearchTerm}
+				onUserCreated={(newUser) => setUsers((prev) => [newUser, ...prev])}
+			/>
 
 			{/* Desktop Table */}
 			<div className="hidden md:block mt-8 bg-accent p-4 rounded-2xl text-chart-3 w-3/4 mx-auto">
 				<ReusableTable
-					data={filteredUsers}
+					data={paginatedUsers}
 					rowKey={(u) => u.id!}
 					columns={[
 						{
@@ -257,7 +292,7 @@ const Page = () => {
 
 			{/* Mobile Cards */}
 			<div className="block md:hidden mt-6 space-y-4">
-				{filteredUsers.map((user) => (
+				{paginatedUsers.map((user) => (
 					<DataCard
 						key={user.id}
 						title={user.userName ?? 'No Name'}
@@ -337,6 +372,15 @@ const Page = () => {
 					/>
 				))}
 			</div>
+
+			{/* pagination page size selector */}
+			<Pagination
+				currentPage={currentPage}
+				setCurrentPage={setCurrentPage}
+				pageSize={pageSize}
+				setPageSize={setPageSize}
+				totalItems={filteredUsers.length}
+			/>
 		</main>
 	);
 };
