@@ -34,14 +34,32 @@ const Page = () => {
 	const [loading, setLoading] = useState(true);
 	const [showActiveOnly, setShowActiveOnly] = useState(false);
 	const [searchTerm, setSearchTerm] = useState('');
-	const [currentPage, setCurrentPage] = useState(() => {
-		// Load from localStorage if exists, else default to 1
-		return Number(localStorage.getItem('usersCurrentPage')) || 1;
-	});
+	const [currentPage, setCurrentPage] = useState(1);
+	const [pageSize, setPageSize] = useState(10);
 
-	const [pageSize, setPageSize] = useState(() => {
-		return Number(localStorage.getItem('usersPageSize')) || 10;
-	});
+	// Load pagination settings from localStorage safely
+	useEffect(() => {
+		if (typeof window !== 'undefined') {
+			const storedPage = Number(localStorage.getItem('usersCurrentPage')) || 1;
+			const storedPageSize =
+				Number(localStorage.getItem('usersPageSize')) || 10;
+			setCurrentPage(storedPage);
+			setPageSize(storedPageSize);
+		}
+	}, []);
+
+	// Persist pagination to localStorage
+	useEffect(() => {
+		if (typeof window !== 'undefined') {
+			localStorage.setItem('usersCurrentPage', String(currentPage));
+		}
+	}, [currentPage]);
+
+	useEffect(() => {
+		if (typeof window !== 'undefined') {
+			localStorage.setItem('usersPageSize', String(pageSize));
+		}
+	}, [pageSize]);
 
 
 	//fetch users on component mount
