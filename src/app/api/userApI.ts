@@ -119,3 +119,33 @@ export const createUser = async (
 	}
 };
 
+//server safe version
+//used for google to sign in and save to db
+export const createUserServer = async (
+	data: CreateUserPayload
+): Promise<User | null> => {
+	try {
+		const response = await api.post<User>(
+			`${process.env.NEXT_PUBLIC_BACKEND_URL}/users/create/google`,
+			data,
+			{
+				headers: { 'Content-Type': 'application/json' },
+				timeout: 5000, // optional safeguard
+			}
+		);
+
+		return response.data;
+	} catch (error: any) {
+		if (axios.isAxiosError(error)) {
+			console.error('❌ Failed to create user (server)');
+			console.error('Status:', error.response?.status);
+			console.error('Response:', error.response?.data);
+		} else {
+			console.error('❌ Unexpected error creating user:', error);
+		}
+		return null;
+	}
+};
+
+
+

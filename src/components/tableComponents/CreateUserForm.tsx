@@ -24,8 +24,9 @@ import {
 	DialogDescription,
 	DialogFooter,
 } from '@/components/ui/dialog';
-import { PlusIcon, UserPlus } from 'lucide-react';
+
 import { createUser } from '@/app/api/userApI';
+import { Icons } from '../icon';
 
 const schema = z.object({
 	userName: z.string().min(1, 'Name cannot be empty'),
@@ -39,6 +40,8 @@ type Props = {
 };
 
 export default function CreateUserDialog({ onUserCreated }: Props) {
+	const AddUserIcon = Icons.addUser;
+	
 	const [open, setOpen] = useState(false);
 
 	const form = useForm<FormValues>({
@@ -70,10 +73,10 @@ export default function CreateUserDialog({ onUserCreated }: Props) {
 			<DialogTrigger asChild>
 				<Button
 					variant="outline"
-					className="flex items-center gap-2 text-chart-3 font-bold"
+					size={'lg'}
+					className="flex items-center gap-4 text-chart-3 font-bold text-lg"
 				>
-					<UserPlus className="w-4 h-4" /> Create User
-					{/* <PlusIcon className="w-4 h-4" /> Create User */}
+					<AddUserIcon className="!w-[25px] !h-[25px]" />Create User
 				</Button>
 			</DialogTrigger>
 
