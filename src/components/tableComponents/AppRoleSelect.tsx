@@ -9,6 +9,7 @@ import {
 import { AppRole, User } from '@/app/types';
 import { updateUserAppRole } from '@/app/api/userApI';
 import { toast } from 'sonner';
+import { Badge } from '../ui/badge';
 
 type Props = {
 	user: User;
@@ -16,8 +17,13 @@ type Props = {
 };
 
 export const AppRoleSelect = ({ user, onRoleChange }: Props) => {
-	return (
-		<Select
+
+	const isManager = user.appRole === 'MANAGER';
+
+	if (isManager) {
+		// Non-managers see a badge instead
+		return (
+			<Select
 			defaultValue={user.appRole ?? undefined}
 			onValueChange={async (value) => {
 				if (!user.id) return;
@@ -44,5 +50,16 @@ export const AppRoleSelect = ({ user, onRoleChange }: Props) => {
 				))}
 			</SelectContent>
 		</Select>
+	);
+	}
+	
+	// non-managers see a badge instead
+	return (
+		<Badge
+			variant={'outline'}
+			className={`px-2 py-1 text-sm font rounded-full text-chart-3 p-2 `}>
+			
+			{user.appRole ?? 'N/A'}
+		</Badge>
 	);
 };

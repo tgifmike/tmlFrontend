@@ -12,8 +12,8 @@ import {
 } from '@/app/api/userApI';
 import { toast } from 'sonner';
 import { AccessRole, AppRole, User } from '@/app/types';
-import { UserStatusSwitch } from '@/components/tableComponents/UserStatusSwitch';
-import { AccessRoleSelect } from '@/components/tableComponents/AccessRoleSelect';
+import { UserStatusSwitchOrBadge } from '@/components/tableComponents/UserStatusSwitch';
+import { AccessRoleSelectOrBadge } from '@/components/tableComponents/AccessRoleSelect';
 import { AppRoleSelect } from '@/components/tableComponents/AppRoleSelect';
 import { DeleteUserButton } from '@/components/tableComponents/DeleteUserButton';
 import Spinner from '@/components/spinner/Spinner';
@@ -196,10 +196,8 @@ const Page = () => {
 
 	return (
 		<main className="p-4">
-			<h1 className="text-4xl font-bold mb-4">Users</h1>
-			<Link href="/" className="text-blue-600 underline">
-				Home
-			</Link>
+			<h1 className="text-4xl font-bold mb-4">Admin Users Page</h1>
+			
 
 			{/* table header */}
 			<UserControls
@@ -207,7 +205,6 @@ const Page = () => {
 				setShowActiveOnly={setShowActiveOnly}
 				searchTerm={searchTerm}
 				setSearchTerm={setSearchTerm}
-				onUserCreated={(newUser) => setUsers((prev) => [newUser, ...prev])}
 			/>
 
 			{/* Desktop Table */}
@@ -222,7 +219,7 @@ const Page = () => {
 								<Avatar>
 									<AvatarImage src={u.userImage ?? undefined} />
 									<AvatarFallback>
-										<UserIcon className='h-6 w-6' />
+										<UserIcon className="h-6 w-6" />
 									</AvatarFallback>
 								</Avatar>
 							),
@@ -233,7 +230,7 @@ const Page = () => {
 							header: 'Status',
 							className: 'text-center',
 							render: (u) => (
-								<UserStatusSwitch
+								<UserStatusSwitchOrBadge
 									user={u}
 									onStatusChange={(id, checked) =>
 										setUsers((prev) =>
@@ -248,7 +245,7 @@ const Page = () => {
 						{
 							header: 'Access Role',
 							render: (u) => (
-								<AccessRoleSelect
+								<AccessRoleSelectOrBadge
 									user={u}
 									onRoleChange={(id, role) =>
 										setUsers((prev) =>
@@ -278,28 +275,33 @@ const Page = () => {
 						{
 							header: 'Actions',
 							className: 'text-center',
-							render: (u) => (
-								<div className="flex justify-center gap-4 items-center">
-									<EditUserDialog
-										user={u}
-										onUpdate={(id, name, email) =>
-											setUsers((prev) =>
-												prev.map((user) =>
-													user.id === id
-														? { ...user, userName: name, userEmail: email }
-														: user
+							render: (u) =>
+								u.appRole === 'MANAGER' ? (
+									<div className="flex justify-center gap-4 items-center">
+										<EditUserDialog
+											user={u}
+											onUpdate={(id, name, email) =>
+												setUsers((prev) =>
+													prev.map((user) =>
+														user.id === id
+															? { ...user, userName: name, userEmail: email }
+															: user
+													)
 												)
-											)
-										}
-									/>
-									<DeleteUserButton
-										user={u}
-										onDelete={(id) =>
-											setUsers((prev) => prev.filter((user) => user.id !== id))
-										}
-									/>
-								</div>
-							),
+											}
+										/>
+										<DeleteUserButton
+											user={u}
+											onDelete={(id) =>
+												setUsers((prev) =>
+													prev.filter((user) => user.id !== id)
+												)
+											}
+										/>
+									</div>
+								) : (
+									<span className="text-gray-400">No Actions</span>
+								),
 						},
 					]}
 				/>
@@ -324,12 +326,14 @@ const Page = () => {
 							{
 								label: 'Status',
 								value: (
-									<UserStatusSwitch
+									<UserStatusSwitchOrBadge
 										user={user}
 										onStatusChange={(id, checked) =>
 											setUsers((prev) =>
-												prev.map((u) =>
-													u.id === id ? { ...u, userActive: checked } : u
+												prev.map((user) =>
+													user.id === id
+														? { ...user, userActive: checked }
+														: user
 												)
 											)
 										}
@@ -339,7 +343,7 @@ const Page = () => {
 							{
 								label: 'Access Role',
 								value: (
-									<AccessRoleSelect
+									<AccessRoleSelectOrBadge
 										user={user}
 										onRoleChange={(id, role) =>
 											setUsers((prev) =>

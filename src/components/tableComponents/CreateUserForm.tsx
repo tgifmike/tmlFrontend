@@ -41,6 +41,8 @@ type Props = {
 
 export default function CreateUserDialog({ onUserCreated }: Props) {
 	const AddUserIcon = Icons.addUser;
+
+	
 	
 	const [open, setOpen] = useState(false);
 
