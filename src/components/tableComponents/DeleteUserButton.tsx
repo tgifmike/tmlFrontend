@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { Trash, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { deleteUser } from '@/app/api/userApI';
 import { User } from '@/app/types';
@@ -18,6 +17,7 @@ import {
 	AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
+import { Icons } from '../icon';
 
 type Props = {
 	user: User;
@@ -25,6 +25,8 @@ type Props = {
 };
 
 export const DeleteUserButton = ({ user, onDelete }: Props) => {
+
+	const DeleteIcon = Icons.trash;
 	const [loading, setLoading] = useState(false);
 
 	const handleDelete = async () => {
@@ -49,7 +51,7 @@ export const DeleteUserButton = ({ user, onDelete }: Props) => {
 					disabled={loading}
 					className="text-destructive p-0 flex items-center justify-center !w-[50px] !h-[50px]"
 				>
-					<Trash2 className="!w-[30px] !h-[30px]" />
+					<DeleteIcon className="!w-[30px] !h-[30px]" />
 				</Button>
 			</AlertDialogTrigger>
 			<AlertDialogContent>

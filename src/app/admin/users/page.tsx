@@ -3,7 +3,6 @@
 import Link from 'next/link';
 import React, { useEffect, useState } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { UserRound } from 'lucide-react';
 import {
 	getAllUsers,
 	toggleUserActive,
@@ -19,17 +18,15 @@ import { AppRoleSelect } from '@/components/tableComponents/AppRoleSelect';
 import { DeleteUserButton } from '@/components/tableComponents/DeleteUserButton';
 import Spinner from '@/components/spinner/Spinner';
 import { EditUserDialog } from '@/components/tableComponents/EditUserDialog';
-import CreateUserDialog from '@/components/tableComponents/CreateUserForm';
 import { ReusableTable } from '@/components/tableComponents/ReusableTableProps';
 import { DataCard } from '@/components/cards/DataCard';
-import { Switch } from '@/components/ui/switch';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Pagination } from '@/components/tableComponents/Pagination';
 import { UserControls } from '@/components/tableComponents/UserControls';
+import { Icons } from '@/components/icon';
 
 const Page = () => {
+	const UserIcon = Icons.user;
+
 	const [users, setUsers] = useState<User[]>([]);
 	const [loading, setLoading] = useState(true);
 	const [showActiveOnly, setShowActiveOnly] = useState(false);
@@ -225,7 +222,7 @@ const Page = () => {
 								<Avatar>
 									<AvatarImage src={u.userImage ?? undefined} />
 									<AvatarFallback>
-										<UserRound className="h-5 w-5 text-chart-3" />
+										<UserIcon className='h-6 w-6' />
 									</AvatarFallback>
 								</Avatar>
 							),
@@ -319,7 +316,7 @@ const Page = () => {
 							<Avatar>
 								<AvatarImage src={user.userImage ?? undefined} />
 								<AvatarFallback>
-									<UserRound className="h-5 w-5 text-chart-3" />
+									<UserIcon className="h-5 w-5 text-chart-3" />
 								</AvatarFallback>
 							</Avatar>
 						}

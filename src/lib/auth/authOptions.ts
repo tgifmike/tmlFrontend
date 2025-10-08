@@ -1,4 +1,4 @@
-import { createUser } from '@/app/api/userApI';
+import { createUser, createUserServer } from '@/app/api/userApI';
 import type { NextAuthOptions } from 'next-auth';
 import GoogleProvider from 'next-auth/providers/google';
 
@@ -16,7 +16,7 @@ export const authOptions: NextAuthOptions = {
 		async jwt({ token, user }) {
 			try {
 				if (user && user.email) {
-					const dbUser = await createUser({
+					const dbUser = await createUserServer({
 						userName: user.name ?? '',
 						userEmail: user.email,
 						userImage: user.image ?? undefined,

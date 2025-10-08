@@ -26,8 +26,8 @@ import {
 	FormMessage,
 } from '@/components/ui/form';
 import { updateUser } from '@/app/api/userApI';
-import { PencilIcon } from 'lucide-react';
 import { useState } from 'react';
+import { Icons } from '../icon';
 
 const schema = z.object({
 	name: z.string().min(1, 'Name cannot be empty'),
@@ -40,6 +40,7 @@ type Props = {
 };
 
 export function EditUserDialog({ user, onUpdate }: Props) {
+	const EditIcon = Icons.pencil;
 	const [open, setOpen] = useState(false);
 	('email');
 	const form = useForm<z.infer<typeof schema>>({
@@ -75,7 +76,7 @@ export function EditUserDialog({ user, onUpdate }: Props) {
 		<Dialog open={open} onOpenChange={setOpen}>
 			<DialogTrigger asChild>
 				<Button variant="ghost" size="icon">
-					<PencilIcon className="!w-[30px] !h-[30px]" />
+					<EditIcon className="!w-[30px] !h-[30px]" />
 				</Button>
 			</DialogTrigger>
 			<DialogContent>
