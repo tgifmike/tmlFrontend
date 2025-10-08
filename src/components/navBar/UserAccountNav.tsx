@@ -11,6 +11,8 @@ import {
 import UserAvatar from './UserAvatar';
 import { Icons } from '../icon';
 import { signOut } from 'next-auth/react';
+import Link from 'next/link';
+
 
 type User = {
 	id?: string;
@@ -24,7 +26,9 @@ type UserAccountNavProps = {
 };
 
 const UserAccountNav: React.FC<UserAccountNavProps> = ({ user }) => {
-	const DownArrowIcon = Icons.chevronDown;
+    const DownArrowIcon = Icons.chevronDown;
+    const UserIcon = Icons.user;
+
 	const [open, setOpen] = useState(false);
 
 	// ✅ Handle undefined user
@@ -62,13 +66,35 @@ const UserAccountNav: React.FC<UserAccountNavProps> = ({ user }) => {
 				</button>
 			</DropdownMenuTrigger>
 
-			<DropdownMenuContent align="end" className="w-56">
-				<DropdownMenuItem onClick={() => console.log('Profile')}>
-					Profile
-				</DropdownMenuItem>
+			<DropdownMenuContent align="end" className="w-64 rounded-2xl">
+				<div className="px-3 py-2 text-chart-3">
+					<p className="text-lg font-medium leading-none truncate">
+						{user.name}
+					</p>
+					<p className="text-sm truncate">{user.email}</p>
+				</div>
+
 				<DropdownMenuSeparator />
-				<DropdownMenuItem onClick={() => signOut()}>
-					Logout
+
+				{/* user page link */}
+				<DropdownMenuItem asChild>
+                    <Link href="/users">
+						<p className='text-lg'>Users</p>
+                        
+					</Link>
+				</DropdownMenuItem>
+
+				<DropdownMenuSeparator />
+
+				{/* sign out link */}
+				<DropdownMenuItem
+					onClick={() =>
+						signOut({
+							callbackUrl: `${window.location.origin}/login`,
+						})
+					}
+				>
+					<p className='text-xl'>Logout</p>
 				</DropdownMenuItem>
 			</DropdownMenuContent>
 		</DropdownMenu>
