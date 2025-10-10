@@ -17,7 +17,7 @@ interface Action {
 }
 
 interface DataCardProps {
-	title: string;
+	title: string | React.ReactNode;
 	description?: string;
 	avatar?: React.ReactNode;
 	fields: Field[];
@@ -36,7 +36,7 @@ export function DataCard({
 			<CardHeader className="flex flex-row items-center gap-3 p-4">
 				{avatar}
 				<div>
-					<CardTitle className="text-base">{title}</CardTitle>
+					<CardTitle className="text-chart-3">{title}</CardTitle>
 					{description && <CardDescription>{description}</CardDescription>}
 				</div>
 			</CardHeader>

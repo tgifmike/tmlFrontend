@@ -40,12 +40,13 @@ type Props = {
 };
 
 export default function CreateUserDialog({ onUserCreated }: Props) {
+	//icons
 	const AddUserIcon = Icons.addUser;
 
-	
-	
+	//set state
 	const [open, setOpen] = useState(false);
 
+	//form
 	const form = useForm<FormValues>({
 		resolver: zodResolver(schema),
 		defaultValues: {
@@ -78,7 +79,8 @@ export default function CreateUserDialog({ onUserCreated }: Props) {
 					size={'lg'}
 					className="flex items-center gap-4 text-chart-3 font-bold text-lg"
 				>
-					<AddUserIcon className="!w-[25px] !h-[25px]" />Create User
+					<AddUserIcon className="!w-[25px] !h-[25px]" />
+					Create User
 				</Button>
 			</DialogTrigger>
 
