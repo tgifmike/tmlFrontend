@@ -4,6 +4,7 @@ import Link from 'next/link';
 import React, { useEffect, useState } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
+	deleteUser,
 	getAllUsers,
 	toggleUserActive,
 	updateUser,
@@ -23,10 +24,21 @@ import { DataCard } from '@/components/cards/DataCard';
 import { Pagination } from '@/components/tableComponents/Pagination';
 import { UserControls } from '@/components/tableComponents/UserControls';
 import { Icons } from '@/components/icon';
+import { StatusSwitchOrBadge } from '@/components/tableComponents/StatusSwitchOrBadge';
+import { useSession } from 'next-auth/react';
+import { DeleteConfirmButton } from '@/components/tableComponents/DeleteConfirmButton';
 
 const Page = () => {
+	//icons
 	const UserIcon = Icons.user;
 
+	//session
+	const { data: session } = useSession();
+	const currentUser = session?.user as User | undefined;
+	const sessionUserRole = session?.user?.appRole;
+	const canToggle = currentUser?.appRole === AppRole.MANAGER;
+
+	//set state
 	const [users, setUsers] = useState<User[]>([]);
 	const [loading, setLoading] = useState(true);
 	const [showActiveOnly, setShowActiveOnly] = useState(false);
@@ -195,9 +207,12 @@ const Page = () => {
 		);
 
 	return (
-		<main className="p-4">
-			<h1 className="text-4xl font-bold mb-4">Admin Users Page</h1>
-			
+		<main className="pt-4">
+			<div className="w-3/4 flex mx-auto">
+				<h1 className="text-3xl font-bold text-center mb-4">
+					Admin Users Page
+				</h1>
+			</div>
 
 			{/* table header */}
 			<UserControls
@@ -230,20 +245,20 @@ const Page = () => {
 							header: 'Status',
 							className: 'text-center',
 							render: (u) => (
-								<UserStatusSwitchOrBadge
-									user={u}
-									onStatusChange={(id, checked) =>
-										setUsers((prev) =>
-											prev.map((user) =>
-												user.id === id ? { ...user, userActive: checked } : user
-											)
-										)
-									}
+								<StatusSwitchOrBadge
+									entity={{
+										id: u.id!,
+										active: u.userActive!,
+									}}
+									getLabel={() => `User: ${u.userName}`}
+									onToggle={handleToggleActive}
+									canToggle={canToggle}
 								/>
 							),
 						},
 						{
 							header: 'Access Role',
+							className: 'text-center',
 							render: (u) => (
 								<AccessRoleSelectOrBadge
 									user={u}
@@ -276,7 +291,7 @@ const Page = () => {
 							header: 'Actions',
 							className: 'text-center',
 							render: (u) =>
-								u.appRole === 'MANAGER' ? (
+								sessionUserRole === 'MANAGER' ? (
 									<div className="flex justify-center gap-4 items-center">
 										<EditUserDialog
 											user={u}
@@ -290,17 +305,22 @@ const Page = () => {
 												)
 											}
 										/>
-										<DeleteUserButton
-											user={u}
-											onDelete={(id) =>
-												setUsers((prev) =>
-													prev.filter((user) => user.id !== id)
-												)
-											}
-										/>
+										{u.id && (
+											<DeleteConfirmButton
+												item={{ id: u.id }}
+												entityLabel="user"
+												onDelete={async (id) => {
+													await deleteUser(id);
+													setUsers((prev) =>
+														prev.filter((user) => user.id !== id)
+													);
+												}}
+												getItemName={() => u.userName ?? 'Unknown'} // guarantee a string
+											/>
+										)}
 									</div>
 								) : (
-									<span className="text-gray-400">No Actions</span>
+									<span className="text-ring">No Actions</span>
 								),
 						},
 					]}
@@ -374,18 +394,33 @@ const Page = () => {
 						actions={[
 							{
 								element: (
-									<EditUserDialog user={user} onUpdate={handleUpdateUser} />
-								),
-							},
-							{
-								element: (
-									<DeleteUserButton
+									// <EditUserDialog user={user} onUpdate={handleUpdateUser} />
+									<EditUserDialog
 										user={user}
-										onDelete={(id) =>
-											setUsers((prev) => prev.filter((u) => u.id !== id))
+										onUpdate={(id, name, email) =>
+											setUsers((prev) =>
+												prev.map((user) =>
+													user.id === id
+														? { ...user, userName: name, userEmail: email }
+														: user
+												)
+											)
 										}
 									/>
 								),
+							},
+							{
+								element: user.id ? (
+									<DeleteConfirmButton
+										item={{ id: user.id }}
+										entityLabel="user"
+										onDelete={async (id) => {
+											await deleteUser(id);
+											setUsers((prev) => prev.filter((u) => u.id !== id));
+										}}
+										getItemName={() => user.userName ?? 'Unknown'} // always returns string
+									/>
+								) : null,
 							},
 						]}
 					/>

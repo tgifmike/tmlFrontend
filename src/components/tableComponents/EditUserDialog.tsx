@@ -1,5 +1,6 @@
 'use client';
 
+import React, { useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -26,23 +27,62 @@ import {
 	FormMessage,
 } from '@/components/ui/form';
 import { updateUser } from '@/app/api/userApI';
-import { useState } from 'react';
 import { Icons } from '../icon';
-
-const schema = z.object({
-	name: z.string().min(1, 'Name cannot be empty'),
-	email: z.string().email('Invalid email'),
-});
 
 type Props = {
 	user: User;
+	users: User[];
 	onUpdate: (id: string, name: string, email: string) => void;
 };
 
-export function EditUserDialog({ user, onUpdate }: Props) {
+export function EditUserDialog({ user, users, onUpdate }: Props) {
 	const EditIcon = Icons.pencil;
 	const [open, setOpen] = useState(false);
-	('email');
+
+	// Zod schema with frontend duplicate checks
+	  const schema = z
+			.object({
+				name: z.string().min(1, 'Name cannot be empty.'),
+				email: z.string().email('Invalid email.'),
+			})
+			.superRefine((data, ctx) => {
+				if (!users) return; // safety check
+
+				const nameExists = users.some(
+					(u) =>
+						u.userName?.toLowerCase() === data.name.toLowerCase() &&
+						u.id !== user.id
+				);
+				if (nameExists) {
+					ctx.addIssue({
+						code: 'custom',
+						message: 'Name already exists',
+						path: ['name'],
+					});
+				}
+
+				const emailExists = users.some(
+					(u) =>
+						u.userEmail?.toLowerCase() === data.email.toLowerCase() &&
+						u.id !== user.id
+				);
+				if (emailExists) {
+					ctx.addIssue({
+						code: 'custom',
+						message: 'Email already exists',
+						path: ['email'],
+					});
+				}
+			});
+
+		// const form = useForm<z.infer<typeof schema>>({
+		// 	resolver: zodResolver(schema),
+		// 	defaultValues: {
+		// 		name: user.userName || '',
+		// 		email: user.userEmail || '',
+		// 	},
+		// });
+
 	const form = useForm<z.infer<typeof schema>>({
 		resolver: zodResolver(schema),
 		defaultValues: {
@@ -51,7 +91,7 @@ export function EditUserDialog({ user, onUpdate }: Props) {
 		},
 	});
 
-	// Watch current values
+	// Detect if form values changed from original
 	const watchedValues = form.watch();
 	const isChanged =
 		watchedValues.name !== user.userName ||
@@ -79,10 +119,11 @@ export function EditUserDialog({ user, onUpdate }: Props) {
 					<EditIcon className="!w-[30px] !h-[30px]" />
 				</Button>
 			</DialogTrigger>
+
 			<DialogContent>
 				<DialogHeader>
 					<DialogTitle>Edit User</DialogTitle>
-					<DialogDescription>Update name and email</DialogDescription>
+					<DialogDescription>Update Name and Email</DialogDescription>
 				</DialogHeader>
 
 				<Form {...form}>

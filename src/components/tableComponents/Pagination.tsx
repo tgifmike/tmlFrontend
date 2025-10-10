@@ -28,7 +28,7 @@ export function Pagination({
 	const totalPages = Math.ceil(totalItems / pageSize);
 
 	return (
-		<div className="flex flex-col md:flex-row justify-between items-center w-3/4 bg-accent rounded-2xl p-4 mt-8 mx-auto gap-4 md:gap-0">
+		<div className="flex flex-col md:flex-row justify-between items-center w-3/4 bg-accent rounded-2xl p-4 mb-8 mt-8 mx-auto gap-4 md:gap-0">
 			{/* Page size selector */}
 			<div className="flex items-center gap-2">
 				<span className="text-sm">Rows per page:</span>
