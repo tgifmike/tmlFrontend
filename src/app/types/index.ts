@@ -22,9 +22,18 @@ export interface User {
 	userImage?: string | null;
 	userActive?: boolean | null;
 	accountId?: string | null;
-	accessRole?: AccessRole | null;
-	appRole?: AppRole | null;
+	accessRole?: string | null;
+	appRole?: string | null;
 	firstLogin?: boolean | null;
+	createdAt?: string | null;
+	updatedAt?: string | null;
+}
+
+export interface Account {
+	id?: string;
+	accountName: string;
+	accountActive: boolean;
+	accountImage: string;
 	createdAt?: string | null;
 	updatedAt?: string | null;
 }

@@ -78,9 +78,15 @@ const UserAccountNav: React.FC<UserAccountNavProps> = ({ user }) => {
 
 				{/* user page link */}
 				<DropdownMenuItem asChild>
-                    <Link href="/users">
-						<p className='text-lg'>Users</p>
-                        
+					<Link href="/admin/users">
+						<p className="text-lg">Users</p>
+					</Link>
+				</DropdownMenuItem>
+
+				{/* account page link */}
+				<DropdownMenuItem asChild>
+					<Link href="/accounts">
+						<p className="text-lg">Accounts</p>
 					</Link>
 				</DropdownMenuItem>
 
@@ -94,7 +100,7 @@ const UserAccountNav: React.FC<UserAccountNavProps> = ({ user }) => {
 						})
 					}
 				>
-					<p className='text-xl'>Logout</p>
+					<p className="text-xl">Logout</p>
 				</DropdownMenuItem>
 			</DropdownMenuContent>
 		</DropdownMenu>

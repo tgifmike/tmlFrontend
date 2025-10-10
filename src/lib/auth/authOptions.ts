@@ -23,14 +23,17 @@ export const authOptions: NextAuthOptions = {
 					});
 					if (dbUser) {
 						token.id = dbUser.id as string;
-						token.name = dbUser.userName;
-						token.email = dbUser.userEmail;
-						token.picture = dbUser.userImage;
+						token.name = dbUser.userName ?? '';
+						token.email = dbUser.userEmail ?? '';
+						token.picture = dbUser.userImage ?? '';
+						token.appRole = dbUser.appRole ?? 'MEMBER'; 
+						token.accessRole = dbUser.accessRole ?? 'USER'; 
 					}
 				}
 			} catch (error) {
 				console.error('JWT callback failed:', error);
-			}
+            }
+            console.log(token)
 			return token;
 		},
 		async session({ session, token }) {
@@ -38,7 +41,9 @@ export const authOptions: NextAuthOptions = {
 				session.user.id = token.id as string;
 				session.user.name = token.name;
 				session.user.email = token.email;
-				session.user.image = token.picture;
+                session.user.image = token.picture;
+                session.user.appRole = token.appRole as string;
+				session.user.accessRole = token.accessRole as string;
 			}
 			return session;
 		},

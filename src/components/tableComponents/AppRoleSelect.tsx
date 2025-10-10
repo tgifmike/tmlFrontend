@@ -10,6 +10,7 @@ import { AppRole, User } from '@/app/types';
 import { updateUserAppRole } from '@/app/api/userApI';
 import { toast } from 'sonner';
 import { Badge } from '../ui/badge';
+import { useSession } from 'next-auth/react';
 
 type Props = {
 	user: User;
@@ -18,7 +19,11 @@ type Props = {
 
 export const AppRoleSelect = ({ user, onRoleChange }: Props) => {
 
-	const isManager = user.appRole === 'MANAGER';
+	//session
+		const { data: session } = useSession();
+	
+		const sessionUserRole = session?.user?.appRole;
+		const isManager = sessionUserRole === 'MANAGER';
 
 	if (isManager) {
 		// Non-managers see a badge instead

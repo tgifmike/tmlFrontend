@@ -137,11 +137,11 @@ export const createUserServer = async (
 		return response.data;
 	} catch (error: any) {
 		if (axios.isAxiosError(error)) {
-			console.error('❌ Failed to create user (server)');
+			console.error('Failed to create user (server)');
 			console.error('Status:', error.response?.status);
 			console.error('Response:', error.response?.data);
 		} else {
-			console.error('❌ Unexpected error creating user:', error);
+			console.error('Unexpected error creating user:', error);
 		}
 		return null;
 	}
