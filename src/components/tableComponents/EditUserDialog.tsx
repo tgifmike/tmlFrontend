@@ -115,7 +115,7 @@ export function EditUserDialog({ user, users, onUpdate }: Props) {
 	return (
 		<Dialog open={open} onOpenChange={setOpen}>
 			<DialogTrigger asChild>
-				<Button variant="ghost" size="icon">
+				<Button variant="ghost" size="icon" className="text-chart-3">
 					<EditIcon className="!w-[30px] !h-[30px]" />
 				</Button>
 			</DialogTrigger>

@@ -61,3 +61,11 @@ export const deleteAccount = async (id: string) => {
         url: `/accounts/${id}`,
     });
 }
+
+export const createAccount = async (data:any) => {
+    return request<Account>({
+        method: 'POST',
+        url: `/accounts/createAccount`,
+        data: data,
+    })
+}

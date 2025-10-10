@@ -17,6 +17,9 @@ import { DeleteConfirmButton } from '@/components/tableComponents/DeleteConfirmB
 import Spinner from '@/components/spinner/Spinner';
 import { UserControls } from '@/components/tableComponents/UserControls';
 import { Pagination } from '@/components/tableComponents/Pagination';
+import CreateAccountDialog from '@/components/tableComponents/CreateAccountForm';
+import { DataCard } from '@/components/cards/DataCard';
+import Link from 'next/link';
 
 const MainAccountPage = () => {
 	//icons
@@ -119,6 +122,11 @@ const MainAccountPage = () => {
             setCurrentPage(1); // reset to first page when pageSize changes
         }, [pageSize]);
     
+      const handleAccountCreated = (newAccount: Account) => {
+				setAccounts((prev) => [...prev, newAccount]);
+				// toast.success(`Account "${newAccount.accountName}" added`);
+			};
+    
         // slice for current page
         const paginatedAccounts = filteredAccounts.slice(
             (currentPage - 1) * pageSize,
@@ -136,17 +144,25 @@ const MainAccountPage = () => {
 
 	return (
 		<main className="pt-4">
-			<div className='w-3/4 flex mx-auto'>
-				<h1 className="text-3xl font-bold text-center mb-4">Accounts</h1>
+			<div className="w-full max-w-5xl mx-auto flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 px-4">
+				<h1 className="text-2xl sm:text-3xl font-bold text-center sm:text-left">
+					Accounts
+				</h1>
+
+				<div className="flex justify-center sm:justify-end">
+					<CreateAccountDialog onAccountCreated={handleAccountCreated} />
+				</div>
 			</div>
 
 			{/* table header */}
-			<UserControls
-				showActiveOnly={showActiveOnly}
-				setShowActiveOnly={setShowActiveOnly}
-				searchTerm={searchTerm}
-				setSearchTerm={setSearchTerm}
-			/>
+			<div className="w-full md:w-3/4 mx-auto flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 px-4 mt-4">
+				<UserControls
+					showActiveOnly={showActiveOnly}
+					setShowActiveOnly={setShowActiveOnly}
+					searchTerm={searchTerm}
+					setSearchTerm={setSearchTerm}
+				/>
+			</div>
 
 			<div className="hidden md:block bg-accent p-4 rounded-2xl text-chart-3 w-3/4 mx-auto shadow-md mt-8">
 				<ReusableTable
@@ -155,7 +171,7 @@ const MainAccountPage = () => {
 					columns={[
 						{
 							header: 'Account Name',
-							render: (a) => a.accountName,
+							render: (a) => <Link href={`/accounts/${a.accountName}`}>{a.accountName}</Link>,
 						},
 						{
 							header: 'Status',
@@ -205,20 +221,84 @@ const MainAccountPage = () => {
 										)}
 									</div>
 								) : (
-									<span className="text-gray-400">No Actions</span>
+									<span className="text-ring">No Actions</span>
 								),
 						},
 					]}
 				/>
-			</div>
+            </div>
+            
+            {/* Mobile Cards */}
+            <div className="block md:hidden mt-6 space-y-4 p-2">
+                {paginatedAccounts.map((account) => (
+                    <DataCard
+                        key={account.id}
+						// title={account.accountName ?? "No Name"}
+						title={<Link href={`/accounts/${account.accountName}`}>{ account.accountName }</Link>}
+                        description={account.accountImage ?? undefined}
+                
+                        fields={[
+                            {
+                                label: 'Status',
+                                value: (
+                                    <StatusSwitchOrBadge
+									entity={{
+										id: account.id!,
+										active: account.accountActive!,
+									}}
+									getLabel={() => `Account: ${account.accountName}`}
+									onToggle={handleToggleActive}
+									canToggle={canToggle}
+								/>
+                                )
+                            },
+                        ]}
+                            
+                        actions={[
+                            {
+                                element: (
+                                    <EditAccountDialog
+                                        account={account}
+                                        accounts={accounts}
+                                        onUpdate={(id, name) =>
+                                            setAccounts((prev) =>
+                                                prev.map((account) =>
+                                            account.id === id ? {...account, accountNme: name}: account)
+                                            )
+                                        }
+                                    />
+                                )
+                            },
+                            {
+                                element: account.id ? (
+                                    <DeleteConfirmButton
+                                        item={{ id: account.id }}
+                                        entityLabel='account'
+                                        onDelete={async (id) => {
+                                            await deleteAccount(id);
+                                            setAccounts((prev) => prev.filter((a) =>
+                                            a.id != id))
+                                        }}
+                                        getItemName={() => account.accountName ?? 'unknown'}
+                                    />
+                                ) : null,
+                            }
+                        ]}
+
+                    />
+                ))}
+                    </div>
+
 			{/* pagination page size selector */}
-			<Pagination
-				currentPage={currentPage}
-				setCurrentPage={setCurrentPage}
-				pageSize={pageSize}
-				setPageSize={setPageSize}
-				totalItems={filteredAccounts.length}
-			/>
+			<div className="w-full md:w-3/4 mx-auto flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 px-4 mt-4">
+				<Pagination
+					currentPage={currentPage}
+					setCurrentPage={setCurrentPage}
+					pageSize={pageSize}
+					setPageSize={setPageSize}
+					totalItems={filteredAccounts.length}
+				/>
+			</div>
 		</main>
 	);
 };

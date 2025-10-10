@@ -1,4 +1,4 @@
-import { Blocks, Box, ChevronDown, Cog, House, LayoutDashboard, Pencil, Trash2, User, UserPlus } from "lucide-react";
+import { Blocks, Box, ChevronDown, Cog, House, ImagePlus, LayoutDashboard, PackagePlus, Pencil, Trash2, User, UserPlus } from "lucide-react";
 
 
 
@@ -12,7 +12,9 @@ export const Icons = {
     home: House,
     dashboard: LayoutDashboard,
     account: Box,
+    addAccount: PackagePlus,
     locations: Blocks,
+    addPicture: ImagePlus,
 
     
     

@@ -215,12 +215,14 @@ const Page = () => {
 			</div>
 
 			{/* table header */}
-			<UserControls
-				showActiveOnly={showActiveOnly}
-				setShowActiveOnly={setShowActiveOnly}
-				searchTerm={searchTerm}
-				setSearchTerm={setSearchTerm}
-			/>
+			<div className="w-full md:w-3/4 mx-auto flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 px-4 mt-4">
+				<UserControls
+					showActiveOnly={showActiveOnly}
+					setShowActiveOnly={setShowActiveOnly}
+					searchTerm={searchTerm}
+					setSearchTerm={setSearchTerm}
+				/>
+			</div>
 
 			{/* Desktop Table */}
 			<div className="hidden md:block mt-8 bg-accent p-4 rounded-2xl text-chart-3 w-3/4 mx-auto">
@@ -294,6 +296,7 @@ const Page = () => {
 								sessionUserRole === 'MANAGER' ? (
 									<div className="flex justify-center gap-4 items-center">
 										<EditUserDialog
+											users={users}
 											user={u}
 											onUpdate={(id, name, email) =>
 												setUsers((prev) =>
@@ -328,7 +331,7 @@ const Page = () => {
 			</div>
 
 			{/* Mobile Cards */}
-			<div className="block md:hidden mt-6 space-y-4">
+			<div className="block md:hidden mt-6 space-y-4 p-2">
 				{paginatedUsers.map((user) => (
 					<DataCard
 						key={user.id}
@@ -396,6 +399,7 @@ const Page = () => {
 								element: (
 									// <EditUserDialog user={user} onUpdate={handleUpdateUser} />
 									<EditUserDialog
+										users={users}
 										user={user}
 										onUpdate={(id, name, email) =>
 											setUsers((prev) =>
@@ -428,13 +432,15 @@ const Page = () => {
 			</div>
 
 			{/* pagination page size selector */}
-			<Pagination
-				currentPage={currentPage}
-				setCurrentPage={setCurrentPage}
-				pageSize={pageSize}
-				setPageSize={setPageSize}
-				totalItems={filteredUsers.length}
-			/>
+			<div className="w-full md:w-3/4 mx-auto flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 px-4 mt-4">
+				<Pagination
+					currentPage={currentPage}
+					setCurrentPage={setCurrentPage}
+					pageSize={pageSize}
+					setPageSize={setPageSize}
+					totalItems={filteredUsers.length}
+				/>
+			</div>
 		</main>
 	);
 };
