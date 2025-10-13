@@ -19,7 +19,9 @@ export const authOptions: NextAuthOptions = {
 					const dbUser = await createUserServer({
 						userName: user.name ?? '',
 						userEmail: user.email,
-						userImage: user.image ?? undefined,
+                        userImage: user.image ?? undefined,
+                        userAppRole: user.appRole ?? undefined,
+                        userAccessRole: user.accessRole ?? undefined,
 					});
 					if (dbUser) {
 						token.id = dbUser.id as string;

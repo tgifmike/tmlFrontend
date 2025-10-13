@@ -1,6 +1,6 @@
 import axios, { AxiosRequestConfig } from "axios";
 import { User } from "../types";
-import api from "./axios";
+import api, { request } from "./axios";
 import { toast } from "sonner";
 
 
@@ -10,21 +10,21 @@ import { toast } from "sonner";
 
 
 // Generic helper for GET, POST, etc.
-export async function request<T>(
-	config: AxiosRequestConfig
-): Promise<{ data?: T; error?: string }> {
-	try {
-		const response = await api.request<T>(config);
-		return { data: response.data };
-	} catch (err) {
-		let errorMsg = 'An unexpected error occurred';
-		if (axios.isAxiosError(err)) {
-			errorMsg = err.response?.data?.message || err.message;
-		}
-		console.error(errorMsg);
-		return { error: errorMsg };
-	}
-}
+// export async function request<T>(
+// 	config: AxiosRequestConfig
+// ): Promise<{ data?: T; error?: string }> {
+// 	try {
+// 		const response = await api.request<T>(config);
+// 		return { data: response.data };
+// 	} catch (err) {
+// 		let errorMsg = 'An unexpected error occurred';
+// 		if (axios.isAxiosError(err)) {
+// 			errorMsg = err.response?.data?.message || err.message;
+// 		}
+// 		console.error(errorMsg);
+// 		return { error: errorMsg };
+// 	}
+// }
 
 // get all users
 export const getAllUsers = async () => {
@@ -59,6 +59,9 @@ export const deleteUser = async (id: string) => {
 export interface UpdateUserPayload {
 	name?: string;
 	email?: string;
+	image?: string;
+	appRole?: string;
+	accessRole?: string;
 }
 
 export const updateUser = async (userId: string, data: UpdateUserPayload) => {
@@ -67,7 +70,10 @@ export const updateUser = async (userId: string, data: UpdateUserPayload) => {
 			`/users/update/${userId}`, // URL
 			{
 				name: data.name, // <-- body
-				email: data.email, // <-- body
+				email: data.email,
+				image: data.image,
+				appRole: data.appRole,
+				acccessRole: data.accessRole,
 			}
 			// optional config as third argument
 		);
@@ -92,6 +98,8 @@ type CreateUserPayload = {
 	userName: string;
 	userEmail: string;
 	userImage?: string;
+	userAppRole?: string;
+	userAccessRole?: string;
 };
 
 export const createUser = async (

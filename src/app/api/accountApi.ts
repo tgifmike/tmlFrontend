@@ -1,23 +1,5 @@
-import axios, { AxiosRequestConfig } from 'axios';
-import api, { request } from './axios';
+import  { request } from './axios';
 import { Account } from '../types';
-
-//helper function
-// export async function request<T>(
-// 	config: AxiosRequestConfig
-// ): Promise<{ data?: T; error?: string }> {
-// 	try {
-// 		const response = await api.request<T>(config);
-// 		return { data: response.data };
-// 	} catch (err) {
-// 		let errorMsg = 'An unexpected error occurred';
-// 		if (axios.isAxiosError(err)) {
-// 			errorMsg = err.response?.data?.message || err.message;
-// 		}
-// 		console.error(errorMsg);
-// 		return { error: errorMsg };
-// 	}
-// }
 
 
 //get all accounts
