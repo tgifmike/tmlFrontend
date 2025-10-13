@@ -1,11 +1,22 @@
 'use client';
 
-import { useParams } from 'next/navigation';
-import React from 'react';
+import { useSession } from 'next-auth/react';
+import { useParams, useRouter } from 'next/navigation';
+import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
-import { Icons } from '@/components/icon';
+import { Icons } from '@/lib/icon';
+import { toast } from 'sonner';
+import { getAccountsForUser } from '@/app/api/accountApi';
 
 const AccountPage = () => {
+	const router = useRouter();
+	const { data: session, status } = useSession();
+	const params = useParams<{ accountName: string }>();
+	const decodedAccountName = decodeURIComponent(params.accountName);
+
+	const [loading, setLoading] = useState(true);
+	const [hasAccess, setHasAccess] = useState(false);
+
 	//temp
 	const accountImage = null;
 	//const accountImage = '/newLogo.png';
@@ -13,9 +24,43 @@ const AccountPage = () => {
 	//icon
 	const AddImageIcon = Icons.addPicture;
 
-	//get account name from url
-	const params = useParams<{ accountName: string }>();
-	const decodedAccountName = decodeURIComponent(params.accountName);
+	// ✅ Access check
+	useEffect(() => {
+		if (status !== 'authenticated') return;
+
+		const verifyAccess = async () => {
+			try {
+				// Fetch all accounts the user has access to
+				const response = await getAccountsForUser(session.user.id);
+				const accounts = response.data;
+
+				// Check if the account name in URL is one of their accessible accounts
+				const match = accounts?.some(
+					(account: any) =>
+						account.accountName.toLowerCase() ===
+						decodedAccountName.toLowerCase()
+				);
+
+				if (!match) {
+					toast.error('You do not have access to this account.');
+					router.push('/accounts'); // Redirect back
+				} else {
+					setHasAccess(true);
+				}
+			} catch (err) {
+				toast.error('Failed to verify account access.');
+				router.push('/accounts');
+			} finally {
+				setLoading(false);
+			}
+		};
+
+		verifyAccess();
+	}, [status, session, decodedAccountName, router]);
+
+	// //get account name from url
+	// const params = useParams<{ accountName: string }>();
+	// const decodedAccountName = decodeURIComponent(params.accountName);
 
 	return (
 		<main className="flex">

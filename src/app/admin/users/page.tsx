@@ -23,7 +23,7 @@ import { ReusableTable } from '@/components/tableComponents/ReusableTableProps';
 import { DataCard } from '@/components/cards/DataCard';
 import { Pagination } from '@/components/tableComponents/Pagination';
 import { UserControls } from '@/components/tableComponents/UserControls';
-import { Icons } from '@/components/icon';
+import { Icons } from '@/lib/icon';
 import { StatusSwitchOrBadge } from '@/components/tableComponents/StatusSwitchOrBadge';
 import { useSession } from 'next-auth/react';
 import { DeleteConfirmButton } from '@/components/tableComponents/DeleteConfirmButton';

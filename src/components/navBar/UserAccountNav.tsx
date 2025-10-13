@@ -9,7 +9,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 
 import UserAvatar from './UserAvatar';
-import { Icons } from '../icon';
+import { Icons } from '../../lib/icon';
 import { signOut } from 'next-auth/react';
 import Link from 'next/link';
 

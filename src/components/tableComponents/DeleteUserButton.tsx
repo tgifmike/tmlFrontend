@@ -17,7 +17,7 @@ import {
 	AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
-import { Icons } from '../icon';
+import { Icons } from '../../lib/icon';
 
 type Props = {
 	user: User;

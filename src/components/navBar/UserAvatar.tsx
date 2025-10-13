@@ -1,6 +1,6 @@
 import React, { FC } from 'react'
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar'
-import { Icons } from '../icon';
+import { Icons } from '../../lib/icon';
 import { User } from 'lucide-react';
 
 type User = {

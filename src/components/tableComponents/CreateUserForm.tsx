@@ -26,7 +26,7 @@ import {
 } from '@/components/ui/dialog';
 
 import { createUser } from '@/app/api/userApI';
-import { Icons } from '../icon';
+import { Icons } from '../../lib/icon';
 
 const schema = z.object({
 	userName: z.string().min(1, 'Name cannot be empty'),
