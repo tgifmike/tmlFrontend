@@ -25,10 +25,10 @@ const MainAccountPage = () => {
 	//icons
 
 	//session
-	const { data: session } = useSession();
-	const currentUser = session?.user as User | undefined;
-	const sessionUserRole = session?.user?.appRole;
-	const canToggle = currentUser?.appRole === AppRole.MANAGER;
+		const { data: session } = useSession();
+		const currentUser = session?.user as User | undefined;
+		const sessionUserRole = session?.user?.appRole;
+		const canToggle = currentUser?.appRole === AppRole.MANAGER;
 
 	//set state
 	const [accounts, setAccounts] = useState<Account[]>([]);
@@ -141,6 +141,9 @@ const MainAccountPage = () => {
 				<span className="ml-4">Loading Accounts…</span>
 			</div>
 		);
+	
+	
+
 
 	return (
 		<main className="pt-4">
@@ -171,7 +174,9 @@ const MainAccountPage = () => {
 					columns={[
 						{
 							header: 'Account Name',
-							render: (a) => <Link href={`/accounts/${a.accountName}`}>{a.accountName}</Link>,
+							render: (a) => (
+								<Link href={`/accounts/${a.accountName}`}>{a.accountName}</Link>
+							),
 						},
 						{
 							header: 'Status',
@@ -226,68 +231,71 @@ const MainAccountPage = () => {
 						},
 					]}
 				/>
-            </div>
-            
-            {/* Mobile Cards */}
-            <div className="block md:hidden mt-6 space-y-4 p-2">
-                {paginatedAccounts.map((account) => (
-                    <DataCard
-                        key={account.id}
-						// title={account.accountName ?? "No Name"}
-						title={<Link href={`/accounts/${account.accountName}`}>{ account.accountName }</Link>}
-                        description={account.accountImage ?? undefined}
-                
-                        fields={[
-                            {
-                                label: 'Status',
-                                value: (
-                                    <StatusSwitchOrBadge
-									entity={{
-										id: account.id!,
-										active: account.accountActive!,
-									}}
-									getLabel={() => `Account: ${account.accountName}`}
-									onToggle={handleToggleActive}
-									canToggle={canToggle}
-								/>
-                                )
-                            },
-                        ]}
-                            
-                        actions={[
-                            {
-                                element: (
-                                    <EditAccountDialog
-                                        account={account}
-                                        accounts={accounts}
-                                        onUpdate={(id, name) =>
-                                            setAccounts((prev) =>
-                                                prev.map((account) =>
-                                            account.id === id ? {...account, accountNme: name}: account)
-                                            )
-                                        }
-                                    />
-                                )
-                            },
-                            {
-                                element: account.id ? (
-                                    <DeleteConfirmButton
-                                        item={{ id: account.id }}
-                                        entityLabel='account'
-                                        onDelete={async (id) => {
-                                            await deleteAccount(id);
-                                            setAccounts((prev) => prev.filter((a) =>
-                                            a.id != id))
-                                        }}
-                                        getItemName={() => account.accountName ?? 'unknown'}
-                                    />
-                                ) : null,
-                            }
-                        ]}
+			</div>
 
-                    />
-                ))}
-                    </div>
+			{/* Mobile Cards */}
+			<div className="block md:hidden mt-6 space-y-4 p-2">
+				{paginatedAccounts.map((account) => (
+					<DataCard
+						key={account.id}
+						// title={account.accountName ?? "No Name"}
+						title={
+							<Link href={`/accounts/${account.accountName}`}>
+								{account.accountName}
+							</Link>
+						}
+						description={account.accountImage ?? undefined}
+						fields={[
+							{
+								label: 'Status',
+								value: (
+									<StatusSwitchOrBadge
+										entity={{
+											id: account.id!,
+											active: account.accountActive!,
+										}}
+										getLabel={() => `Account: ${account.accountName}`}
+										onToggle={handleToggleActive}
+										canToggle={canToggle}
+									/>
+								),
+							},
+						]}
+						actions={[
+							{
+								element: (
+									<EditAccountDialog
+										account={account}
+										accounts={accounts}
+										onUpdate={(id, name) =>
+											setAccounts((prev) =>
+												prev.map((account) =>
+													account.id === id
+														? { ...account, accountName: name }
+														: account
+												)
+											)
+										}
+									/>
+								),
+							},
+							{
+								element: account.id ? (
+									<DeleteConfirmButton
+										item={{ id: account.id }}
+										entityLabel="account"
+										onDelete={async (id) => {
+											await deleteAccount(id);
+											setAccounts((prev) => prev.filter((a) => a.id != id));
+										}}
+										getItemName={() => account.accountName ?? 'unknown'}
+									/>
+								) : null,
+							},
+						]}
+					/>
+				))}
+			</div>
 
 			{/* pagination page size selector */}
 			<div className="w-full md:w-3/4 mx-auto flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 px-4 mt-4">
