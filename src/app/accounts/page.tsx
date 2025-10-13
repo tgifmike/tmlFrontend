@@ -5,6 +5,7 @@ import { Account, AppRole, User } from '../types';
 import { toast } from 'sonner';
 import {
 	deleteAccount,
+	getAccountsForUser,
 	getAllAccounts,
 	toggleAccountActive,
 } from '../api/accountApi';
@@ -25,10 +26,10 @@ const MainAccountPage = () => {
 	//icons
 
 	//session
-		const { data: session } = useSession();
-		const currentUser = session?.user as User | undefined;
-		const sessionUserRole = session?.user?.appRole;
-		const canToggle = currentUser?.appRole === AppRole.MANAGER;
+	const { data: session, status } = useSession();
+	const currentUser = session?.user as User | undefined;
+	const sessionUserRole = session?.user?.appRole;
+	const canToggle = currentUser?.appRole === AppRole.MANAGER;
 
 	//set state
 	const [accounts, setAccounts] = useState<Account[]>([]);
@@ -39,19 +40,57 @@ const MainAccountPage = () => {
 	const [pageSize, setPageSize] = useState(10);
 
 	//get all accounts
+	// useEffect(() => {
+	// 	const fetchAccounts = async () => {
+	// 		try {
+	// 			const response = await getAllAccounts();
+	// 			setAccounts(response.data || []);
+	// 		} catch (error: any) {
+	// 			toast.error('Failed to fetch accounts: ' + (error.message || error));
+	// 		} finally {
+	// 			setLoading(false);
+	// 		}
+	// 	};
+	// 	fetchAccounts();
+	// }, []);
+
+	//get account by user
+	// useEffect(() => {
+	// 	const fetchAccounts = async () => {
+	// 		try {
+	// 			const response = await getAccountsForUser(session?.user.id);
+	// 			setAccounts(response.data || []);
+	// 		} catch (error: any) {
+	// 			toast.error('Failed to fetch accounts: ' + (error.message || error));
+	// 		} finally {
+	// 			setLoading(false);
+	// 		}
+	// 	};
+	// 	fetchAccounts();
+	// }, []);
+
+
+
 	useEffect(() => {
-		const fetchAccounts = async () => {
-			try {
-				const response = await getAllAccounts();
-				setAccounts(response.data || []);
-			} catch (error: any) {
-				toast.error('Failed to fetch accounts: ' + (error.message || error));
-			} finally {
-				setLoading(false);
-			}
-		};
-		fetchAccounts();
-	}, []);
+		// Only fetch if session is loaded and user id exists
+		if (status === 'authenticated' && session?.user?.id) {
+			const fetchAccounts = async () => {
+				try {
+					const response = await getAccountsForUser(session.user.id);
+					setAccounts(response.data || []);
+				} catch (error: any) {
+					toast.error('Failed to fetch accounts: ' + (error.message || error));
+				} finally {
+					setLoading(false);
+				}
+			};
+			fetchAccounts();
+		} else if (status !== 'loading') {
+			// Session failed or no user
+			setLoading(false);
+		}
+	}, [status, session]);
+
 
 	//toggle account active
 	const handleToggleActive = async (accountId: string, checked: boolean) => {
@@ -65,11 +104,11 @@ const MainAccountPage = () => {
 			);
 
 			const updatedAccount = accounts.find((a) => a.id === accountId);
-			toast.success(
-				`User: ${updatedAccount?.accountName ?? 'Unknow'} is now ${
-					checked ? 'active' : 'inactive'
-				}`
-			);
+			// toast.success(
+			// 	`User: ${updatedAccount?.accountName ?? 'Unknow'} is now ${
+			// 		checked ? 'active' : 'inactive'
+			// 	}`
+			// );
 		} catch (error: any) {
 			toast.error('Failed to update user status: ' + error.message);
 		}
@@ -86,52 +125,52 @@ const MainAccountPage = () => {
 		const matchesActive = showActiveOnly ? account.accountActive : true;
 
 		return matchesActive && matchesSearch;
-    });
+	});
 
-    // Load pagination settings from localStorage safely
-        useEffect(() => {
-            if (typeof window !== 'undefined') {
-                const storedPage = Number(localStorage.getItem('usersCurrentPage')) || 1;
-                const storedPageSize =
-                    Number(localStorage.getItem('usersPageSize')) || 10;
-                setCurrentPage(storedPage);
-                setPageSize(storedPageSize);
-            }
-        }, []);
-    
-        // Persist pagination to localStorage
-        useEffect(() => {
-            if (typeof window !== 'undefined') {
-                localStorage.setItem('usersCurrentPage', String(currentPage));
-            }
-        }, [currentPage]);
-    
-        useEffect(() => {
-            if (typeof window !== 'undefined') {
-                localStorage.setItem('usersPageSize', String(pageSize));
-            }
-        }, [pageSize]);
-    
-    //pagination
-        useEffect(() => {
-            localStorage.setItem('usersCurrentPage', String(currentPage));
-        }, [currentPage]);
-    
-        useEffect(() => {
-            localStorage.setItem('usersPageSize', String(pageSize));
-            setCurrentPage(1); // reset to first page when pageSize changes
-        }, [pageSize]);
-    
-      const handleAccountCreated = (newAccount: Account) => {
-				setAccounts((prev) => [...prev, newAccount]);
-				// toast.success(`Account "${newAccount.accountName}" added`);
-			};
-    
-        // slice for current page
-        const paginatedAccounts = filteredAccounts.slice(
-            (currentPage - 1) * pageSize,
-            currentPage * pageSize
-        );
+	// Load pagination settings from localStorage safely
+	useEffect(() => {
+		if (typeof window !== 'undefined') {
+			const storedPage = Number(localStorage.getItem('usersCurrentPage')) || 1;
+			const storedPageSize =
+				Number(localStorage.getItem('usersPageSize')) || 10;
+			setCurrentPage(storedPage);
+			setPageSize(storedPageSize);
+		}
+	}, []);
+
+	// Persist pagination to localStorage
+	useEffect(() => {
+		if (typeof window !== 'undefined') {
+			localStorage.setItem('usersCurrentPage', String(currentPage));
+		}
+	}, [currentPage]);
+
+	useEffect(() => {
+		if (typeof window !== 'undefined') {
+			localStorage.setItem('usersPageSize', String(pageSize));
+		}
+	}, [pageSize]);
+
+	//pagination
+	useEffect(() => {
+		localStorage.setItem('usersCurrentPage', String(currentPage));
+	}, [currentPage]);
+
+	useEffect(() => {
+		localStorage.setItem('usersPageSize', String(pageSize));
+		setCurrentPage(1); // reset to first page when pageSize changes
+	}, [pageSize]);
+
+	const handleAccountCreated = (newAccount: Account) => {
+		setAccounts((prev) => [...prev, newAccount]);
+		// toast.success(`Account "${newAccount.accountName}" added`);
+	};
+
+	// slice for current page
+	const paginatedAccounts = filteredAccounts.slice(
+		(currentPage - 1) * pageSize,
+		currentPage * pageSize
+	);
 
 	//show loadding state
 	if (loading || accounts == null)
@@ -143,7 +182,6 @@ const MainAccountPage = () => {
 		);
 	
 	
-
 
 	return (
 		<main className="pt-4">
