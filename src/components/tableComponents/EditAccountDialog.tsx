@@ -1,7 +1,7 @@
 'use client';
 
 import { Account } from '@/app/types';
-import { Icons } from '../icon';
+import { Icons } from '../../lib/icon';
 import { useMemo, useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';

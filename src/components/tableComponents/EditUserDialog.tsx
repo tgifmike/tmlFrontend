@@ -27,7 +27,7 @@ import {
 	FormMessage,
 } from '@/components/ui/form';
 import { updateUser } from '@/app/api/userApI';
-import { Icons } from '../icon';
+import { Icons } from '../../lib/icon';
 
 type Props = {
 	user: User;

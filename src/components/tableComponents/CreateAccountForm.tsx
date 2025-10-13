@@ -26,7 +26,7 @@ import {
 	FormMessage,
 } from '../ui/form';
 import { Input } from '../ui/input';
-import { Icons } from '../icon';
+import { Icons } from '../../lib/icon';
 
 type CreateAccountDialogProps = {
 	onAccountCreated?: (account: Account) => void;

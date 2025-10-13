@@ -14,7 +14,7 @@ import {
 	AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
-import { Icons } from '../icon';
+import { Icons } from '../../lib/icon';
 
 type DeleteConfirmButtonProps<T extends { id: string; name?: string }> = {
 	item: T;
