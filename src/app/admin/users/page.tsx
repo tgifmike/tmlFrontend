@@ -96,11 +96,11 @@ const Page = () => {
 			);
 
 			const updatedUser = users.find((u) => u.id === userId);
-			toast.success(
-				`User:  ${updatedUser?.userName ?? 'unknown'} is now ${
-					checked ? 'active' : 'inactive'
-				}`
-			);
+			// toast.success(
+			// 	`User:  ${updatedUser?.userName ?? 'unknown'} is now ${
+			// 		checked ? 'active' : 'inactive'
+			// 	}`
+			// );
 		} catch (error: any) {
 			toast.error('Failed to update user status: ' + error.message);
 		}

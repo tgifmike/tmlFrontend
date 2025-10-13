@@ -10,6 +10,14 @@ export const getAllAccounts = async () => {
     })
 }
 
+//get accounts availble by user
+export const getAccountsForUser = async (userId: string) => {
+    return request<Account[]>({
+        method: 'GET',
+        url: `/user-access/${userId}/accounts`
+    })
+}
+
 //toggle acount active
 export const toggleAccountActive = async (id: string, accountActive: boolean) => {
     return request<Account>({
