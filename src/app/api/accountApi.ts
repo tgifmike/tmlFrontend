@@ -51,6 +51,15 @@ export const createAccount = async (data:any) => {
     })
 }
 
+//create account with access
+export const createAccountWithAccess = async (userId: string, data:any) => {
+    return request<Account>({
+			method: 'POST',
+			url: `/accounts/createAccountWithAccess/${userId}`,
+			data: data,
+		});
+}
+
 //grant user access to account
 export const grantAccess = async (userId: string, accoundId: string) => {
     return request({

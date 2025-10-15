@@ -1,6 +1,6 @@
 'use client';
 
-import { createAccount } from '@/app/api/accountApi';
+import { createAccount, createAccountWithAccess } from '@/app/api/accountApi';
 import { Account } from '@/app/types';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useState, useMemo } from 'react';
@@ -27,6 +27,7 @@ import {
 } from '../ui/form';
 import { Input } from '../ui/input';
 import { Icons } from '../../lib/icon';
+import { useSession } from 'next-auth/react';
 
 type CreateAccountDialogProps = {
 	onAccountCreated?: (account: Account) => void;
@@ -57,7 +58,11 @@ export default function CreateAccountDialog({
     const AddAccountIcon = Icons.addAccount;
 
     //set state
-    const [open, setOpen] = useState(false);
+	const [open, setOpen] = useState(false);
+	
+	//get user id from session
+	const { data: session, status } = useSession();
+	const userId = session?.user?.id || '';
     
 
 	// dynamically revalidate when account list changes
@@ -73,7 +78,7 @@ export default function CreateAccountDialog({
 
 	const onSubmit = async (values: FormValues) => {
 		try {
-			const { data, error } = await createAccount(values);
+			const { data, error } = await createAccountWithAccess(userId, values);
 
 			if (error || !data) {
 				if (error?.includes('409') || error?.toLowerCase().includes('exists')) {
