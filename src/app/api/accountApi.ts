@@ -1,5 +1,6 @@
 import  { request } from './axios';
 import { Account } from '../types';
+import { UserRoundIcon } from 'lucide-react';
 
 
 //get all accounts
@@ -26,16 +27,6 @@ export const toggleAccountActive = async (id: string, accountActive: boolean) =>
     });
 }
 
-//update account name
-// export interface UpdatedAccountPayload {
-//     accountName?: string;
-// }
-
-// export const updateAccount = async (accountId: string, data: UpdatedAccountPayload) => {
-//     try {
-//         const response = await api.put(`/accounts`)
-//     }
-// }
 
 export const updateAccountName = async (id: string, accountName: string) => {
     return request<Account>({
@@ -58,4 +49,20 @@ export const createAccount = async (data:any) => {
         url: `/accounts/createAccount`,
         data: data,
     })
+}
+
+//grant user access to account
+export const grantAccess = async (userId: string, accoundId: string) => {
+    return request({
+			method: 'POST',
+			url: `/user-access/${userId}/accounts/${accoundId}`,
+		});
+};
+
+//revoke user access to account
+export const revokeAccess = async (userId: string, accoundId: string) => {
+    return request({
+			method: 'DELETE',
+			url: `/user-access/${userId}/accounts/${accoundId}`,
+		});
 }

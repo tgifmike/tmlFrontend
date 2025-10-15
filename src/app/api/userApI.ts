@@ -27,9 +27,11 @@ import { toast } from "sonner";
 // }
 
 // get all users
+
 export const getAllUsers = async () => {
 	return request<User[]>({ method: 'GET', url: '/users/all' });
 };
+
 
 //toggle active flag
 export const toggleUserActive = async (id: string, active: boolean) => {
