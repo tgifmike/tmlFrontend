@@ -32,11 +32,13 @@ export default function UserAccessPage() {
 			try {
 				const [userRes, accountRes] = await Promise.all([
 					getAllUsers(),
-					getAllAccounts(),
+                    getAllAccounts(),
+                    
 				]);
 
 				const users = userRes?.data ?? [];
-				const accounts = accountRes?.data ?? [];
+                const accounts = accountRes?.data ?? [];
+                console.log('accountRes.data:', accountRes?.data);
 				setUsers(users);
 				setAccounts(accounts);
 

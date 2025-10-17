@@ -213,7 +213,7 @@ const MainAccountPage = () => {
 						{
 							header: 'Account Name',
 							render: (a) => (
-								<Link href={`/accounts/${a.accountName}`}>{a.accountName}</Link>
+								<Link href={`/accounts/${a.id}`}>{a.accountName}</Link>
 							),
 						},
 						{
@@ -278,7 +278,7 @@ const MainAccountPage = () => {
 						key={account.id}
 						// title={account.accountName ?? "No Name"}
 						title={
-							<Link href={`/accounts/${account.accountName}`}>
+							<Link href={`/accounts/${account.id}`}>
 								{account.accountName}
 							</Link>
 						}

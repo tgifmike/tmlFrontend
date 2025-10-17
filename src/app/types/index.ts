@@ -37,3 +37,18 @@ export interface Account {
 	createdAt?: string | null;
 	updatedAt?: string | null;
 }
+
+export interface Locations {
+	id?: string;
+	locationName: string;
+	locationActive: boolean;
+	locationStreet: string;
+	locationTown: string;
+	locationState: string;
+	locationZipCode: string;
+	locationTimezone: string;
+	locationLatitude: string;
+	locationLongitude: string;
+	createdAt?: string | null;
+	updatedAt?: string | null;
+}
