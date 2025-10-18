@@ -34,6 +34,7 @@ export interface Account {
 	accountName: string;
 	accountActive: boolean;
 	accountImage: string;
+	imageBase64?: string | null;	
 	createdAt?: string | null;
 	updatedAt?: string | null;
 }

@@ -4,29 +4,56 @@ import { Icons } from '@/lib/icon';
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import UploadAccountImagePopover from './UploadAccountImagePopover';
+import { getAccountById, getAccountsForUser } from '@/app/api/accountApi';
+import { useEffect, useState } from 'react';
 
 type LeftNavProps = {
 	accountName: string | null;
-	accountImage: string | null;
+    accountImage: string | null;
+    imageBase64?: string | null;
+    accountId: string;
 };
 
-const LeftNav = ({ accountName, accountImage }: LeftNavProps) => {
+const LeftNav = ({ accountName, accountImage, accountId }: LeftNavProps) => {
 	//icons
-    const AddImageIcon = Icons.addPicture;
-    const AccountsIcon = Icons.account
+	const AddImageIcon = Icons.addPicture;
+	const AccountsIcon = Icons.account;
 
-    const pathname = usePathname();
+	//set stae
+	const [image, setImage] = useState<string | null>(null);
+
+	const pathname = usePathname();
+
+	// Fetch latest account image on mount
+	useEffect(() => {
+		const fetchAccountImage = async () => {
+			try {
+				const response = await getAccountById(accountId);
+				const account = response?.data;
+				if (account?.imageBase64) {
+					setImage(account.imageBase64);
+				}
+			} catch (err) {
+				console.error('Failed to fetch account image:', err);
+			}
+		};
+
+		fetchAccountImage();
+	}, [accountId]);
 
 	return (
 		<nav className="border-r-2 bg-ring h-full">
 			<div className="flex justify-center mt-6">
-				<p className="text-2xl text-chart-3 font-bold text-center">{accountName}</p>
+				<p className="text-2xl text-chart-3 font-bold text-center">
+					{accountName}
+				</p>
 			</div>
 			<div>
-				{accountImage ? (
+				{image || accountImage ? (
 					<Image
-						src={accountImage}
-						alt="logo"
+						src={`data:image/png;base64,${image ?? accountImage}`}
+						alt="Account Logo"
 						className="mx-auto mt-4 rounded-full"
 						width={180}
 						height={180}
@@ -34,16 +61,38 @@ const LeftNav = ({ accountName, accountImage }: LeftNavProps) => {
 					/>
 				) : (
 					<div className="mx-auto mt-4 rounded-full bg-ring flex items-center justify-center w-32 h-32 sm:w-40 sm:h-40 md:w-44 md:h-44 lg:w-48 lg:h-48">
-						<AddImageIcon className="text-background h-12 w-12 sm:h-16 sm:w-16 md:h-20 md:w-20 lg:h-24 lg:w-24" />
+						<AddImageIcon className="text-background h-12 w-12 sm:h-16 sm:w-16 md:h-18 md:w-18 lg:h-22 lg:w-22" />
 					</div>
 				)}
+			</div>
+
+			<div className="flex justify-center mt-4">
+				<UploadAccountImagePopover
+					accountId={accountId}
+					// onUploadSuccess={async () => {
+					// 	try {
+					// 		const response = await getAccountById(accountId);
+					// 		const account = response?.data;
+					// 		if (!account) {
+					// 			console.warn('No account returned for id:', accountId);
+					// 			return;
+					// 		}
+					// 		setImage(account.imageBase64 || null);
+					// 	} catch (error) {
+					// 		console.error('Failed to refresh account image:', error);
+					// 	}
+					// }}
+					onUploadSuccess={(uploadedBase64) => {
+						setImage(uploadedBase64); // immediate update
+					}}
+				/>
 			</div>
 
 			<div className="flex flex-col gap-2 px-4 pb-6 mt-6">
 				<NavLink
 					href="/accounts"
 					label="Accounts"
-					icon= {<AccountsIcon />}
+					icon={<AccountsIcon />}
 					pathname={pathname}
 				/>
 			</div>
