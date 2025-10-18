@@ -11,6 +11,14 @@ export const getAllAccounts = async () => {
     })
 }
 
+// get one account by ID
+export const getAccountById = async (accountId: string) => {
+	return request<Account>({
+		method: 'GET',
+		url: `/accounts/${accountId}`,
+	});
+};
+
 //get accounts availble by user
 export const getAccountsForUser = async (userId: string) => {
     return request<Account[]>({
@@ -75,3 +83,12 @@ export const revokeAccess = async (userId: string, accoundId: string) => {
 			url: `/user-access/${userId}/accounts/${accoundId}`,
 		});
 }
+
+//update account image
+export const updateAccountImage = async (accountId: string, base64Image: string) => {
+    return request<Account>({
+        method: 'PUT',
+        url: `/accounts/${accountId}/image`,
+        data: { imageBase64: base64Image },
+    })
+};
