@@ -69,19 +69,7 @@ const LeftNav = ({ accountName, accountImage, accountId }: LeftNavProps) => {
 			<div className="flex justify-center mt-4">
 				<UploadAccountImagePopover
 					accountId={accountId}
-					// onUploadSuccess={async () => {
-					// 	try {
-					// 		const response = await getAccountById(accountId);
-					// 		const account = response?.data;
-					// 		if (!account) {
-					// 			console.warn('No account returned for id:', accountId);
-					// 			return;
-					// 		}
-					// 		setImage(account.imageBase64 || null);
-					// 	} catch (error) {
-					// 		console.error('Failed to refresh account image:', error);
-					// 	}
-					// }}
+				
 					onUploadSuccess={(uploadedBase64) => {
 						setImage(uploadedBase64); // immediate update
 					}}
