@@ -56,7 +56,10 @@ export function EditAccountDialog({
 	accounts = [],
 	onUpdate,
 }: EditAccountProps) {
+	//icons
 	const EditIcon = Icons.pencil;
+
+	//set state
 	const [open, setOpen] = useState(false);
 
 	// ✅ Dynamically recompute schema whenever accounts or current account changes

@@ -13,9 +13,10 @@ type LeftNavProps = {
     accountImage: string | null;
     imageBase64?: string | null;
     accountId: string;
+    sessionUserRole: string | undefined;    
 };
 
-const LeftNav = ({ accountName, accountImage, accountId }: LeftNavProps) => {
+const LeftNav = ({ accountName, accountImage, accountId, sessionUserRole }: LeftNavProps) => {
 	//icons
 	const AddImageIcon = Icons.addPicture;
 	const AccountsIcon = Icons.account;
@@ -65,17 +66,16 @@ const LeftNav = ({ accountName, accountImage, accountId }: LeftNavProps) => {
 					</div>
 				)}
 			</div>
-
+			{sessionUserRole === 'MANAGER' && (  
 			<div className="flex justify-center mt-4">
 				<UploadAccountImagePopover
 					accountId={accountId}
-				
 					onUploadSuccess={(uploadedBase64) => {
 						setImage(uploadedBase64); // immediate update
 					}}
 				/>
-			</div>
-
+            </div>
+            )}
 			<div className="flex flex-col gap-2 px-4 pb-6 mt-6">
 				<NavLink
 					href="/accounts"
