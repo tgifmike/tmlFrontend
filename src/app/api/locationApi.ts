@@ -20,3 +20,56 @@ export const getLocationsByAccountId = async (accountId: string) => {
         url: `/locations/accounts/${accountId}/locations`,
     });
 }
+
+export const deleteLocation = async (id: string) => {
+    return request<Locations>({
+        method: 'DELETE',
+        url: `/locations/${id}`,
+    });
+}
+
+export const createLocation = async (accountId: string, data: any) => {
+	
+    
+    // map frontend form keys to backend DTO keys
+	const payload = {
+		locationName: data.locationName,
+		locationStreet: data.street,
+		locationTown: data.town,
+		locationState: data.state,
+		locationZipCode: data.zipCode,
+		locationTimeZone: data.timeZone,
+	};
+
+	return request<Locations>({
+		method: 'POST',
+		url: `/locations/${accountId}/createLocation`,
+		data: payload,
+	});
+};
+
+export const toggleLocationActive = async (id: string, locationActive: boolean) => {
+    return request<Locations>({
+        method: 'PATCH',
+        url: `/locations/${id}/active?active=${locationActive}`
+    });
+}
+
+export const updateLocation = async (id: string, data: any) => {
+    
+
+    const payload = {
+			locationName: data.locationName,
+			locationStreet: data.locationStreet,
+			locationTown: data.locationTown,
+			locationState: data.locationState,
+			locationZipCode: data.locationZipCode,
+			locationTimeZone: data.locationTimeZone,
+		};
+
+    return request<Locations>({
+        method: 'PATCH',
+        url: `/locations/${id}/updateLocation`,
+        data: payload,
+    });
+}

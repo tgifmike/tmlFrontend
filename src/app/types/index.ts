@@ -47,7 +47,7 @@ export interface Locations {
 	locationTown: string;
 	locationState: string;
 	locationZipCode: string;
-	locationTimezone: string;
+	locationTimeZone: string;
 	locationLatitude: string;
 	locationLongitude: string;
 	createdAt?: string | null;

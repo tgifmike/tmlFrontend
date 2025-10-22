@@ -1,4 +1,4 @@
-import { Blocks, Box, ChevronDown, Cog, House, ImagePlus, LayoutDashboard, PackagePlus, Pencil, Trash2, User, UserPlus } from "lucide-react";
+import { Blocks, Box, ChevronDown, Cog, Grid2X2Plus, House, ImagePlus, LayoutDashboard, PackagePlus, Pencil, Trash2, User, UserPlus } from "lucide-react";
 
 
 
@@ -14,8 +14,9 @@ export const Icons = {
     account: Box,
     addAccount: PackagePlus,
     locations: Blocks,
+    addLocation: Grid2X2Plus,
     addPicture: ImagePlus,
-
+    
     
     
 };

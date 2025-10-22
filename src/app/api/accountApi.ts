@@ -1,6 +1,6 @@
 import  { request } from './axios';
 import { Account } from '../types';
-import { UserRoundIcon } from 'lucide-react';
+
 
 
 //get all accounts
@@ -12,10 +12,10 @@ export const getAllAccounts = async () => {
 }
 
 // get one account by ID
-export const getAccountById = async (accountId: string) => {
+export const getAccountById = async (accountId: string, userId: string) => {
 	return request<Account>({
 		method: 'GET',
-		url: `/accounts/${accountId}`,
+		url: `/accounts/by-id/${accountId}`,
 	});
 };
 
@@ -38,8 +38,8 @@ export const toggleAccountActive = async (id: string, accountActive: boolean) =>
 
 export const updateAccountName = async (id: string, accountName: string) => {
     return request<Account>({
-        method: 'PUT',
-        url: `/accounts/${id}`,
+        method: 'PATCH',
+        url: `/accounts/by-id/${id}`,
         data: {accountName},
     });
 }

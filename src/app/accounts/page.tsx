@@ -6,13 +6,11 @@ import { toast } from 'sonner';
 import {
 	deleteAccount,
 	getAccountsForUser,
-	getAllAccounts,
 	toggleAccountActive,
 } from '../api/accountApi';
 import { ReusableTable } from '@/components/tableComponents/ReusableTableProps';
 import { StatusSwitchOrBadge } from '@/components/tableComponents/StatusSwitchOrBadge';
 import { useSession } from 'next-auth/react';
-import { DeleteUserButton } from '@/components/tableComponents/DeleteUserButton';
 import { EditAccountDialog } from '@/components/tableComponents/EditAccountDialog';
 import { DeleteConfirmButton } from '@/components/tableComponents/DeleteConfirmButton';
 import Spinner from '@/components/spinner/Spinner';
@@ -38,38 +36,6 @@ const MainAccountPage = () => {
 	const [searchTerm, setSearchTerm] = useState('');
 	const [currentPage, setCurrentPage] = useState(1);
 	const [pageSize, setPageSize] = useState(10);
-
-	//get all accounts
-	// useEffect(() => {
-	// 	const fetchAccounts = async () => {
-	// 		try {
-	// 			const response = await getAllAccounts();
-	// 			setAccounts(response.data || []);
-	// 		} catch (error: any) {
-	// 			toast.error('Failed to fetch accounts: ' + (error.message || error));
-	// 		} finally {
-	// 			setLoading(false);
-	// 		}
-	// 	};
-	// 	fetchAccounts();
-	// }, []);
-
-	//get account by user
-	// useEffect(() => {
-	// 	const fetchAccounts = async () => {
-	// 		try {
-	// 			const response = await getAccountsForUser(session?.user.id);
-	// 			setAccounts(response.data || []);
-	// 		} catch (error: any) {
-	// 			toast.error('Failed to fetch accounts: ' + (error.message || error));
-	// 		} finally {
-	// 			setLoading(false);
-	// 		}
-	// 	};
-	// 	fetchAccounts();
-	// }, []);
-
-
 
 	useEffect(() => {
 		// Only fetch if session is loaded and user id exists
@@ -104,11 +70,6 @@ const MainAccountPage = () => {
 			);
 
 			const updatedAccount = accounts.find((a) => a.id === accountId);
-			// toast.success(
-			// 	`User: ${updatedAccount?.accountName ?? 'Unknow'} is now ${
-			// 		checked ? 'active' : 'inactive'
-			// 	}`
-			// );
 		} catch (error: any) {
 			toast.error('Failed to update user status: ' + error.message);
 		}
@@ -130,9 +91,9 @@ const MainAccountPage = () => {
 	// Load pagination settings from localStorage safely
 	useEffect(() => {
 		if (typeof window !== 'undefined') {
-			const storedPage = Number(localStorage.getItem('usersCurrentPage')) || 1;
+			const storedPage = Number(localStorage.getItem('mainAccountCurrentPage')) || 1;
 			const storedPageSize =
-				Number(localStorage.getItem('usersPageSize')) || 10;
+				Number(localStorage.getItem('mainAccountPageSize')) || 10;
 			setCurrentPage(storedPage);
 			setPageSize(storedPageSize);
 		}
@@ -141,23 +102,23 @@ const MainAccountPage = () => {
 	// Persist pagination to localStorage
 	useEffect(() => {
 		if (typeof window !== 'undefined') {
-			localStorage.setItem('usersCurrentPage', String(currentPage));
+			localStorage.setItem('mainAccountCurrentPage', String(currentPage));
 		}
 	}, [currentPage]);
 
 	useEffect(() => {
 		if (typeof window !== 'undefined') {
-			localStorage.setItem('usersPageSize', String(pageSize));
+			localStorage.setItem('mainAccountPageSize', String(pageSize));
 		}
 	}, [pageSize]);
 
 	//pagination
 	useEffect(() => {
-		localStorage.setItem('usersCurrentPage', String(currentPage));
+		localStorage.setItem('mainAccountCurrentPage', String(currentPage));
 	}, [currentPage]);
 
 	useEffect(() => {
-		localStorage.setItem('usersPageSize', String(pageSize));
+		localStorage.setItem('mainAccountPageSize', String(pageSize));
 		setCurrentPage(1); // reset to first page when pageSize changes
 	}, [pageSize]);
 
