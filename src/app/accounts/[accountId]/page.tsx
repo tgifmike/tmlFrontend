@@ -20,6 +20,8 @@ import { StatusSwitchOrBadge } from '@/components/tableComponents/StatusSwitchOr
 import { UserControls } from '@/components/tableComponents/UserControls';
 import CreateLocationDialog from '@/components/tableComponents/CreateLocationForm';
 import { EditLocationDialog } from '@/components/tableComponents/EditLocationDialog';
+import { DataCard } from '@/components/cards/DataCard';
+import Link from 'next/link';
 
 const AccountPage = () => {
 	const router = useRouter();
@@ -239,7 +241,7 @@ const AccountPage = () => {
 								columns={[
 									{
 										header: 'Location Name',
-										render: (loc) => <span>{loc.locationName}</span>,
+										render: (loc) => <Link href={`/accounts/${accountIdParam}/locations/${loc.id}`}>{loc.locationName}</Link>,
 									},
 									{
 										header: 'Status',
@@ -253,7 +255,6 @@ const AccountPage = () => {
 												getLabel={() => `Location: ${loc.locationName}`}
 												onToggle={handleToggleActive}
 												canToggle={canToggle}
-												// }}
 											/>
 										),
 									},
@@ -311,6 +312,82 @@ const AccountPage = () => {
 									},
 								]}
 							/>
+						</div>
+
+						{/* mobile cards */}
+						<div className="md:hidden mt-8 space-y-4">
+							{paginatedLocations.map((location) => (
+								<DataCard
+									key={location.id}
+									title={location.locationName!}
+									// description={accountImage ?? undefined}
+									fields={[
+										{
+											label: 'Status',
+											value: (
+												<StatusSwitchOrBadge
+													entity={{
+														id: location.id!,
+														active: location.locationActive,
+													}}
+													getLabel={() => `Location: ${location.locationName}`}
+													onToggle={handleToggleActive}
+													canToggle={canToggle}
+												/>
+											),
+										},
+									]}
+									actions={[
+										{
+											element: (
+												<EditLocationDialog
+													location={location}
+													onUpdate={(
+														id,
+														locationName,
+														locationStreet,
+														locationTown,
+														locationState,
+														locationZipCode,
+														locationTimeZone
+													) => {
+														setLocations((prev) =>
+															prev.map((location) =>
+																location.id === id
+																	? {
+																			...location,
+																			locationName,
+																			locationStreet: locationStreet,
+																			locationTown: locationTown,
+																			locationState: locationState,
+																			locationZipCode: locationZipCode,
+																			locationTimeZone: locationTimeZone,
+																	  }
+																	: location
+															)
+														);
+													}}
+												/>
+											),
+										},
+										{
+											element: location.id ? (
+												<DeleteConfirmButton
+															item={{ id: location.id }}
+															entityLabel="Location"
+															onDelete={async (id) => {
+																await deleteLocation(id);
+																setLocations((prev) =>
+																	prev.filter((loc) => loc.id !== id)
+																);
+															}}
+															getItemName={() => location.locationName}
+														/>
+											) : null,
+										}
+									]}
+								/>
+							))}
 						</div>
 					</div>
 				)}

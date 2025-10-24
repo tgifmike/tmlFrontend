@@ -73,3 +73,27 @@ export const updateLocation = async (id: string, data: any) => {
         data: payload,
     });
 }
+
+//grant access to location
+export const grantLocationAccess = async (userId: string, locationId: string) => {
+    return request({
+            method: 'POST',
+            url: `/user-access-locations/${userId}/locations/${locationId}`,
+        });
+}
+
+//revoke access to location
+export const revokeLocationAccess = async (userId: string, locationId: string) => {
+    return request({
+            method: 'DELETE',
+            url: `/user-access-locations/${userId}/locations/${locationId}`,
+        });
+}
+
+//get user access to locations
+export const getUserLocationAccess = async (userId: string) => {
+    return request<Locations[]>({
+            method: 'GET',
+            url: `/user-access-locations/${userId}/locations`,
+        });
+}

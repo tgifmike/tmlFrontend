@@ -15,7 +15,8 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { toast } from 'sonner';
 import { getAccountsForUser, getAllAccounts, grantAccess, revokeAccess } from '@/app/api/accountApi';
 import { getAllUsers } from '@/app/api/userApI';
-import { Account, User } from '@/app/types';
+import { Account, Locations, User } from '@/app/types';
+import { getAllLocations, getUserLocationAccess, grantLocationAccess, revokeLocationAccess } from '@/app/api/locationApi';
 
 
 export default function UserAccessPage() {
@@ -24,30 +25,41 @@ export default function UserAccessPage() {
 	const [selectedUser, setSelectedUser] = useState<User | null>(null);
 	const [selectedAccounts, setSelectedAccounts] = useState<string[]>([]);
 	const [open, setOpen] = useState(false);
+	const [locationOpen, setLocationOpen] = useState(false);
 	const [loading, setLoading] = useState(true);
-	const [userAccess, setUserAccess] = useState<Record<string, string[]>>({}); // userId -> accountIds
+	const [userAccess, setUserAccess] = useState<Record<string, string[]>>({}); 
+	const [locations, setLocations] = useState<Locations[]>([]);
+	const [selectedLocations, setSelectedLocations] = useState<string[]>([]);
+	const [userLocationAccess, setUserLocationAccess] =
+		useState<Record<string, string[]>>({}); 
+
 
 	useEffect(() => {
 		const loadData = async () => {
 			try {
 				const [userRes, accountRes] = await Promise.all([
 					getAllUsers(),
-                    getAllAccounts(),
-                    
+					getAllAccounts(),
+					//getAllLocations(),
 				]);
 
 				const users = userRes?.data ?? [];
-                const accounts = accountRes?.data ?? [];
-                console.log('accountRes.data:', accountRes?.data);
+				const accounts = accountRes?.data ?? [];
+				//const locations = locationRes?.data ?? [];
+				//console.log('accountRes.data:', accountRes?.data);
 				setUsers(users);
 				setAccounts(accounts);
+				//setLocations(locations);
 
 				// Fetch access for each user
 				const accessResults = await Promise.all(
 					users.map(async (user) => {
 						const res = await getAccountsForUser(user.id ?? '');
 						const userAccounts = res?.data ?? [];
-						return { userId: user.id, accountIds: userAccounts.map((a) => a.id) };
+						return {
+							userId: user.id,
+							accountIds: userAccounts.map((a) => a.id),
+						};
 					})
 				);
 
@@ -59,6 +71,27 @@ export default function UserAccessPage() {
 
 				const accessMap: Record<string, string[]> = {};
 
+				// Fetch location access for each user
+				const locationAccessResults = await Promise.all(
+					users.map(async (user) => {
+						const res = await getUserLocationAccess(user.id ?? '');
+						const userLocations = res?.data ?? [];
+						return {
+							userId: user.id,
+							locationIds: userLocations.map((l) => l.id),
+						};
+					})
+				);
+
+				const locationAccessMap: Record<string, string[]> = {};
+				locationAccessResults.forEach(({ userId, locationIds }) => {
+					if (userId)
+						locationAccessMap[userId] = locationIds.filter(
+							(id): id is string => !!id
+						);
+				});
+				setUserLocationAccess(locationAccessMap);
+
 				(accessResults as AccessResult[]).forEach(({ userId, accountIds }) => {
 					if (userId) {
 						// Filter out any undefined values before assigning
@@ -67,7 +100,6 @@ export default function UserAccessPage() {
 						);
 					}
 				});
-
 
 				setUserAccess(accessMap);
 			} catch (err) {
@@ -87,11 +119,37 @@ export default function UserAccessPage() {
 		setOpen(true);
 	};
 
+	// const handleOpenLocation = (user: User) => {
+	// 	setSelectedUser(user);
+	// 	setSelectedLocations(userLocationAccess[user.id ?? ''] || []);
+	// 	setLocationOpen(true);
+	// };
+
+	const handleOpenLocation = async (user: User) => {
+		setSelectedUser(user);
+		try {
+			const res = await getUserLocationAccess(user.id ?? '');
+			setLocations(res.data ?? []);
+		} catch (err) {
+			toast.error('Failed to load locations for user');
+		}
+		setSelectedLocations(userLocationAccess[user.id ?? ''] || []);
+		setLocationOpen(true);
+	};
+
 	const handleToggleAccount = (accountId: string) => {
 		setSelectedAccounts((prev) =>
 			prev.includes(accountId)
 				? prev.filter((id) => id !== accountId)
 				: [...prev, accountId]
+		);
+	};
+
+	const handleToggleLocation = (locationId: string) => {
+		setSelectedLocations((prev) =>
+			prev.includes(locationId)
+				? prev.filter((id) => id !== locationId)
+				: [...prev, locationId]
 		);
 	};
 
@@ -129,6 +187,39 @@ export default function UserAccessPage() {
 		}
 	};
 
+	const handleSaveLocation = async () => {
+		if (!selectedUser) return;
+		try {
+			const userId = selectedUser.id ?? '';
+			const previousLocations = userLocationAccess[userId] ?? [];
+			const newLocations = selectedLocations;
+
+			const toGrant = newLocations.filter(
+				(id) => !previousLocations.includes(id)
+			);
+			const toRevoke = previousLocations.filter(
+				(id) => !newLocations.includes(id)
+			);
+
+			await Promise.all([
+				...toGrant.map((id) => grantLocationAccess(userId, id)),
+				...toRevoke.map((id) => revokeLocationAccess(userId, id)),
+			]);
+
+			setUserLocationAccess((prev) => ({
+				...prev,
+				[userId]: selectedLocations,
+			}));
+
+			toast.success(`Location access updated for ${selectedUser.userName}`);
+			setLocationOpen(false);
+		} catch (err) {
+			toast.error('Failed to update location access');
+			console.error(err);
+		}
+	};
+
+
 	if (loading) {
 		return (
 			<div className="flex justify-center items-center h-64 text-muted-foreground">
@@ -148,7 +239,7 @@ export default function UserAccessPage() {
 							<CardTitle>{user.userName}</CardTitle>
 							<p className="text-sm text-muted-foreground">{user.userEmail}</p>
 						</CardHeader>
-						<CardContent>
+						<CardContent className="flex gap-4">
 							<Dialog
 								open={open && selectedUser?.id === user.id}
 								onOpenChange={setOpen}
@@ -170,7 +261,9 @@ export default function UserAccessPage() {
 												<Checkbox
 													id={`acc-${acc.id}`}
 													checked={selectedAccounts.includes(acc.id ?? '')}
-													onCheckedChange={() => handleToggleAccount(acc.id ?? '')}
+													onCheckedChange={() =>
+														handleToggleAccount(acc.id ?? '')
+													}
 												/>
 												<label
 													htmlFor={`acc-${acc.id}`}
@@ -184,6 +277,58 @@ export default function UserAccessPage() {
 
 									<DialogFooter>
 										<Button onClick={handleSave}>Save</Button>
+									</DialogFooter>
+								</DialogContent>
+							</Dialog>
+
+							{/* dialog for locations */}
+							<Dialog
+								open={locationOpen && selectedUser?.id === user.id}
+								onOpenChange={setLocationOpen}
+							>
+								<DialogTrigger asChild>
+									<Button
+										variant="outline"
+										onClick={() => handleOpenLocation(user)}
+									>
+										Edit Locations
+									</Button>
+								</DialogTrigger>
+								<DialogContent className="sm:max-w-[425px]">
+									<DialogHeader>
+										<DialogTitle>
+											Edit Locations for {user.userName}
+										</DialogTitle>
+									</DialogHeader>
+									<div className="max-h-[300px] overflow-y-auto space-y-3 py-2">
+										{locations
+											// .filter((loc) => {
+											// 	const userId = selectedUser?.id ?? '';
+											// 	const accessibleAccounts = userAccess[userId] || [];
+											// 	return accessibleAccounts.includes(
+											// 		loc.accountId ?? ''
+											// 	);
+											// })
+											.map((loc) => (
+											<div key={loc.id} className="flex items-center space-x-2">
+												<Checkbox
+													id={`loc-${loc.id}`}
+													checked={selectedLocations.includes(loc.id ?? '')}
+													onCheckedChange={() =>
+														handleToggleLocation(loc.id ?? '')
+													}
+												/>
+												<label
+													htmlFor={`loc-${loc.id}`}
+													className="text-sm font-medium"
+												>
+													{loc.locationName}
+												</label>
+											</div>
+										))}
+									</div>
+									<DialogFooter>
+										<Button onClick={handleSaveLocation}>Save</Button>
 									</DialogFooter>
 								</DialogContent>
 							</Dialog>
