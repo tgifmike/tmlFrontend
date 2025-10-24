@@ -41,6 +41,7 @@ export interface Account {
 
 export interface Locations {
 	id?: string;
+	accountId?: string | null;
 	locationName: string;
 	locationActive: boolean;
 	locationStreet: string;

@@ -35,7 +35,7 @@ export const authOptions: NextAuthOptions = {
 			} catch (error) {
 				console.error('JWT callback failed:', error);
             }
-            console.log(token)
+            // console.log(token)
 			return token;
 		},
 		async session({ session, token }) {
