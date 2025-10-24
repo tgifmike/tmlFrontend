@@ -10,10 +10,7 @@ export default function Home() {
 				<h1 className="text-4xl p-4">Welcome to the Manager Life!</h1>
 			</div>
 
-			<div className="flex gap-4 text-2xl">
-				<Link href="/admin/users">users</Link>
-				<ModeToggle />
-			</div>
+			
 		</main>
 	);
 }
