@@ -12,6 +12,7 @@ import UserAvatar from './UserAvatar';
 import { Icons } from '../../lib/icon';
 import { signOut } from 'next-auth/react';
 import Link from 'next/link';
+import { ModeToggle } from '../theme/ModeToggle';
 
 
 type User = {
@@ -26,8 +27,11 @@ type UserAccountNavProps = {
 };
 
 const UserAccountNav: React.FC<UserAccountNavProps> = ({ user }) => {
-    const DownArrowIcon = Icons.chevronDown;
-    const UserIcon = Icons.user;
+    //icons
+	const DownArrowIcon = Icons.chevronDown;
+	const UserIcon = Icons.user;
+	const DashboardIcon = Icons.dashboard;
+	const AccountsIcon = Icons.account;
 
 	const [open, setOpen] = useState(false);
 
@@ -78,15 +82,25 @@ const UserAccountNav: React.FC<UserAccountNavProps> = ({ user }) => {
 
 				{/* user page link */}
 				<DropdownMenuItem asChild>
-					<Link href="/admin/users">
-						<p className="text-lg">Users</p>
+					<Link href="/dashboard">
+						<DashboardIcon size={16} className="ml-2" />
+						<p className="text-lg">Dashboard</p>
 					</Link>
 				</DropdownMenuItem>
 
 				{/* account page link */}
 				<DropdownMenuItem asChild>
 					<Link href="/accounts">
+						<AccountsIcon size={16} className="ml-2" />
 						<p className="text-lg">Accounts</p>
+					</Link>
+				</DropdownMenuItem>
+
+				{/* light/dark mode */}
+				<DropdownMenuItem asChild className="flex justify-between items-center">
+					<Link href="/accounts">
+						<p className="text-lg">Light Mode</p>
+						<ModeToggle />
 					</Link>
 				</DropdownMenuItem>
 

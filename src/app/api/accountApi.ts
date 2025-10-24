@@ -12,7 +12,7 @@ export const getAllAccounts = async () => {
 }
 
 // get one account by ID
-export const getAccountById = async (accountId: string, userId: string) => {
+export const getAccountById = async (accountId: string) => {
 	return request<Account>({
 		method: 'GET',
 		url: `/accounts/by-id/${accountId}`,
