@@ -16,10 +16,10 @@ const LocationPage = () => {
 
     //icons
     
-        //session
-        const { data: session, status } = useSession();
-        const currentUser = session?.user as User | undefined;
-        const sessionUserRole = session?.user?.appRole;
+    //session
+    const { data: session, status } = useSession();
+    const currentUser = session?.user as User | undefined;
+    const sessionUserRole = session?.user?.appRole;
     const canToggle = currentUser?.appRole === AppRole.MANAGER;
     const params = useParams<{ accountId: string, locationId: string }>();
     const accountIdParam = params.accountId;
@@ -116,7 +116,7 @@ const LocationPage = () => {
 			{/* main content */}
 			<div className="p-4 flex-1">
 				<div className="flex justify-between items-center">
-					<h1 className="text-3xl font-bold mb-4">{locationName}</h1>
+					<h1 className="text-3xl font-bold mb-4">{locationName} Home</h1>
 				</div>
 			</div>
 		</main>
