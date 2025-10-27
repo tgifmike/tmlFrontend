@@ -37,7 +37,7 @@ const [accounts, setAccounts] = useState<Account[] | null>(null);
 				// 	router.push('/accounts');
 				// 	return;
 				// }
-        console.log('Accounts for user:', response.data);
+     //   console.log('Accounts for user:', response.data);
 				setHasAccess(true);
 				//setAccountName(account.accountName);
 				setAccounts(response.data ?? null);

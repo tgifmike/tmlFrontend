@@ -1,10 +1,11 @@
 'use client';
 
 import { getAccountsForUser } from '@/app/api/accountApi';
-import { getUserLocationAccess, updateLocation } from '@/app/api/locationApi';
+import { getUserLocationAccess, toggleLocationActive, updateLocation } from '@/app/api/locationApi';
 import { AppRole, Locations, User } from '@/app/types';
 import LocationNav from '@/components/navBar/LocationNav';
 import Spinner from '@/components/spinner/Spinner';
+import { StatusSwitchOrBadge } from '@/components/tableComponents/StatusSwitchOrBadge';
 import { Button } from '@/components/ui/button';
 import { DialogFooter } from '@/components/ui/dialog';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
@@ -215,7 +216,7 @@ const LocationSettingsPage = () => {
 				}
 			});
 
-			console.log('Updates going to backend:', updates);
+			//console.log('Updates going to backend:', updates);
 
 			const { error } = await updateLocation(currentLocation.id!, updates);
 
@@ -245,6 +246,39 @@ const LocationSettingsPage = () => {
 		}
 	};
 
+	//toggle location active
+		const handleToggleActive = async (locationId: string, checked: boolean) => {
+			// Optimistically update locations state
+			setLocations((prev) =>
+				prev.map((loc) =>
+					loc.id === locationId ? { ...loc, locationActive: checked } : loc
+				)
+			);
+
+			// Also update currentLocation if it matches
+			if (currentLocation?.id === locationId) {
+				setCurrentLocation({ ...currentLocation, locationActive: checked });
+			}
+
+			try {
+				await toggleLocationActive(locationId, checked);
+			} catch (error: any) {
+				// Rollback both states
+				setLocations((prev) =>
+					prev.map((loc) =>
+						loc.id === locationId ? { ...loc, locationActive: !checked } : loc
+					)
+				);
+				if (currentLocation?.id === locationId) {
+					setCurrentLocation({ ...currentLocation, locationActive: !checked });
+				}
+				toast.error(
+					'Failed to update location status: ' + (error?.message || error)
+				);
+			}
+		};
+
+
 	//show loadding state
 	if (loadingAccess)
 		return (
@@ -255,7 +289,7 @@ const LocationSettingsPage = () => {
 		);
 
 	return (
-		<main className="flex">
+		<main className="flex ">
 			{/* left nav */}
 			<div className="w-1/6 border-r-2 bg-ring h-screen">
 				<LocationNav
@@ -428,7 +462,20 @@ const LocationSettingsPage = () => {
 						</form>
 					</Form>
 				</div>
+				<div className="flex justify-between items-center p-4 bg-accent rounded-2xl shadow-2xl mt-5">
+					Status:
+					<StatusSwitchOrBadge
+						entity={{
+							id: currentLocation?.id!,
+							active: currentLocation?.locationActive!,
+						}}
+						getLabel={() => `Location: ${currentLocation?.locationName}`}
+						onToggle={handleToggleActive}
+						canToggle={canToggle}
+					/>
+				</div>
 			</div>
+			
 		</main>
 	);
 };
