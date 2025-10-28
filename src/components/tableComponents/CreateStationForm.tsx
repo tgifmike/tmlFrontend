@@ -22,6 +22,7 @@ import { Input } from "../ui/input";
 type CreateStationDialogProps = {
     onStationCreated?: (station: Station) => void;
     existingStations?: Station[];
+    locationId: string
 }
 
 const getSchema = (stations: Station[] = []) =>
@@ -41,6 +42,7 @@ const getSchema = (stations: Station[] = []) =>
 export default function CreateStationDialog({
     onStationCreated,
     existingStations = [],
+    locationId
 }: CreateStationDialogProps) {
     
     //icons 
@@ -66,7 +68,7 @@ export default function CreateStationDialog({
 
     const onSubmit = async (values: FormValues) => {
         try {
-            const { data, error } = await createStation(values);
+            const { data, error } = await createStation(locationId, values);
 
             if (error || !data) {
                 if (error?.includes('409') || error?.toLowerCase().includes('exists')) {
