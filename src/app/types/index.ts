@@ -54,3 +54,11 @@ export interface Locations {
 	createdAt?: string | null;
 	updatedAt?: string | null;
 }
+
+export interface Station {
+	id?: string;
+	stationName: string;
+	stationActive: boolean;
+	createdAt?: string | null;
+	updatedAt?: string | null;
+}

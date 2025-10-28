@@ -87,7 +87,7 @@ export function EditAccountDialog({
 				a.id !== account.id
 		);
 		if (duplicate) {
-			toast.error('Account name already exists');
+			toast.error(`Account named " ${values.accountName} " already exists`);
 			return;
 		}
 
@@ -98,7 +98,7 @@ export function EditAccountDialog({
 			);
 			if (error) {
 				if (error.toLowerCase().includes('exists')) {
-					toast.error('Account name already exists');
+					toast.error(`Account ${values.accountName} already exists`);
 					return;
 				}
 				toast.error(error);

@@ -24,6 +24,7 @@ const LocationNav = ({ accountName, accountImage, accountId, sessionUserRole, lo
 	const LocationsIcon = Icons.locations;
 	const DashboardIcon = Icons.dashboard;
 	const SettingsIcon = Icons.settings;
+	const ClipboardIcon = Icons.Clipboard;
 
 	//set stae
 	const [image, setImage] = useState<string | null>(null);
@@ -109,6 +110,14 @@ const LocationNav = ({ accountName, accountImage, accountId, sessionUserRole, lo
 					href={`/accounts/${accountId}/locations/${locationId}/settings`}
 					label="Settings"
 					icon={<SettingsIcon />}
+					pathname={pathname}
+				/>
+			</div>
+			<div className="flex flex-col gap-2 px-4 pb-6">
+				<NavLink
+					href={`/accounts/${accountId}/locations/${locationId}/linechecks`}
+					label="Line Checks"
+					icon={<ClipboardIcon />}
 					pathname={pathname}
 				/>
 			</div>
