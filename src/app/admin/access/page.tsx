@@ -17,6 +17,7 @@ import { getAccountsForUser, getAllAccounts, grantAccess, revokeAccess } from '@
 import { getAllUsers } from '@/app/api/userApI';
 import { Account, Locations, User } from '@/app/types';
 import { getAllLocations, getUserLocationAccess, grantLocationAccess, revokeLocationAccess } from '@/app/api/locationApi';
+import { DialogDescription } from '@radix-ui/react-dialog';
 
 
 export default function UserAccessPage() {
@@ -253,6 +254,9 @@ export default function UserAccessPage() {
 								<DialogContent className="sm:max-w-[425px]">
 									<DialogHeader>
 										<DialogTitle>Edit Accounts for {user.userName}</DialogTitle>
+										<DialogDescription>
+											This is where you set who has access to which accounts.
+										</DialogDescription>
 									</DialogHeader>
 
 									<div className="max-h-[300px] overflow-y-auto space-y-3 py-2">
@@ -299,6 +303,9 @@ export default function UserAccessPage() {
 										<DialogTitle>
 											Edit Locations for {user.userName}
 										</DialogTitle>
+										<DialogDescription>
+											This is where you set who has access to which locations.
+										</DialogDescription>
 									</DialogHeader>
 									<div className="max-h-[300px] overflow-y-auto space-y-3 py-2">
 										{locations
@@ -310,22 +317,25 @@ export default function UserAccessPage() {
 											// 	);
 											// })
 											.map((loc) => (
-											<div key={loc.id} className="flex items-center space-x-2">
-												<Checkbox
-													id={`loc-${loc.id}`}
-													checked={selectedLocations.includes(loc.id ?? '')}
-													onCheckedChange={() =>
-														handleToggleLocation(loc.id ?? '')
-													}
-												/>
-												<label
-													htmlFor={`loc-${loc.id}`}
-													className="text-sm font-medium"
+												<div
+													key={loc.id}
+													className="flex items-center space-x-2"
 												>
-													{loc.locationName}
-												</label>
-											</div>
-										))}
+													<Checkbox
+														id={`loc-${loc.id}`}
+														checked={selectedLocations.includes(loc.id ?? '')}
+														onCheckedChange={() =>
+															handleToggleLocation(loc.id ?? '')
+														}
+													/>
+													<label
+														htmlFor={`loc-${loc.id}`}
+														className="text-sm font-medium"
+													>
+														{loc.locationName}
+													</label>
+												</div>
+											))}
 									</div>
 									<DialogFooter>
 										<Button onClick={handleSaveLocation}>Save</Button>

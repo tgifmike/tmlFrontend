@@ -179,7 +179,7 @@ const LocationStationsPage = () => {
 			.toLowerCase()
 			.includes(searchTerm.toLowerCase());
 
-		const matchesActive = showActiveOnly ? station.stationName : true;
+		const matchesActive = showActiveOnly ? station.stationActive : true;
 
 		return matchesActive && matchesSearch;
 	});
