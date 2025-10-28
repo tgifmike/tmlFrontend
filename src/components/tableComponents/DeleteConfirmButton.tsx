@@ -16,12 +16,12 @@ import {
 import { Button } from '@/components/ui/button';
 import { Icons } from '../../lib/icon';
 
-type DeleteConfirmButtonProps<T extends { id: string; name?: string }> = {
-	item: T;
-	entityLabel?: string; // e.g., "user", "account", "location"
-	onDelete: (id: string) => Promise<void> | void;
+type DeleteConfirmButtonProps<T extends { id: string }> = {
+	item: T & { locationId?: string }; // allow locationId if needed
+	entityLabel?: string;
+	onDelete: (id: string, locationId?: string) => Promise<void> | void;
 	icon?: keyof typeof Icons;
-	getItemName?: (item: T) => string; // optional function to extract display name
+	getItemName?: (item: T) => string;
 };
 
 export const DeleteConfirmButton = <T extends { id: string }>({
@@ -41,10 +41,10 @@ export const DeleteConfirmButton = <T extends { id: string }>({
 	const handleDelete = async () => {
 		try {
 			setLoading(true);
-			await onDelete(item.id);
+			await onDelete(item.id, item.locationId); // pass locationId if present
 			toast.success(`${entityLabel} "${itemName}" deleted successfully`);
 		} catch (error: any) {
-			toast.error(`Failed to delete ${entityLabel}: ${error.message}`);
+			toast.error(`Failed to delete ${entityLabel}: ${error.message || error}`);
 		} finally {
 			setLoading(false);
 		}

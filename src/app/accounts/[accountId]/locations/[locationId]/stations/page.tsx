@@ -3,7 +3,7 @@
 import { ReusableTable } from '@/components/tableComponents/ReusableTableProps';
 import { getAccountsForUser } from '@/app/api/accountApi';
 import { deleteLocation, getUserLocationAccess } from '@/app/api/locationApi';
-import { getAllStations, toggleStationActive } from '@/app/api/stationApi';
+import { deleteStation, getAllStations, getStationsByLocation, toggleStationActive } from '@/app/api/stationApi';
 import { AppRole, Locations, Station, User } from '@/app/types';
 import LocationNav from '@/components/navBar/LocationNav';
 import Spinner from '@/components/spinner/Spinner';
@@ -85,7 +85,7 @@ const LocationStationsPage = () => {
 				}
 
 				//fetch stations
-				const stationRes = await getAllStations();
+				const stationRes = await getStationsByLocation(locationIdParam);
 				const fetchedStations = stationRes.data ?? [];
 				setStations(fetchedStations);
 
@@ -115,7 +115,7 @@ const LocationStationsPage = () => {
 		);
 
 		try {
-			await toggleStationActive(stationId, checked);
+			await toggleStationActive(locationIdParam, stationId, checked);
 		} catch (error: any) {
 			setStations((prev) =>
 				prev.map((station) =>
@@ -212,21 +212,21 @@ const LocationStationsPage = () => {
 			</div>
 
 			<div className="p-4 flex-1">
-				<div className='flex justify-between items-center'>
+				<div className="flex justify-between items-center">
 					<div className="flex">
 						<h1 className="text-3xl font-bold mb-4">
 							{currentLocation?.locationName}
 						</h1>
 					</div>
 
-                    <div>
-                        <p className='text-2xl'>Station List:</p>
-                    </div>
 					<div>
-                        <CreateStationDialog
-                            onStationCreated={handleStationCreated}
-                            
-                        />
+						<p className="text-2xl">Station List:</p>
+					</div>
+					<div>
+						<CreateStationDialog
+							onStationCreated={handleStationCreated}
+							locationId={locationIdParam}
+						/>
 					</div>
 				</div>
 
@@ -274,6 +274,7 @@ const LocationStationsPage = () => {
 												<div className="flex justify-center gap-4 items-center">
 													<EditStationDialog
 														station={station}
+														locationId={locationIdParam}
 														stations={stations}
 														onUpdate={(id, name) =>
 															setStations((prev) =>
@@ -288,10 +289,13 @@ const LocationStationsPage = () => {
 
 													{station.id && (
 														<DeleteConfirmButton
-															item={{ id: station.id }}
+															item={{
+																id: station.id,
+																locationId: locationIdParam,
+															}}
 															entityLabel="Location"
 															onDelete={async (id) => {
-																await deleteLocation(id);
+																await deleteStation(locationIdParam, id);
 																setStations((prev) =>
 																	prev.filter((station) => station.id !== id)
 																);

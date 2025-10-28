@@ -15,7 +15,8 @@ import { Input } from "../ui/input";
 
 type EditStationsProps = {
     station: Station;
-    stations?: Station[];
+	stations?: Station[];
+	locationId: string;
     onUpdate: (id: string, stationName: string) => void;
 }
 
@@ -37,7 +38,8 @@ const getSchema = (stations: Station[] = [], currentStationId: string) =>
 
 export function EditStationDialog({
     station,
-    stations = [],
+	stations = [],
+	locationId,
     onUpdate,
 }: EditStationsProps) {
 
@@ -78,6 +80,7 @@ export function EditStationDialog({
 
 				try {
 					const { error } = await updateStation(
+						locationId,
 						station.id!,
 						values.stationName
 					);
