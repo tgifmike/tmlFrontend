@@ -28,14 +28,15 @@ export async function middleware(req: NextRequest) {
 		return NextResponse.redirect(loginUrl);
 	}
 
+	
 	// SRADMIN-only access for /admin
 	if (pathname.startsWith('/admin')) {
-		const role = (token as any)?.appRole || (token as any)?.role;
-		if (role !== 'SRADMIN') {
+		const role = (token as any)?.accessRole ;
+		if (role.toUpperCase() !== 'SRADMIN') {
 			return NextResponse.redirect(new URL('/dashboard', req.url));
 		}
 	}
-
+	
 	return NextResponse.next();
 }
 
