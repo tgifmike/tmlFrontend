@@ -1,4 +1,4 @@
-import { Blocks, Box, ChevronDown, Cog, Grid2X2Plus, House, ImagePlus, LayoutDashboard, PackagePlus, Pencil, Trash2, User, UserPlus } from "lucide-react";
+import { Blocks, Box, ChevronDown, ClipboardPen, Cog, CookingPot, Grid2X2Plus, Hamburger, House, ImagePlus, LayoutDashboard, PackagePlus, Pencil, Trash2, User, UserPlus } from "lucide-react";
 
 
 
@@ -16,7 +16,8 @@ export const Icons = {
     locations: Blocks,
     addLocation: Grid2X2Plus,
     addPicture: ImagePlus,
-    
-    
+    Clipboard: ClipboardPen,
+    stations: CookingPot,
+    items: Hamburger
     
 };

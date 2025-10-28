@@ -32,18 +32,18 @@ const LocationSettingsPage = () => {
 	const params = useParams<{ accountId: string; locationId: string }>();
 	const accountIdParam = params.accountId;
 	const locationIdParam = params.locationId;
-	const [currentLocation, setCurrentLocation] = useState<Locations | null>(
-		null
-	);
+	
 
 	// state
 	const [loadingAccess, setLoadingAccess] = useState(true);
-	//const [loadingLocations, setLoadingLocations] = useState(true);
 	const [hasAccess, setHasAccess] = useState(false);
-	const [locationName, setLocationName] = useState<String | null>(null);
+	const [locationName, setLocationName] = useState<string | null>(null);
 	const [accountName, setAccountName] = useState<string | null>(null);
 	const [accountImage, setAccountImage] = useState<string | null>(null);
 	const [locations, setLocations] = useState<Locations[]>([]);
+	const [currentLocation, setCurrentLocation] = useState<Locations | null>(
+		null
+	);
 
 	// Zod schema with all fields and validations
 	const getSchema = (locations: Locations[] = [], currentLocationId: string) =>
@@ -106,10 +106,6 @@ const LocationSettingsPage = () => {
 
 				// Check location access
 				const locationResponse = await getUserLocationAccess(session.user.id);
-				// const location = locationResponse.data?.find(
-				// 	(loc) => loc.id?.toString() === locationIdParam
-				// );
-				// const locations = locationResponse.data ?? [];
 
 				const fetchedLocations = locationResponse.data ?? [];
 				setLocations(fetchedLocations);
@@ -143,7 +139,7 @@ const LocationSettingsPage = () => {
 		session?.user?.id,
 		accountIdParam,
 		locationIdParam,
-		router,
+
 		hasAccess,
 	]);
 
