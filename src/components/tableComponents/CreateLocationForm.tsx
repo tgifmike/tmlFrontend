@@ -115,7 +115,7 @@ export default function CreateLocationDialog({
 				return;
 			}
 
-			toast.success('Location created successfully.');
+			toast.success(`Location ${data.locationName} created successfully.`);
 			form.reset();
 			setOpen(false);
 			onLocationCreated?.(data);

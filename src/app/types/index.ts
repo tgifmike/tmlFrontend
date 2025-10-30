@@ -62,3 +62,16 @@ export interface Station {
 	createdAt?: string | null;
 	updatedAt?: string | null;
 }
+
+export interface Item {
+	id?: string;
+	itemName: string;
+	itemTemperature: number;
+	isTempTaken: boolean;
+	isCheckMark: boolean;
+	notes: string;
+	itemActive: boolean;
+	sortOrder: number;
+	createdAt?: string | null;
+	updatedAt?: string | null;
+}
