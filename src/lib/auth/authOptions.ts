@@ -19,22 +19,35 @@ export const authOptions: NextAuthOptions = {
 					const dbUser = await createUserServer({
 						userName: user.name ?? '',
 						userEmail: user.email,
-                        userImage: user.image ?? undefined,
-                        userAppRole: user.appRole ?? undefined,
-                        userAccessRole: user.accessRole ?? undefined,
+						userImage: user.image ?? undefined,
+						userAppRole: user.appRole ?? undefined,
+						userAccessRole: user.accessRole ?? undefined,
 					});
 					if (dbUser) {
 						token.id = dbUser.id as string;
 						token.name = dbUser.userName ?? '';
 						token.email = dbUser.userEmail ?? '';
 						token.picture = dbUser.userImage ?? '';
-						token.appRole = dbUser.appRole ?? 'MEMBER'; 
-						token.accessRole = dbUser.accessRole ?? 'USER'; 
+						token.appRole = dbUser.appRole ?? 'MEMBER';
+						token.accessRole = dbUser.accessRole ?? 'USER';
 					}
 				}
-			} catch (error) {
-				console.error('JWT callback failed:', error);
-            }
+			} catch (error: unknown) {
+				if (error instanceof Error) {
+					// Standard JS Error object
+					console.error('JWT callback failed:', error.message);
+				} else if (
+					typeof error === 'object' &&
+					error !== null &&
+					'response' in error
+				) {
+					// Axios-like error with response
+					// @ts-ignore
+					console.error('Response error:', await error.response?.text?.());
+				} else {
+					console.error('Unknown error in JWT callback:', error);
+				}
+			}
             // console.log(token)
 			return token;
 		},
