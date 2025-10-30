@@ -7,6 +7,7 @@ import { usePathname } from 'next/navigation';
 import UploadAccountImagePopover from './UploadAccountImagePopover';
 import { getAccountById, getAccountsForUser } from '@/app/api/accountApi';
 import { useEffect, useState } from 'react';
+import { useSession } from 'next-auth/react';
 
 type LeftNavProps = {
 	accountName: string | null;
@@ -30,9 +31,16 @@ const LocationNav = ({ accountName, accountImage, accountId, sessionUserRole, lo
 	const [image, setImage] = useState<string | null>(null);
 
 	const pathname = usePathname();
-
-	// Fetch latest account image on mount
+	const { data: session, status } = useSession();
+	
+	//Fetch latest account image on mount
 	useEffect(() => {
+		if (accountImage) {
+			setImage(accountImage);
+			return;
+		}
+
+		if (!accountId || status !== 'authenticated') return;
 		const fetchAccountImage = async () => {
 			try {
 				const response = await getAccountById(accountId);
@@ -44,9 +52,9 @@ const LocationNav = ({ accountName, accountImage, accountId, sessionUserRole, lo
 				console.error('Failed to fetch account image:', err);
 			}
 		};
+		fetchAccountImage(); 
+	}, [accountId, accountImage, status]);
 
-		fetchAccountImage();
-	}, [accountId]);
 
 	return (
 		<nav className="border-r-2 bg-ring h-full">

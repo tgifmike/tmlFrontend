@@ -21,13 +21,15 @@ import { Pagination } from '@/components/tableComponents/Pagination';
 import { EditStationDialog } from '@/components/tableComponents/EditStationDialog';
 
 const LocationStationsPage = () => {
+
+	//session
 	const { data: session, status } = useSession();
 	const router = useRouter();
 	const params = useParams<{ accountId: string; locationId: string }>();
-
 	const accountIdParam = params.accountId;
 	const locationIdParam = params.locationId;
 
+	//set state
 	const [loadingAccess, setLoadingAccess] = useState(true);
 	const [hasAccess, setHasAccess] = useState(false);
 	const [accountName, setAccountName] = useState<string | null>(null);
@@ -168,7 +170,6 @@ const LocationStationsPage = () => {
 
 	const handleStationCreated = (newStation: Station) => {
 		setStations((prev) => [...prev, newStation]);
-		// toast.success(`Account "${newAccount.accountName}" added`);
 	};
 
 	//toggle showing only active users and search
@@ -249,7 +250,9 @@ const LocationStationsPage = () => {
 								columns={[
 									{
 										header: 'Station Name',
-										render: (station) => station.stationName,
+										render: (station) =>
+											<Link href={`/accounts/${accountIdParam}/locations/${locationIdParam}/stations/${station.id}`}>{station.stationName }</Link>
+											,
 									},
 									{
 										header: 'Status',

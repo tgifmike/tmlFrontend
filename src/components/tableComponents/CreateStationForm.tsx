@@ -87,7 +87,7 @@ export default function CreateStationDialog({
             const message =
                 error?.response?.data?.messge ||
                 error?.message ||
-                'Failed ot create Station'
+                'Failed to create Station'
             toast.error(message);
         }
     };
