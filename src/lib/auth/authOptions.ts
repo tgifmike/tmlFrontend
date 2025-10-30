@@ -48,7 +48,7 @@ export const authOptions: NextAuthOptions = {
 					console.error('Unknown error in JWT callback:', error);
 				}
 			}
-            // console.log(token)
+             console.log(token)
 			return token;
 		},
 		async session({ session, token }) {
