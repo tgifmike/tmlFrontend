@@ -1,11 +1,24 @@
 import axios, { AxiosRequestConfig } from 'axios';
 
+const cleanBaseUrl = (url?: string): string => {
+	if (!url) throw new Error('NEXT_PUBLIC_BACKEND_URL is not defined');
+	return url.endsWith('/') ? url.slice(0, -1) : url;
+};
+
 const api = axios.create({
-	baseURL: process.env.NEXT_PUBLIC_BACKEND_URL,
+	baseURL: cleanBaseUrl(process.env.NEXT_PUBLIC_BACKEND_URL),
 	headers: {
 		'Content-Type': 'application/json',
 	},
+	timeout: 5000,
 });
+
+// const api = axios.create({
+// 	baseURL: process.env.NEXT_PUBLIC_BACKEND_URL,
+// 	headers: {
+// 		'Content-Type': 'application/json',
+// 	},
+// });
 
 
 export async function request<T>(
