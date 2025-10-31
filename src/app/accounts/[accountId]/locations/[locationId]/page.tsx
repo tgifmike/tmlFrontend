@@ -27,9 +27,8 @@ const LocationPage = () => {
 
     // state
     const [loadingAccess, setLoadingAccess] = useState(true);
-		//const [loadingLocations, setLoadingLocations] = useState(true);
-		const [hasAccess, setHasAccess] = useState(false);
-		const [locationName, setLocationName] = useState<String | null>(null);
+	const [hasAccess, setHasAccess] = useState(false);
+	const [locationName, setLocationName] = useState<String | null>(null);
     const [accountName, setAccountName] = useState<string | null>(null);
     const [accountImage, setAccountImage] = useState<string | null>(null);
     

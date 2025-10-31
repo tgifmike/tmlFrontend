@@ -21,6 +21,7 @@ export const getAccountById = async (accountId: string) => {
 
 //get accounts availble by user
 export const getAccountsForUser = async (userId: string) => {
+    if (!userId) throw new Error('userId is required');
     return request<Account[]>({
         method: 'GET',
         url: `/user-access/${userId}/accounts`

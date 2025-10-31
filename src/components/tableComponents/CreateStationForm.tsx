@@ -97,50 +97,50 @@ export default function CreateStationDialog({
 				<DialogTrigger asChild>
 					<Button
 						variant="outline"
-						size="lg"
-						className="text-chart-3 text-lg font-bold"
+						className="text-chart-3 font-bold text-sm md:text-lg px-3 py-1 md:px-4 md:py-2 flex items-center gap-2"
 					>
 						<StationIcon className="!w-[25px] !h-[25px]" />
-						Create Station
+						<span className="hidden sm:inline">Create Station</span>
 					</Button>
-            </DialogTrigger>
-            
-            <DialogContent>
-                <DialogHeader>
-                    <DialogTitle>Create New Station</DialogTitle>
-                    <DialogDescription>
-                        Enter a unique name to create a new station.
-                    </DialogDescription>
-                </DialogHeader>
+				</DialogTrigger>
 
-                <Form {...form}>
-                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                        <FormField
-                            control={form.control}
-                            name="stationName"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Station Name</FormLabel>
-                                    <FormControl>
-                                        <Input placeholder="Enter Station Name" {...field} />
-                                    </FormControl>
-                                </FormItem>
-                            )}
-                        />
-                        <DialogFooter>
-                            <Button
-                                type="submit"
-                                disabled={
-                                !form.formState.isValid || form.formState.isSubmitting
-                            }
-                            >
-                                {form.formState.isSubmitting ? 'Creating...' : 'Create Station'}
-                            </Button>
-                        </DialogFooter>
-                    </form>
-                </Form>
+				<DialogContent>
+					<DialogHeader>
+						<DialogTitle>Create New Station</DialogTitle>
+						<DialogDescription>
+							Enter a unique name to create a new station.
+						</DialogDescription>
+					</DialogHeader>
 
-            </DialogContent>
+					<Form {...form}>
+						<form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+							<FormField
+								control={form.control}
+								name="stationName"
+								render={({ field }) => (
+									<FormItem>
+										<FormLabel>Station Name</FormLabel>
+										<FormControl>
+											<Input placeholder="Enter Station Name" {...field} />
+										</FormControl>
+									</FormItem>
+								)}
+							/>
+							<DialogFooter>
+								<Button
+									type="submit"
+									disabled={
+										!form.formState.isValid || form.formState.isSubmitting
+									}
+								>
+									{form.formState.isSubmitting
+										? 'Creating...'
+										: 'Create Station'}
+								</Button>
+							</DialogFooter>
+						</form>
+					</Form>
+				</DialogContent>
 			</Dialog>
 		);
 }

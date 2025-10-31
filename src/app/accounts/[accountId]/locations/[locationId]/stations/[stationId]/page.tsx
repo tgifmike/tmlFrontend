@@ -245,7 +245,7 @@ const StationPage = () => {
 					<Droppable droppableId="items">
 						{(provided) => (
 							<div
-								className="hidden md:block bg-accent p-4 rounded-2xl text-chart-3 shadow-md w-full md:w-3/4 mx-auto mt-8"
+								className="hidden md:block bg-accent p-4 rounded-2xl shadow-md w-full md:w-3/4 mx-auto mt-8"
 								{...provided.droppableProps}
 								ref={provided.innerRef}
 							>
@@ -264,7 +264,7 @@ const StationPage = () => {
 									<Draggable key={item.id} draggableId={item.id!} index={index}>
 										{(provided) => (
 											<div
-												className="flex justify-between items-center p-2 mb-2 bg-background rounded-2xl"
+												className="flex justify-between items-center p-2 mb-2 bg-background rounded-2xl text-chart-3"
 												ref={provided.innerRef}
 												{...provided.draggableProps}
 												{...provided.dragHandleProps}
@@ -294,7 +294,7 @@ const StationPage = () => {
 												</div>
 
 												{/* Actions */}
-												<div className="w-1/4 flex justify-center gap-2">
+												<div className="w-1/4 flex justify-center items-center gap-2">
 													{sessionUserRole === AppRole.MANAGER && (
 														<>
 															<EditItemDialog
