@@ -33,12 +33,14 @@ type EditLocationProps = {
 	locations?: Locations[];
 	onUpdate: (
 		id: string,
-		locationName: string,
-		locationStreet: string,
-		locationTown: string,
-		locationState: string,
-		locationZipCode: string,
-		locationTimeZone: string
+		updatedFields: {
+			locationName: string;
+			locationStreet: string;
+			locationTown: string;
+			locationState: string;
+			locationZipCode: string;
+			locationTimeZone: string;
+		}
 	) => void;
 };
 
@@ -167,15 +169,14 @@ export function EditLocationDialog({
 			}
 
 			// Update local state
-			onUpdate(
-				location.id!,
-				values.locationName,
-				values.locationStreet,
-				values.locationTown,
-				values.locationState,
-				values.locationZipCode,
-				values.locationTimeZone
-			);
+	onUpdate(location.id!, {
+		locationName: values.locationName,
+		locationStreet: values.locationStreet,
+		locationTown: values.locationTown,
+		locationState: values.locationState,
+		locationZipCode: values.locationZipCode,
+		locationTimeZone: values.locationTimeZone,
+	});
 
 			toast.success('Location updated successfully');
 			setOpen(false);

@@ -237,7 +237,6 @@ const MainAccountPage = () => {
 				{paginatedAccounts.map((account) => (
 					<DataCard
 						key={account.id}
-						// title={account.accountName ?? "No Name"}
 						title={
 							<Link href={`/accounts/${account.id}`}>
 								{account.accountName}
@@ -263,33 +262,39 @@ const MainAccountPage = () => {
 						actions={[
 							{
 								element: (
-									<EditAccountDialog
-										account={account}
-										accounts={accounts}
-										onUpdate={(id, name) =>
-											setAccounts((prev) =>
-												prev.map((account) =>
-													account.id === id
-														? { ...account, accountName: name }
-														: account
-												)
-											)
-										}
-									/>
+									<div className="flex justify-center gap-4 items-center">
+										{sessionUserRole === 'MANAGER' ? (
+											<>
+												<EditAccountDialog
+													account={account}
+													accounts={accounts}
+													onUpdate={(id, name) =>
+														setAccounts((prev) =>
+															prev.map((a) =>
+																a.id === id ? { ...a, accountName: name } : a
+															)
+														)
+													}
+												/>
+												{account.id !== undefined && (
+													<DeleteConfirmButton
+														item={{ id: account.id }}
+														entityLabel="account"
+														onDelete={async (id) => {
+															await deleteAccount(id);
+															setAccounts((prev) =>
+																prev.filter((a) => a.id !== id)
+															);
+														}}
+														getItemName={() => account.accountName ?? 'unknown'}
+													/>
+												)}
+											</>
+										) : (
+											<span className="text-ring">No Actions</span>
+										)}
+									</div>
 								),
-							},
-							{
-								element: account.id ? (
-									<DeleteConfirmButton
-										item={{ id: account.id }}
-										entityLabel="account"
-										onDelete={async (id) => {
-											await deleteAccount(id);
-											setAccounts((prev) => prev.filter((a) => a.id != id));
-										}}
-										getItemName={() => account.accountName ?? 'unknown'}
-									/>
-								) : null,
 							},
 						]}
 					/>

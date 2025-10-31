@@ -4,30 +4,6 @@ import api, { request } from "./axios";
 import { toast } from "sonner";
 
 
-
-
-
-
-
-// Generic helper for GET, POST, etc.
-// export async function request<T>(
-// 	config: AxiosRequestConfig
-// ): Promise<{ data?: T; error?: string }> {
-// 	try {
-// 		const response = await api.request<T>(config);
-// 		return { data: response.data };
-// 	} catch (err) {
-// 		let errorMsg = 'An unexpected error occurred';
-// 		if (axios.isAxiosError(err)) {
-// 			errorMsg = err.response?.data?.message || err.message;
-// 		}
-// 		console.error(errorMsg);
-// 		return { error: errorMsg };
-// 	}
-// }
-
-// get all users
-
 export const getAllUsers = async () => {
 	return request<User[]>({ method: 'GET', url: '/users/all' });
 };
@@ -159,3 +135,10 @@ export const createUserServer = async (
 
 
 
+//get users attaced to account
+export const getUsersForAccount = async (accountId: string) => {
+	return request<User[]>({
+		method: 'GET',
+		url: `/user-access/${accountId}/getUsersForAccount`
+	})
+}

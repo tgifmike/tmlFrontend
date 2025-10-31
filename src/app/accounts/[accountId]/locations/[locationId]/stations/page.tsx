@@ -2,8 +2,8 @@
 
 import { ReusableTable } from '@/components/tableComponents/ReusableTableProps';
 import { getAccountsForUser } from '@/app/api/accountApi';
-import { deleteLocation, getUserLocationAccess } from '@/app/api/locationApi';
-import { deleteStation, getAllStations, getStationsByLocation, toggleStationActive } from '@/app/api/stationApi';
+import { getUserLocationAccess } from '@/app/api/locationApi';
+import { deleteStation, getStationsByLocation, toggleStationActive } from '@/app/api/stationApi';
 import { AppRole, Locations, Station, User } from '@/app/types';
 import LocationNav from '@/components/navBar/LocationNav';
 import Spinner from '@/components/spinner/Spinner';
@@ -15,10 +15,14 @@ import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { StatusSwitchOrBadge } from '@/components/tableComponents/StatusSwitchOrBadge';
-import { Button } from '@/components/ui/button';
 import { DeleteConfirmButton } from '@/components/tableComponents/DeleteConfirmButton';
 import { Pagination } from '@/components/tableComponents/Pagination';
 import { EditStationDialog } from '@/components/tableComponents/EditStationDialog';
+import { Drawer, DrawerClose, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger } from '@/components/ui/drawer';
+import { Button } from '@/components/ui/button';
+import { Ghost, Menu, X } from 'lucide-react';
+import { DataCard } from '@/components/cards/DataCard';
+
 
 const LocationStationsPage = () => {
 
@@ -43,6 +47,7 @@ const LocationStationsPage = () => {
 	const [searchTerm, setSearchTerm] = useState('');
 	const [currentPage, setCurrentPage] = useState(1);
 	const [pageSize, setPageSize] = useState(10);
+	const [drawerOpen, setDrawerOpen] = useState(false);
 
 	const currentUser = session?.user as User | undefined;
 	const sessionUserRole = session?.user?.appRole;
@@ -80,6 +85,7 @@ const LocationStationsPage = () => {
 				const location = fetchedLocations.find(
 					(loc) => loc.id?.toString() === locationIdParam
 				);
+
 				if (!location) {
 					toast.error('You do not have access to this location.');
 					router.push(`/accounts/${accountIdParam}/locations`);
@@ -201,8 +207,9 @@ const LocationStationsPage = () => {
 	}
 
 	return (
-		<main className="flex">
-			<div className="w-1/6 border-r-2 bg-ring h-screen">
+		<main className="flex min-h-screen overflow-hidden">
+			{/* Desktop Sidebar */}
+			<aside className="hidden md:block w-1/6 border-r h-screen bg-ring">
 				<LocationNav
 					accountName={accountName}
 					accountImage={accountImage}
@@ -210,31 +217,80 @@ const LocationStationsPage = () => {
 					locationId={locationIdParam}
 					sessionUserRole={sessionUserRole}
 				/>
-			</div>
+			</aside>
 
-			<div className="p-4 flex-1">
-				<div className="flex justify-between items-center">
-					<div className="flex">
-						<h1 className="text-3xl font-bold mb-4">
+			{/* Main Content */}
+			<section className="flex-1 flex flex-col">
+				{/* Header */}
+				<header className="flex justify-between items-center px-4 py-3 border-b bg-background/70 backdrop-blur-md sticky top-0 z-20">
+					{/* Left */}
+					<div className="flex items-center gap-3">
+						{/* Mobile Drawer */}
+
+						<Drawer open={drawerOpen} onOpenChange={setDrawerOpen}>
+							<DrawerTrigger asChild>
+								<Button
+									variant="ghost"
+									size="icon"
+									className="md:hidden"
+									aria-label="Open Menu"
+								>
+									<Menu className="w-6 h-6" />
+								</Button>
+							</DrawerTrigger>
+
+							<DrawerContent
+								side="left"
+								className="p-0 w-64 backdrop-blur-xl bg-background/80 shadow-lg"
+							>
+								<DrawerHeader className="flex justify-between items-center rounded-2xl pt-0 ">
+									<div className="flex justify-between items-center">
+										<DrawerTitle>Navigation</DrawerTitle>
+										<DrawerClose asChild>
+											<Button variant="ghost" size="icon">
+												<X className="w-5 h-5" />
+											</Button>
+										</DrawerClose>
+									</div>
+								</DrawerHeader>
+
+								<div className="pt-0">
+									<LocationNav
+										accountName={accountName}
+										accountImage={accountImage}
+										accountId={accountIdParam}
+										locationId={locationIdParam}
+										sessionUserRole={sessionUserRole}
+									/>
+								</div>
+							</DrawerContent>
+						</Drawer>
+
+						<h1 className="text-2xl font-semibold">
 							{currentLocation?.locationName}
 						</h1>
 					</div>
 
+					{/* center */}
 					<div>
-						<p className="text-2xl">Station List:</p>
+						<p className=" md:text-2xl">Station List:</p>
 					</div>
+
+					{/* Right */}
 					<div>
 						<CreateStationDialog
 							onStationCreated={handleStationCreated}
 							locationId={locationIdParam}
 						/>
 					</div>
-				</div>
+				</header>
 
+				{/* content */}
 				{stations.length === 0 ? (
 					<p className="text-destructive text-2xl">No Stations found.</p>
 				) : (
 					<div>
+						{/* Controls */}
 						<div className="w-full md:w-3/4 mx-auto flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 px-4 mt-4">
 							<UserControls
 								showActiveOnly={showActiveOnly}
@@ -243,6 +299,8 @@ const LocationStationsPage = () => {
 								setSearchTerm={setSearchTerm}
 							/>
 						</div>
+
+						{/* Desktop Table */}
 						<div className="hidden md:block bg-accent p-4 rounded-2xl text-chart-3 shadow-md w-full md:w-3/4 mx-auto mt-8">
 							<ReusableTable<Station>
 								data={paginatedStations}
@@ -250,9 +308,13 @@ const LocationStationsPage = () => {
 								columns={[
 									{
 										header: 'Station Name',
-										render: (station) =>
-											<Link href={`/accounts/${accountIdParam}/locations/${locationIdParam}/stations/${station.id}`}>{station.stationName }</Link>
-											,
+										render: (station) => (
+											<Link
+												href={`/accounts/${accountIdParam}/locations/${locationIdParam}/stations/${station.id}`}
+											>
+												{station.stationName}
+											</Link>
+										),
 									},
 									{
 										header: 'Status',
@@ -314,6 +376,76 @@ const LocationStationsPage = () => {
 								]}
 							/>
 						</div>
+
+						{/* Mobile Cards */}
+						<div className="md:hidden mt-6 space-y-2 p-2">
+							{paginatedStations.map((station) => (
+								<DataCard
+									key={station.id}
+									title={station.stationName}
+									fields={[
+										{
+											label: 'Status',
+											value: (
+												<StatusSwitchOrBadge
+													entity={{
+														id: station.id!,
+														active: station.stationActive,
+													}}
+													getLabel={() => `Station: ${station.stationName}`}
+													onToggle={handleToggleActive}
+													canToggle={canToggle}
+												/>
+											),
+										},
+									]}
+									actions={[
+										{
+											element: (
+												<div className="flex justify-center gap-4 items-center">
+													{sessionUserRole === 'MANAGER' ? (
+														<>
+															<EditStationDialog
+																station={station}
+																locationId={locationIdParam}
+																stations={stations}
+																onUpdate={(id, name) =>
+																	setStations((prev) =>
+																		prev.map((s) =>
+																			s.id === id
+																				? { ...s, stationName: name }
+																				: s
+																		)
+																	)
+																}
+															/>
+															{station.id && (
+																<DeleteConfirmButton
+																	item={{
+																		id: station.id,
+																		locationId: locationIdParam,
+																	}}
+																	entityLabel="Location"
+																	onDelete={async (id) => {
+																		await deleteStation(locationIdParam, id);
+																		setStations((prev) =>
+																			prev.filter((s) => s.id !== id)
+																		);
+																	}}
+																	getItemName={() => station.stationName}
+																/>
+															)}
+														</>
+													) : (
+														<span className="text-ring">No Actions</span>
+													)}
+												</div>
+											),
+										},
+									]}
+								/>
+							))}
+						</div>
 					</div>
 				)}
 				{/* pagination page size selector */}
@@ -326,7 +458,7 @@ const LocationStationsPage = () => {
 						totalItems={locations.length}
 					/>
 				</div>
-			</div>
+			</section>
 		</main>
 	);
 };
