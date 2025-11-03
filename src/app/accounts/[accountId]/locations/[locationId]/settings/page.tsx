@@ -4,15 +4,19 @@ import { getAccountsForUser } from '@/app/api/accountApi';
 import { getUserLocationAccess, toggleLocationActive, updateLocation } from '@/app/api/locationApi';
 import { AppRole, Locations, User } from '@/app/types';
 import LocationNav from '@/components/navBar/LocationNav';
+import MobileDrawerNav from '@/components/navBar/MobileDrawerNav';
 import Spinner from '@/components/spinner/Spinner';
 import { StatusSwitchOrBadge } from '@/components/tableComponents/StatusSwitchOrBadge';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { DialogFooter } from '@/components/ui/dialog';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { US_STATES, US_TIME_ZONES } from '@/lib/constants/usConstants';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { BadgeCheckIcon, BadgeXIcon } from 'lucide-react';
 import { useSession } from 'next-auth/react';
 import App from 'next/app';
 import { useParams } from 'next/navigation';
@@ -27,8 +31,8 @@ const LocationSettingsPage = () => {
 	const { data: session, status } = useSession();
 	const currentUser = session?.user as User | undefined;
 	const sessionUserRole = session?.user?.appRole;
-    const canToggle = currentUser?.appRole === AppRole.MANAGER;
-    const isManager = session?.user?.appRole === AppRole.MANAGER;
+	const canToggle = currentUser?.appRole === AppRole.MANAGER;
+	const isManager = session?.user?.appRole === AppRole.MANAGER;
 	const params = useParams<{ accountId: string; locationId: string }>();
 	const accountIdParam = params.accountId;
 	const locationIdParam = params.locationId;
@@ -44,6 +48,10 @@ const LocationSettingsPage = () => {
 	const [currentLocation, setCurrentLocation] = useState<Locations | null>(
 		null
 	);
+	const [drawerOpen, setDrawerOpen] = useState(false);
+	// const [longitude, setLongitude] = useState();
+	// const [latitude, setLatitude] = useState();
+	// const [geocodedFromZipFallback, setGeocodedFromZipFallback] = useState();
 
 	// Zod schema with all fields and validations
 	const getSchema = (locations: Locations[] = [], currentLocationId: string) =>
@@ -109,6 +117,7 @@ const LocationSettingsPage = () => {
 
 				const fetchedLocations = locationResponse.data ?? [];
 				setLocations(fetchedLocations);
+				
 
 				const location = fetchedLocations.find(
 					(loc) => loc.id?.toString() === locationIdParam
@@ -125,6 +134,10 @@ const LocationSettingsPage = () => {
 				setAccountImage(account.imageBase64 || null);
 				setLocationName(location.locationName);
 				setCurrentLocation(location);
+				// setLatitude(location.locationLatitude);
+				// setLongitude(location.locationLongitude);
+				// setGeocodedFromZipFallback(location.geocodedFromZipFallback);
+
 			} catch (err) {
 				toast.error('You do not have access to this location.');
 				router.push('/accounts');
@@ -160,20 +173,20 @@ const LocationSettingsPage = () => {
 		},
 	});
 
-    // 
+	// 
     
-    useEffect(() => {
-			if (!currentLocation) return;
+	useEffect(() => {
+		if (!currentLocation) return;
 
-			form.reset({
-				locationName: currentLocation.locationName ?? '',
-				locationStreet: currentLocation.locationStreet ?? '',
-				locationTown: currentLocation.locationTown ?? '',
-				locationState: currentLocation.locationState ?? '',
-				locationZipCode: currentLocation.locationZipCode ?? '',
-				locationTimeZone: currentLocation.locationTimeZone ?? '',
-			});
-		}, [currentLocation, form]);
+		form.reset({
+			locationName: currentLocation.locationName ?? '',
+			locationStreet: currentLocation.locationStreet ?? '',
+			locationTown: currentLocation.locationTown ?? '',
+			locationState: currentLocation.locationState ?? '',
+			locationZipCode: currentLocation.locationZipCode ?? '',
+			locationTimeZone: currentLocation.locationTimeZone ?? '',
+		});
+	}, [currentLocation, form]);
 
 	const watchedValues = form.watch();
 	const isChanged =
@@ -202,6 +215,8 @@ const LocationSettingsPage = () => {
 			return;
 		}
 
+
+
 		try {
 			const updates: Partial<Record<string, any>> = {};
 			(Object.keys(values) as Array<keyof typeof values>).forEach((key) => {
@@ -214,33 +229,62 @@ const LocationSettingsPage = () => {
 
 			//console.log('Updates going to backend:', updates);
 
-			const { error } = await updateLocation(currentLocation.id!, updates);
+					const { data,  error } = await updateLocation(currentLocation.id!, updates);
 
-			if (error) {
-				if (error.toLowerCase().includes('exists')) {
-					toast.error('Location name already exists');
-					return;
+					if (error) {
+						if (error.toLowerCase().includes('exists')) {
+							toast.error('Location name already exists');
+							return;
+						}
+						toast.error(error);
+						return;
+					}
+
+					// ✅ update local state instead of onUpdate()
+					setCurrentLocation((prev) => ({
+						...prev!,
+						...data,
+					}));
+			setLocationName(currentLocation.locationName);
+			console.log(currentLocation)
+
+					toast.success('Location updated successfully');
+				} catch (error: any) {
+					const message =
+						error?.response?.data?.message ||
+						error?.message ||
+						'Failed to update location';
+					toast.error(message);
 				}
-				toast.error(error);
-				return;
-			}
+			};
+	// 		const response = await updateLocation(currentLocation.id!, updates);
 
-			// ✅ update local state instead of onUpdate()
-			setCurrentLocation((prev) => ({
-				...prev!,
-				...values,
-			}));
-			setLocationName(values.locationName);
+	// 		if (response.error) {
+	// 			if (response.error.toLowerCase().includes('exists')) {
+	// 				toast.error('Location name already exists');
+	// 				return;
+	// 			}
+	// 			toast.error(response.error);
+	// 			return;
+	// 		};
 
-			toast.success('Location updated successfully');
-		} catch (error: any) {
-			const message =
-				error?.response?.data?.message ||
-				error?.message ||
-				'Failed to update location';
-			toast.error(message);
-		}
-	};
+	// 		// Safely update local state only if response.data exists
+	// 		if (response.data) {
+	// 			setCurrentLocation((prev) => ({
+	// 				...prev!,
+	// 				...response.data, // safe because we checked
+	// 			}));
+	// 			setLocationName(response.data.locationName);
+	// 			toast.success('Location updated successfully');
+	// 		} else {
+	// 			toast.error('Failed to retrieve updated location data from server.');
+	// 		};
+		
+	// 	} catch (error: any) {
+	// 		error.log(error)
+	// 	}
+	// };
+
 
 	//toggle location active
 		const handleToggleActive = async (locationId: string, checked: boolean) => {
@@ -285,9 +329,9 @@ const LocationSettingsPage = () => {
 		);
 
 	return (
-		<main className="flex ">
-			{/* left nav */}
-			<div className="w-1/6 border-r-2 bg-ring h-screen">
+		<main className="flex min-h-screen overflow-hidden">
+			{/* Desktop Sidebar */}
+			<aside className="hidden md:block w-1/6 border-r h-screen bg-ring">
 				<LocationNav
 					accountName={accountName}
 					accountImage={accountImage}
@@ -295,68 +339,59 @@ const LocationSettingsPage = () => {
 					locationId={locationIdParam}
 					sessionUserRole={sessionUserRole}
 				/>
-			</div>
+			</aside>
+
 			{/* main content */}
-			<div className="p-4 flex flex-col">
-				<div className="flex ">
-					<h1 className="text-3xl font-bold mb-4">{locationName}</h1>
-				</div>
+			<section className="flex-1 flex flex-col">
+				{/* Header */}
+				<header className="flex justify-between items-center px-4 py-3 border-b bg-background/70 backdrop-blur-md sticky top-0 z-20">
+					{/* Left */}
+					<div className="flex items-center gap-3">
+						{/* Mobile Drawer */}
 
-				<div className="bg-accent p-4 rounded-2xl shadow-2xl">
-					<Form {...form}>
-						<form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-							<div className="bg-background p-4 rounded-2xl">
-								{/* <p>Location Name: </p> */}
-								<FormField
-									control={form.control}
-									name="locationName"
-									render={({ field }) => (
-										<FormItem>
-											<FormLabel className="text-xl">Location Name:</FormLabel>
-											<FormControl>
-												<Input
-													placeholder="Location Name"
-													className="w-1/2"
-													disabled={!isManager}
-													{...field}
-												/>
-											</FormControl>
-											<FormMessage />
-										</FormItem>
-									)}
-								/>
-							</div>
+						<MobileDrawerNav
+							open={drawerOpen}
+							setOpen={setDrawerOpen}
+							title="Account Menu"
+						>
+							<LocationNav
+								accountName={accountName}
+								accountImage={accountImage}
+								accountId={accountIdParam}
+								locationId={locationIdParam}
+								sessionUserRole={sessionUserRole}
+							/>
+						</MobileDrawerNav>
+						<div className="">
+							<h1 className="text-lg md:text-3xl font-bold mb-4">
+								{locationName}
+							</h1>
+						</div>
+					</div>
+				</header>
 
-							<div className="bg-background p-4 rounded-2xl ">
-								<p className="text-xl">Address:</p>
-
-								<div className="flex p-2 gap-10">
+				{/* main content */}
+				<div className="w-3/4 mx-auto mt-8">
+					<div className="bg-accent p-4 rounded-2xl shadow-2xl">
+						<Form {...form}>
+							<form
+								onSubmit={form.handleSubmit(onSubmit)}
+								className="space-y-4"
+							>
+								<div className="bg-background p-4 rounded-2xl">
+									{/* <p>Location Name: </p> */}
 									<FormField
 										control={form.control}
-										name="locationStreet"
+										name="locationName"
 										render={({ field }) => (
 											<FormItem>
-												<FormLabel>Street</FormLabel>
+												<FormLabel className="text-xl">
+													Location Name:
+												</FormLabel>
 												<FormControl>
 													<Input
-														placeholder="Enter street"
-														disabled={!isManager}
-														{...field}
-													/>
-												</FormControl>
-												<FormMessage />
-											</FormItem>
-										)}
-									/>
-									<FormField
-										control={form.control}
-										name="locationTown"
-										render={({ field }) => (
-											<FormItem>
-												<FormLabel>Town</FormLabel>
-												<FormControl>
-													<Input
-														placeholder="Enter town"
+														placeholder="Location Name"
+														className="w-1/2"
 														disabled={!isManager}
 														{...field}
 													/>
@@ -366,112 +401,191 @@ const LocationSettingsPage = () => {
 										)}
 									/>
 								</div>
-								<div className="flex gap-10 p-2">
-									<FormField
-										control={form.control}
-										name="locationState"
-										render={({ field }) => (
-											<FormItem>
-												<FormLabel>State</FormLabel>
-												<FormControl>
-													<Select
-														key={field.value}
-														onValueChange={field.onChange}
-														value={field.value ?? ''}
-														disabled={!isManager}
-													>
-														<SelectTrigger>
-															<SelectValue placeholder="Select a state" />
-														</SelectTrigger>
-														<SelectContent className="max-h-60 overflow-y-auto">
-															{US_STATES.map((state) => (
-																<SelectItem key={state} value={state}>
-																	{state}
-																</SelectItem>
-															))}
-														</SelectContent>
-													</Select>
-												</FormControl>
-												<FormMessage />
-											</FormItem>
-										)}
-									/>
 
-									<FormField
-										control={form.control}
-										name="locationZipCode"
-										render={({ field }) => (
-											<FormItem>
-												<FormLabel>ZIP Code</FormLabel>
-												<FormControl>
-													<Input
-														placeholder="Enter ZIP code"
-														disabled={!isManager}
-														{...field}
-													/>
-												</FormControl>
-												<FormMessage />
-											</FormItem>
-										)}
-									/>
+								<div className="bg-background p-4 rounded-2xl ">
+									<p className="text-xl">Address:</p>
 
-									<FormField
-										control={form.control}
-										name="locationTimeZone"
-										render={({ field }) => (
-											<FormItem>
-												<FormLabel>Time Zone</FormLabel>
-												<FormControl>
-													<Select
-														key={field.value}
-														onValueChange={field.onChange}
-														value={field.value}
-														disabled={!isManager}
-													>
-														<SelectTrigger className="border rounded-md p-2">
-															<SelectValue placeholder="Select a time zone" />
-														</SelectTrigger>
-														<SelectContent>
-															{US_TIME_ZONES.map((tz) => (
-																<SelectItem key={tz} value={tz}>
-																	{tz}
-																</SelectItem>
-															))}
-														</SelectContent>
-													</Select>
-												</FormControl>
-												<FormMessage />
-											</FormItem>
-										)}
-									/>
+									<div className="flex p-2 gap-10">
+										<FormField
+											control={form.control}
+											name="locationStreet"
+											render={({ field }) => (
+												<FormItem>
+													<FormLabel>Street</FormLabel>
+													<FormControl>
+														<Input
+															placeholder="Enter street"
+															disabled={!isManager}
+															{...field}
+														/>
+													</FormControl>
+													<FormMessage />
+												</FormItem>
+											)}
+										/>
+										<FormField
+											control={form.control}
+											name="locationTown"
+											render={({ field }) => (
+												<FormItem>
+													<FormLabel>Town</FormLabel>
+													<FormControl>
+														<Input
+															placeholder="Enter town"
+															disabled={!isManager}
+															{...field}
+														/>
+													</FormControl>
+													<FormMessage />
+												</FormItem>
+											)}
+										/>
+									</div>
+									<div className="flex gap-10 p-2">
+										<FormField
+											control={form.control}
+											name="locationState"
+											render={({ field }) => (
+												<FormItem>
+													<FormLabel>State</FormLabel>
+													<FormControl>
+														<Select
+															key={field.value}
+															onValueChange={field.onChange}
+															value={field.value ?? ''}
+															disabled={!isManager}
+														>
+															<SelectTrigger>
+																<SelectValue placeholder="Select a state" />
+															</SelectTrigger>
+															<SelectContent className="max-h-60 overflow-y-auto">
+																{US_STATES.map((state) => (
+																	<SelectItem key={state} value={state}>
+																		{state}
+																	</SelectItem>
+																))}
+															</SelectContent>
+														</Select>
+													</FormControl>
+													<FormMessage />
+												</FormItem>
+											)}
+										/>
+
+										<FormField
+											control={form.control}
+											name="locationZipCode"
+											render={({ field }) => (
+												<FormItem>
+													<FormLabel>ZIP Code</FormLabel>
+													<FormControl>
+														<Input
+															placeholder="Enter ZIP code"
+															disabled={!isManager}
+															{...field}
+														/>
+													</FormControl>
+													<FormMessage />
+												</FormItem>
+											)}
+										/>
+
+										<FormField
+											control={form.control}
+											name="locationTimeZone"
+											render={({ field }) => (
+												<FormItem>
+													<FormLabel>Time Zone</FormLabel>
+													<FormControl>
+														<Select
+															key={field.value}
+															onValueChange={field.onChange}
+															value={field.value}
+															disabled={!isManager}
+														>
+															<SelectTrigger className="border rounded-md p-2">
+																<SelectValue placeholder="Select a time zone" />
+															</SelectTrigger>
+															<SelectContent>
+																{US_TIME_ZONES.map((tz) => (
+																	<SelectItem key={tz} value={tz}>
+																		{tz}
+																	</SelectItem>
+																))}
+															</SelectContent>
+														</Select>
+													</FormControl>
+													<FormMessage />
+												</FormItem>
+											)}
+										/>
+									</div>
 								</div>
-							</div>
 
-							<DialogFooter>
-								<Button
-									type="submit"
-									disabled={!isChanged || form.formState.isSubmitting}
-								>
-									{form.formState.isSubmitting ? 'Saving...' : 'Save Changes'}
-								</Button>
-							</DialogFooter>
-						</form>
-					</Form>
+								<DialogFooter>
+									<Button
+										type="submit"
+										disabled={!isChanged || form.formState.isSubmitting}
+									>
+										{form.formState.isSubmitting ? 'Saving...' : 'Save Changes'}
+									</Button>
+								</DialogFooter>
+							</form>
+						</Form>
+					</div>
+					<div className="flex justify-between items-center p-4 bg-accent rounded-2xl shadow-2xl mt-5">
+						<p className="text-2xl">Location Status</p>
+						<StatusSwitchOrBadge
+							entity={{
+								id: currentLocation?.id!,
+								active: currentLocation?.locationActive!,
+							}}
+							getLabel={() => `Location: ${currentLocation?.locationName}`}
+							onToggle={handleToggleActive}
+							canToggle={canToggle}
+						/>
+					</div>
+					<div className="flex justify-between items-center p-4 bg-accent rounded-2xl shadow-2xl mt-4">
+						<div>
+							<p className="text-2xl">Geo Coding</p>
+						</div>
+
+						{currentLocation?.locationLatitude != null &&
+							currentLocation?.locationLongitude != null && (
+								<div>
+									{currentLocation?.geocodedFromZipFallback ? (
+											<Badge
+												variant="destructive"
+												className="flex items-center"
+											>
+												<BadgeXIcon className="mr-1" />
+												Coordinates from ZIP only
+											</Badge>
+										) : (
+											<Badge
+												variant="secondary"
+												className="bg-chart-3 text-background flex items-center"
+											>
+												<BadgeCheckIcon className="mr-1" />
+												Coordinates from full address
+											</Badge>
+										)}
+								</div>
+							)}
+
+						<div className="flex gap-4">
+							<div className="flex gap-4 mt-4">
+								<Label>Latitude: </Label>
+								<Label>{currentLocation?.locationLatitude ?? 'N/A'}</Label>
+							</div>
+							<div className="flex gap-4 mt-4">
+								<Label>Longitude: </Label>
+								<Label>{currentLocation?.locationLongitude ?? 'N/A'}</Label>
+							</div>
+						</div>
+					</div>
 				</div>
-				<div className="flex justify-between items-center p-4 bg-accent rounded-2xl shadow-2xl mt-5">
-					Status:
-					<StatusSwitchOrBadge
-						entity={{
-							id: currentLocation?.id!,
-							active: currentLocation?.locationActive!,
-						}}
-						getLabel={() => `Location: ${currentLocation?.locationName}`}
-						onToggle={handleToggleActive}
-						canToggle={canToggle}
-					/>
-				</div>
-			</div>
-			
+			</section>
 		</main>
 	);
 };

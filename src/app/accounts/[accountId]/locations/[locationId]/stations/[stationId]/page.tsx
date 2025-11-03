@@ -31,10 +31,9 @@ import { toast } from 'sonner';
 import { Icons } from '@/lib/icon';
 
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-
+import MobileDrawerNav from '@/components/navBar/MobileDrawerNav';
 
 const StationPage = () => {
-
 	//icon
 	const UpDownIcon = Icons.sort;
 
@@ -66,6 +65,7 @@ const StationPage = () => {
 	const [searchTerm, setSearchTerm] = useState('');
 	const [currentPage, setCurrentPage] = useState(1);
 	const [pageSize, setPageSize] = useState(10);
+	const [drawerOpen, setDrawerOpen] = useState(false);
 
 	const currentUser = session?.user as User | undefined;
 	const sessionUserRole = session?.user?.appRole;
@@ -210,8 +210,9 @@ const StationPage = () => {
 	}
 
 	return (
-		<main className="flex">
-			<div className="w-1/6 border-r-2 bg-ring h-screen">
+		<main className="flex min-h-screen overflow-hidden">
+			{/* Desktop Sidebar */}
+			<aside className="hidden md:block w-1/6 border-r h-screen bg-ring">
 				<LocationNav
 					accountName={accountName}
 					accountImage={accountImage}
@@ -219,148 +220,196 @@ const StationPage = () => {
 					locationId={locationIdParam}
 					sessionUserRole={sessionUserRole}
 				/>
-			</div>
-			<div className="p-4 flex-1">
-				<div className="flex justify-between items-center">
-					<h1 className="text-3xl font-bold mb-4">
-						{currentLocation?.locationName}
-					</h1>
-					<p className="text-4xl">Items on <span className='text-chart-3 italic'>{ stationName}</span> Station</p>
+			</aside>
+
+			{/* Main Content */}
+			<section className="flex-1 flex flex-col">
+				{/* Header */}
+				<header className="flex justify-between items-center px-4 py-3 border-b bg-background/70 backdrop-blur-md sticky top-0 z-20">
+					{/* Left */}
+					<div className="flex items-center gap-3">
+						{/* Mobile Drawer */}
+
+						<MobileDrawerNav
+							open={drawerOpen}
+							setOpen={setDrawerOpen}
+							title="Account Menu"
+						>
+							<LocationNav
+								accountName={accountName}
+								accountImage={accountImage}
+								accountId={accountIdParam}
+								locationId={locationIdParam}
+								sessionUserRole={sessionUserRole}
+							/>
+						</MobileDrawerNav>
+						<div>
+							<h1 className="text-lg md:text-3xl font-bold">
+								{currentLocation?.locationName}
+							</h1>
+						</div>
+					</div>
+
+					{/* center */}
+					<div>
+						<p className="text-4xl">
+							Items on{' '}
+							<span className="text-chart-3 italic">{stationName}</span> Station
+						</p>
+					</div>
+
+					{/* Right */}
 					<CreateItemDialog
 						onItemCreated={handleItemCreated}
 						stationId={stationIdParam}
 					/>
-				</div>
+				</header>
 
-				<div className="w-full md:w-3/4 mx-auto flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 px-4 mt-4">
-					<UserControls
-						showActiveOnly={showActiveOnly}
-						setShowActiveOnly={setShowActiveOnly}
-						searchTerm={searchTerm}
-						setSearchTerm={setSearchTerm}
-					/>
-				</div>
+				{/* content */}
+				{items.length === 0 ? (
+					<p className="text-destructive text-2xl">No items found.</p>
+				) : (
+					<div>
+						{/* contorls */}
+						<div className="w-full md:w-3/4 mx-auto flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 px-4 mt-4">
+							<UserControls
+								showActiveOnly={showActiveOnly}
+								setShowActiveOnly={setShowActiveOnly}
+								searchTerm={searchTerm}
+								setSearchTerm={setSearchTerm}
+							/>
+						</div>
 
-				<DragDropContext onDragEnd={handleDragEnd}>
-					<Droppable droppableId="items">
-						{(provided) => (
-							<div
-								className="hidden md:block bg-accent p-4 rounded-2xl shadow-md w-full md:w-3/4 mx-auto mt-8"
-								{...provided.droppableProps}
-								ref={provided.innerRef}
-							>
-								{/* Table headers */}
-								<div className="flex justify-between items-center font-bold text-lg px-2 py-1 border-b border-accent mb-2">
-									<span className="flex items-center gap-2 w-1/2">
-										<UpDownIcon className="w-5 h-5" />
-										Item Name
-									</span>
-									<span className="w-1/4 text-center">Status</span>
-									<span className="w-1/4 text-center">Actions</span>
-								</div>
+						{/* Desktop Table */}
+						<DragDropContext onDragEnd={handleDragEnd}>
+							<Droppable droppableId="items">
+								{(provided) => (
+									<div
+										className="hidden md:block bg-accent p-4 rounded-2xl shadow-md w-full md:w-3/4 mx-auto mt-8"
+										{...provided.droppableProps}
+										ref={provided.innerRef}
+									>
+										{/* Table headers */}
+										<div className="flex justify-between items-center font-bold text-lg px-2 py-1 border-b border-accent mb-2">
+											<span className="flex items-center gap-2 w-1/2">
+												<UpDownIcon className="w-5 h-5" />
+												Item Name
+											</span>
+											<span className="w-1/4 text-center">Status</span>
+											<span className="w-1/4 text-center">Actions</span>
+										</div>
 
-								{/* Draggable rows */}
-								{paginatedItems.map((item, index) => (
-									<Draggable key={item.id} draggableId={item.id!} index={index}>
-										{(provided) => (
-											<div
-												className="flex justify-between items-center p-2 mb-2 bg-background rounded-2xl text-chart-3"
-												ref={provided.innerRef}
-												{...provided.draggableProps}
-												{...provided.dragHandleProps}
+										{/* Draggable rows */}
+										{paginatedItems.map((item, index) => (
+											<Draggable
+												key={item.id}
+												draggableId={item.id!}
+												index={index}
 											>
-												{/* Icon + Name */}
-												<div className="flex items-center gap-2 w-1/2">
-													<Tooltip>
-														<TooltipTrigger>
-															<UpDownIcon className="w-5 h-5" />
-														</TooltipTrigger>
-														<TooltipContent>
-															<p>Drag and Drop items to sort them.</p>
-														</TooltipContent>
-													</Tooltip>
+												{(provided) => (
+													<div
+														className="flex justify-between items-center p-2 mb-2 bg-background rounded-2xl text-chart-3"
+														ref={provided.innerRef}
+														{...provided.draggableProps}
+														{...provided.dragHandleProps}
+													>
+														{/* Icon + Name */}
+														<div className="flex items-center gap-2 w-1/2">
+															<Tooltip>
+																<TooltipTrigger>
+																	<UpDownIcon className="w-5 h-5" />
+																</TooltipTrigger>
+																<TooltipContent>
+																	<p>Drag and Drop items to sort them.</p>
+																</TooltipContent>
+															</Tooltip>
 
-													<span>{item.itemName}</span>
-												</div>
+															<span>{item.itemName}</span>
+														</div>
 
-												{/* Status */}
-												<div className="w-1/4 text-center">
-													<StatusSwitchOrBadge
-														entity={{ id: item.id!, active: item.itemActive }}
-														getLabel={() => `item: ${item.itemName}`}
-														onToggle={handleToggleActive}
-														canToggle={canToggle}
-													/>
-												</div>
-
-												{/* Actions */}
-												<div className="w-1/4 flex justify-center items-center gap-2">
-													{sessionUserRole === AppRole.MANAGER && (
-														<>
-															<EditItemDialog
-																item={item}
-																items={items}
-																stationId={stationIdParam}
-																onUpdate={(
-																	id,
-																	itemName,
-																	isTempTaken,
-																	isCheckMark,
-																	notes
-																) =>
-																	setItems((prev) =>
-																		prev.map((it) =>
-																			it.id === id
-																				? {
-																						...it,
-																						itemName,
-																						isTempTaken,
-																						isCheckMark,
-																						notes,
-																				  }
-																				: it
-																		)
-																	)
-																}
-															/>
-															<DeleteConfirmButton
-																item={{
+														{/* Status */}
+														<div className="w-1/4 text-center">
+															<StatusSwitchOrBadge
+																entity={{
 																	id: item.id!,
-																	stationId: stationIdParam,
+																	active: item.itemActive,
 																}}
-																entityLabel="Station"
-																onDelete={async (id) => {
-																	await deleteItem(stationIdParam, id);
-																	setItems((prev) =>
-																		prev.filter((it) => it.id !== id)
-																	);
-																}}
-																getItemName={() => item.itemName}
+																getLabel={() => `item: ${item.itemName}`}
+																onToggle={handleToggleActive}
+																canToggle={canToggle}
 															/>
-														</>
-													)}
-												</div>
-											</div>
-										)}
-									</Draggable>
-								))}
+														</div>
 
-								{provided.placeholder}
-							</div>
-						)}
-					</Droppable>
-				</DragDropContext>
+														{/* Actions */}
+														<div className="w-1/4 flex justify-center items-center gap-2">
+															{sessionUserRole === AppRole.MANAGER && (
+																<>
+																	<EditItemDialog
+																		item={item}
+																		items={items}
+																		stationId={stationIdParam}
+																		onUpdate={(
+																			id,
+																			itemName,
+																			isTempTaken,
+																			isCheckMark,
+																			notes
+																		) =>
+																			setItems((prev) =>
+																				prev.map((it) =>
+																					it.id === id
+																						? {
+																								...it,
+																								itemName,
+																								isTempTaken,
+																								isCheckMark,
+																								notes,
+																						  }
+																						: it
+																				)
+																			)
+																		}
+																	/>
+																	<DeleteConfirmButton
+																		item={{
+																			id: item.id!,
+																			stationId: stationIdParam,
+																		}}
+																		entityLabel="Station"
+																		onDelete={async (id) => {
+																			await deleteItem(stationIdParam, id);
+																			setItems((prev) =>
+																				prev.filter((it) => it.id !== id)
+																			);
+																		}}
+																		getItemName={() => item.itemName}
+																	/>
+																</>
+															)}
+														</div>
+													</div>
+												)}
+											</Draggable>
+										))}
 
-				<div className="w-full md:w-3/4 mx-auto flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 px-4 mt-4">
-					<Pagination
-						currentPage={currentPage}
-						setCurrentPage={setCurrentPage}
-						pageSize={pageSize}
-						setPageSize={setPageSize}
-						totalItems={items.length}
-					/>
-				</div>
-			</div>
+										{provided.placeholder}
+									</div>
+								)}
+							</Droppable>
+						</DragDropContext>
+
+						<div className="w-full md:w-3/4 mx-auto flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 px-4 mt-4">
+							<Pagination
+								currentPage={currentPage}
+								setCurrentPage={setCurrentPage}
+								pageSize={pageSize}
+								setPageSize={setPageSize}
+								totalItems={items.length}
+							/>
+						</div>
+					</div>
+				)}
+			</section>
 		</main>
 	);
 };
