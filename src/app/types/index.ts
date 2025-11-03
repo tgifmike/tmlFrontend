@@ -51,6 +51,7 @@ export interface Locations {
 	locationTimeZone: string;
 	locationLatitude: string;
 	locationLongitude: string;
+	geocodedFromZipFallback?: boolean;
 	createdAt?: string | null;
 	updatedAt?: string | null;
 }
