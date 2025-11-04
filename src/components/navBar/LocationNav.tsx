@@ -3,12 +3,11 @@
 import { Icons } from '@/lib/icon';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useParams, usePathname, useRouter } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import UploadAccountImagePopover from './UploadAccountImagePopover';
 import { getAccountById, getAccountsForUser } from '@/app/api/accountApi';
 import { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
-import { User } from '@/app/types';
 
 type LeftNavProps = {
 	accountName: string | null;
@@ -33,8 +32,6 @@ const LocationNav = ({ accountName, accountImage, accountId, sessionUserRole, lo
 
 	const pathname = usePathname();
 	const { data: session, status } = useSession();
-
-	
 	
 	//Fetch latest account image on mount
 	useEffect(() => {

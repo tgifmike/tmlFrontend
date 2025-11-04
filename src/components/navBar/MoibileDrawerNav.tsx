@@ -1,6 +1,7 @@
 'use client';
 
-import React from 'react';
+import React, { ReactNode } from 'react';
+import { Button } from '@/components/ui/button';
 import {
 	Drawer,
 	DrawerTrigger,
@@ -9,35 +10,41 @@ import {
 	DrawerTitle,
 	DrawerClose,
 } from '@/components/ui/drawer';
-import { Button } from '@/components/ui/button';
 import { Menu, X } from 'lucide-react';
 
 interface MobileDrawerNavProps {
-	title?: string;
-	children: React.ReactNode; // typically a navigation component
 	open: boolean;
 	setOpen: (open: boolean) => void;
+	title?: string;
+	children: ReactNode;
 }
 
-export default function MobileDrawerNav({
-	title = 'Navigation',
-	children,
+/**
+ * A reusable left-side mobile drawer for navigation or menus.
+ */
+const MobileDrawerNav: React.FC<MobileDrawerNavProps> = ({
 	open,
 	setOpen,
-}: MobileDrawerNavProps) {
+	title = 'Navigation',
+	children,
+}) => {
 	return (
 		<Drawer open={open} onOpenChange={setOpen}>
-			<DrawerTrigger asChild>
+			{/* Button that triggers the drawer */}
+			<DrawerTrigger
+				className='flex items-center'
+				asChild>
 				<Button
 					variant="ghost"
-					size="icon"
+					size="lg"
 					className="md:hidden"
-					aria-label="Open Menu"
+					aria-label="Open menu"
 				>
-					<Menu className="w-6 h-6" />
+					<Menu className="w-16 h-16" />
 				</Button>
 			</DrawerTrigger>
 
+			{/* Drawer panel content */}
 			<DrawerContent
 				side="left"
 				className="p-0 w-64 backdrop-blur-xl bg-background/80 shadow-lg"
@@ -46,15 +53,18 @@ export default function MobileDrawerNav({
 					<div className="flex justify-between items-center w-full">
 						<DrawerTitle>{title}</DrawerTitle>
 						<DrawerClose asChild>
-							<Button variant="ghost" size="icon">
+							<Button variant="ghost" size="icon" aria-label="Close menu">
 								<X className="w-5 h-5" />
 							</Button>
 						</DrawerClose>
 					</div>
 				</DrawerHeader>
 
+				{/* Drawer body */}
 				<div className="pt-0">{children}</div>
 			</DrawerContent>
 		</Drawer>
 	);
-}
+};
+
+export default MobileDrawerNav;
