@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { toast } from 'sonner';
 import {
@@ -33,11 +33,11 @@ import {
 	getUserLocationAccess,
 	toggleLocationActive,
 } from '@/app/api/locationApi';
+import router from 'next/router';
 
 const AccountPage = () => {
 	//session
 	const { data: session, status } = useSession();
-	const router = useRouter();
 	const params = useParams<{ accountId: string; locationId: string }>();
 	const accountIdParam = params.accountId;
 

@@ -3,7 +3,6 @@
 import { getAccountsForUser } from '@/app/api/accountApi';
 import { getUserLocationAccess } from '@/app/api/locationApi';
 import { AppRole, Locations, User } from '@/app/types';
-import LeftNav from '@/components/navBar/LeftNav';
 import LocationNav from '@/components/navBar/LocationNav';
 import Spinner from '@/components/spinner/Spinner';
 import { useSession } from 'next-auth/react';

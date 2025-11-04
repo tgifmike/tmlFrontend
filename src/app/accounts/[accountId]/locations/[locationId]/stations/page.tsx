@@ -11,7 +11,7 @@ import CreateStationDialog from '@/components/tableComponents/CreateStationForm'
 import { UserControls } from '@/components/tableComponents/UserControls';
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { StatusSwitchOrBadge } from '@/components/tableComponents/StatusSwitchOrBadge';
@@ -20,15 +20,15 @@ import { Pagination } from '@/components/tableComponents/Pagination';
 import { EditStationDialog } from '@/components/tableComponents/EditStationDialog';
 import { Drawer, DrawerClose, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger } from '@/components/ui/drawer';
 import { Button } from '@/components/ui/button';
-import { Ghost, Menu, X } from 'lucide-react';
+import { Menu, X } from 'lucide-react';
 import { DataCard } from '@/components/cards/DataCard';
+import router from 'next/router';
 
 
 const LocationStationsPage = () => {
 
 	//session
 	const { data: session, status } = useSession();
-	const router = useRouter();
 	const params = useParams<{ accountId: string; locationId: string }>();
 	const accountIdParam = params.accountId;
 	const locationIdParam = params.locationId;

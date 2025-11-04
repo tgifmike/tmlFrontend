@@ -28,21 +28,21 @@ const LeftNav = ({ accountName, accountImage, accountId, sessionUserRole }: Left
 	const pathname = usePathname();
 
 	// Fetch latest account image on mount
-	useEffect(() => {
-		const fetchAccountImage = async () => {
-			try {
-				const response = await getAccountById(accountId);
-				const account = response?.data;
-				if (account?.imageBase64) {
-					setImage(account.imageBase64);
-				}
-			} catch (err) {
-				console.error('Failed to fetch account image:', err);
-			}
-		};
+	// useEffect(() => {
+	// 	const fetchAccountImage = async () => {
+	// 		try {
+	// 			const response = await getAccountById(accountId);
+	// 			const account = response?.data;
+	// 			if (account?.imageBase64) {
+	// 				setImage(account.imageBase64);
+	// 			}
+	// 		} catch (err) {
+	// 			console.error('Failed to fetch account image:', err);
+	// 		}
+	// 	};
 
-		fetchAccountImage();
-	}, [accountId]);
+	// 	fetchAccountImage();
+	// }, [accountId]);
 
 	return (
 		<nav className="bg-ring h-full">

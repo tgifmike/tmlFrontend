@@ -4,7 +4,8 @@ import { getAccountsForUser } from '@/app/api/accountApi';
 import { getUsersForAccount } from '@/app/api/userApI';
 import { AppRole, User } from '@/app/types';
 import { useSession } from 'next-auth/react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams } from 'next/navigation';
+import router from 'next/router';
 import React, { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
@@ -16,7 +17,7 @@ const AccountUsersPage = () => {
 	const currentUser = session?.user as User | undefined;
 	const sessionUserRole = session?.user?.appRole;
 	const canToggle = currentUser?.appRole === AppRole.MANAGER;
-	const router = useRouter();
+	
 	const params = useParams<{ accountId: string; locationId: string }>();
 	const accountIdParam = params.accountId;
 

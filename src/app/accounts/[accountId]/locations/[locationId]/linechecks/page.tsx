@@ -7,13 +7,13 @@ import LocationNav from '@/components/navBar/LocationNav';
 import Spinner from '@/components/spinner/Spinner';
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams } from 'next/navigation';
+import router from 'next/router';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
 const LocationLineChecksPage = () => {
 	const { data: session, status } = useSession();
-	const router = useRouter();
 	const params = useParams<{ accountId: string; locationId: string }>();
 
 	const accountIdParam = params.accountId;

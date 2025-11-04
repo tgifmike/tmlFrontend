@@ -25,12 +25,12 @@ import { Pagination } from '@/components/tableComponents/Pagination';
 import { StatusSwitchOrBadge } from '@/components/tableComponents/StatusSwitchOrBadge';
 import { UserControls } from '@/components/tableComponents/UserControls';
 import { useSession } from 'next-auth/react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import React, { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { Icons } from '@/lib/icon';
-
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import router from 'next/router';
 
 
 const StationPage = () => {
@@ -40,7 +40,6 @@ const StationPage = () => {
 
 	//session
 	const { data: session, status } = useSession();
-	const router = useRouter();
 	const params = useParams<{
 		accountId: string;
 		locationId: string;
