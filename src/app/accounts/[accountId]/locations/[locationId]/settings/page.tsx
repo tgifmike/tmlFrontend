@@ -4,6 +4,7 @@ import { getAccountsForUser } from '@/app/api/accountApi';
 import { getUserLocationAccess, toggleLocationActive, updateLocation } from '@/app/api/locationApi';
 import { AppRole, Locations, User } from '@/app/types';
 import LocationNav from '@/components/navBar/LocationNav';
+import MobileDrawerNav from '@/components/navBar/MoibileDrawerNav';
 import Spinner from '@/components/spinner/Spinner';
 import { StatusSwitchOrBadge } from '@/components/tableComponents/StatusSwitchOrBadge';
 import { Button } from '@/components/ui/button';
@@ -44,6 +45,7 @@ const LocationSettingsPage = () => {
 	const [currentLocation, setCurrentLocation] = useState<Locations | null>(
 		null
 	);
+	const [drawerOpen, setDrawerOpen] = useState(false);
 
 	// Zod schema with all fields and validations
 	const getSchema = (locations: Locations[] = [], currentLocationId: string) =>
@@ -285,9 +287,10 @@ const LocationSettingsPage = () => {
 		);
 
 	return (
-		<main className="flex ">
+		<main className="flex min-h-screen overflow-hidden">
+			{/* Desktop Sidebar */}
 			{/* left nav */}
-			<div className="w-1/6 border-r-2 bg-ring h-screen">
+			<aside className="hidden md:block w-1/6 border-r h-screen bg-ring">
 				<LocationNav
 					accountName={accountName}
 					accountImage={accountImage}
@@ -295,14 +298,32 @@ const LocationSettingsPage = () => {
 					locationId={locationIdParam}
 					sessionUserRole={sessionUserRole}
 				/>
-			</div>
-			{/* main content */}
-			<div className="p-4 flex flex-col">
-				<div className="flex ">
-					<h1 className="text-3xl font-bold mb-4">{locationName}</h1>
-				</div>
+			</aside>
 
-				<div className="bg-accent p-4 rounded-2xl shadow-2xl">
+			{/* main content */}
+			<section className="flex-1 flex flex-col">
+				{/* Header */}
+				<header className="flex justify-between items-center px-4 py-3 border-b bg-background/70 backdrop-blur-md sticky top-0 z-20">
+					{/* Left */}
+					<div className="flex gap-8">
+						{/* Mobile Drawer */}
+						<MobileDrawerNav
+							open={drawerOpen}
+							setOpen={setDrawerOpen}
+							title="Menu"
+						>
+							<LocationNav
+								accountName={accountName}
+								accountImage={accountImage}
+								accountId={accountIdParam}
+								locationId={locationIdParam}
+								sessionUserRole={sessionUserRole}
+							/>
+						</MobileDrawerNav>
+						<h1 className="text-3xl font-bold mb-4">{locationName}</h1>
+						</div>
+				</header>
+				<div className="w-3/4 mx-auto mt-4 bg-accent p-4 rounded-2xl shadow-2xl">
 					<Form {...form}>
 						<form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
 							<div className="bg-background p-4 rounded-2xl">
@@ -458,7 +479,7 @@ const LocationSettingsPage = () => {
 						</form>
 					</Form>
 				</div>
-				<div className="flex justify-between items-center p-4 bg-accent rounded-2xl shadow-2xl mt-5">
+				<div className="w-3/4 mx-auto flex justify-between items-center p-4 bg-accent rounded-2xl shadow-2xl mt-5">
 					Status:
 					<StatusSwitchOrBadge
 						entity={{
@@ -470,8 +491,7 @@ const LocationSettingsPage = () => {
 						canToggle={canToggle}
 					/>
 				</div>
-			</div>
-			
+			</section>
 		</main>
 	);
 };

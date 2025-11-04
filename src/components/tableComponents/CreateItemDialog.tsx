@@ -115,11 +115,10 @@ export default function CreateItemDialog({
 			<DialogTrigger asChild>
 				<Button
 					variant="outline"
-					size="lg"
-					className="text-chart-3 text-lg font-bold"
+					className="text-chart-3 font-bold text-sm md:text-lg px-3 py-1 md:px-4 md:py-2 flex items-center gap-2"
 				>
 					<ItemIcon className="!w-[25px] !h-[25px]" />
-					Create Item
+					<span className="hidden sm:inline">Create Item</span>
 				</Button>
 			</DialogTrigger>
 

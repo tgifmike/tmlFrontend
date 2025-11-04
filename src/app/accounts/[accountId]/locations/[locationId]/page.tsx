@@ -4,6 +4,7 @@ import { getAccountsForUser } from '@/app/api/accountApi';
 import { getUserLocationAccess } from '@/app/api/locationApi';
 import { AppRole, Locations, User } from '@/app/types';
 import LocationNav from '@/components/navBar/LocationNav';
+import MobileDrawerNav from '@/components/navBar/MoibileDrawerNav';
 import Spinner from '@/components/spinner/Spinner';
 import { useSession } from 'next-auth/react';
 import { useParams, useRouter } from 'next/navigation';
@@ -30,7 +31,8 @@ const LocationPage = () => {
 	const [hasAccess, setHasAccess] = useState(false);
 	const [locationName, setLocationName] = useState<String | null>(null);
     const [accountName, setAccountName] = useState<string | null>(null);
-    const [accountImage, setAccountImage] = useState<string | null>(null);
+	const [accountImage, setAccountImage] = useState<string | null>(null);
+	const [drawerOpen, setDrawerOpen] = useState(false);
     
     useEffect(() => {
 			if (
@@ -103,9 +105,10 @@ const LocationPage = () => {
 			);
 
   return (
-		<main className="flex">
+		<main className="flex min-h-screen overflow-hidden">
+			{/* Desktop Sidebar */}
 			{/* left nav */}
-			<div className="w-1/6 border-r-2 bg-ring h-screen">
+			<aside className="hidden md:block w-1/6 border-r h-screen bg-ring">
 				<LocationNav
 					accountName={accountName}
 					accountImage={accountImage}
@@ -113,13 +116,38 @@ const LocationPage = () => {
 					locationId={locationIdParam}
 					sessionUserRole={sessionUserRole}
 				/>
-			</div>
+		  </aside>
+		  
 			{/* main content */}
-			<div className="p-4 flex-1">
+			<section className="flex-1 flex flex-col">
+				{/* Header */}
+				<header className="flex justify-between items-center px-4 py-3 border-b bg-background/70 backdrop-blur-md sticky top-0 z-20">
+					{/* Left */}
+					<div className="flex gap-8">
+						{/* Mobile Drawer */}
+						<MobileDrawerNav
+							open={drawerOpen}
+							setOpen={setDrawerOpen}
+							title="Menu"
+						>
+							<LocationNav
+								accountName={accountName}
+								accountImage={accountImage}
+								accountId={accountIdParam}
+								locationId={locationIdParam}
+								sessionUserRole={sessionUserRole}
+							/>
+						</MobileDrawerNav>
+						<h1 className="text-3xl font-bold mb-4">{locationName} Home</h1>
+					</div>
+				</header>
+			</section>
+
+			{/* <div className="p-4 flex-1">
 				<div className="flex justify-between items-center">
 					<h1 className="text-3xl font-bold mb-4">{locationName} Home</h1>
 				</div>
-			</div>
+			</div> */}
 		</main>
 	);
 }

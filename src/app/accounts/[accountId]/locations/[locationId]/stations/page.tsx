@@ -23,6 +23,7 @@ import { Button } from '@/components/ui/button';
 import { Menu, X } from 'lucide-react';
 import { DataCard } from '@/components/cards/DataCard';
 import router from 'next/router';
+import MobileDrawerNav from '@/components/navBar/MoibileDrawerNav';
 
 
 const LocationStationsPage = () => {
@@ -226,45 +227,19 @@ const LocationStationsPage = () => {
 					{/* Left */}
 					<div className="flex items-center gap-3">
 						{/* Mobile Drawer */}
-
-						<Drawer open={drawerOpen} onOpenChange={setDrawerOpen}>
-							<DrawerTrigger asChild>
-								<Button
-									variant="ghost"
-									size="icon"
-									className="md:hidden"
-									aria-label="Open Menu"
-								>
-									<Menu className="w-6 h-6" />
-								</Button>
-							</DrawerTrigger>
-
-							<DrawerContent
-								side="left"
-								className="p-0 w-64 backdrop-blur-xl bg-background/80 shadow-lg"
-							>
-								<DrawerHeader className="flex justify-between items-center rounded-2xl pt-0 ">
-									<div className="flex justify-between items-center">
-										<DrawerTitle>Navigation</DrawerTitle>
-										<DrawerClose asChild>
-											<Button variant="ghost" size="icon">
-												<X className="w-5 h-5" />
-											</Button>
-										</DrawerClose>
-									</div>
-								</DrawerHeader>
-
-								<div className="pt-0">
-									<LocationNav
-										accountName={accountName}
-										accountImage={accountImage}
-										accountId={accountIdParam}
-										locationId={locationIdParam}
-										sessionUserRole={sessionUserRole}
-									/>
-								</div>
-							</DrawerContent>
-						</Drawer>
+						<MobileDrawerNav
+							open={drawerOpen}
+							setOpen={setDrawerOpen}
+							title="Menu"
+						>
+							<LocationNav
+								accountName={accountName}
+								accountImage={accountImage}
+								accountId={accountIdParam}
+								locationId={locationIdParam}
+								sessionUserRole={sessionUserRole}
+							/>
+						</MobileDrawerNav>
 
 						<h1 className="text-2xl font-semibold">
 							{currentLocation?.locationName}
