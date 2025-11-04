@@ -4,7 +4,6 @@ import { getAccountsForUser } from '@/app/api/accountApi';
 import { getUserLocationAccess } from '@/app/api/locationApi';
 import { AppRole, Locations, User } from '@/app/types';
 import LocationNav from '@/components/navBar/LocationNav';
-import MobileDrawerNav from '@/components/navBar/MobileDrawerNav';
 import Spinner from '@/components/spinner/Spinner';
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
@@ -28,7 +27,6 @@ const LocationLineChecksPage = () => {
 	const [currentLocation, setCurrentLocation] = useState<Locations | null>(
 		null
 	);
-	const [drawerOpen, setDrawerOpen] = useState(false);
 
 	    const currentUser = session?.user as User | undefined;
         const sessionUserRole = session?.user?.appRole;
@@ -98,9 +96,8 @@ const LocationLineChecksPage = () => {
 	}
 
 	return (
-		<main className="flex min-h-screen overflow-hidden">
-			{/* Desktop Sidebar */}
-			<aside className="hidden md:block w-1/6 border-r h-screen bg-ring">
+		<main className="flex">
+			<div className="w-1/6 border-r-2 bg-ring h-screen">
 				<LocationNav
 					accountName={accountName}
 					accountImage={accountImage}
@@ -108,46 +105,21 @@ const LocationLineChecksPage = () => {
 					locationId={locationIdParam}
 					sessionUserRole={sessionUserRole}
 				/>
-			</aside>
+			</div>
 
-			{/* Main Content */}
-			<section className="flex-1 flex flex-col">
-				{/* Header */}
-				<header className="flex justify-between items-center px-4 py-3 border-b bg-background/70 backdrop-blur-md sticky top-0 z-20">
-					{/* Left */}
-					<div className="flex items-center gap-3">
-						{/* Mobile Drawer */}
-						<MobileDrawerNav
-							open={drawerOpen}
-							setOpen={setDrawerOpen}
-							title="Account Menu"
-						>
-							<LocationNav
-								accountName={accountName}
-								accountImage={accountImage}
-								accountId={accountIdParam}
-								locationId={locationIdParam}
-								sessionUserRole={sessionUserRole}
-							/>
-						</MobileDrawerNav>
-
-						<h1 className="text-3xl font-bold mb-4">
-							{currentLocation?.locationName}
-						</h1>
-					</div>
-				</header>
-				<div>
-					<Link
-						className="text-xl text-chart-3 hover:underline"
-						href={`/accounts/${accountIdParam}/locations/${locationIdParam}/stations`}
-					>
-						Manage Stations
-					</Link>
+			<div className="p-4 flex flex-col">
+				<div className="flex">
+					<h1 className="text-3xl font-bold mb-4">
+						{currentLocation?.locationName}
+					</h1>
 				</div>
-			</section>
 
-			
-			
+                <div>
+                    <Link
+                        className='text-xl text-chart-3 hover:underline'
+                        href={`/accounts/${accountIdParam}/locations/${locationIdParam}/stations`}>Manage Stations</Link>
+                </div>
+			</div>
 		</main>
 	);
 };

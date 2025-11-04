@@ -3,13 +3,8 @@
 import { ReusableTable } from '@/components/tableComponents/ReusableTableProps';
 import { getAccountsForUser } from '@/app/api/accountApi';
 import { getUserLocationAccess } from '@/app/api/locationApi';
-import {
-	deleteStation,
-	getStationsByLocation,
-	reorderStations,
-	toggleStationActive,
-} from '@/app/api/stationApi';
-import { AppRole, Item, Locations, Station, User } from '@/app/types';
+import { deleteStation, getStationsByLocation, toggleStationActive } from '@/app/api/stationApi';
+import { AppRole, Locations, Station, User } from '@/app/types';
 import LocationNav from '@/components/navBar/LocationNav';
 import Spinner from '@/components/spinner/Spinner';
 import CreateStationDialog from '@/components/tableComponents/CreateStationForm';
@@ -23,41 +18,13 @@ import { StatusSwitchOrBadge } from '@/components/tableComponents/StatusSwitchOr
 import { DeleteConfirmButton } from '@/components/tableComponents/DeleteConfirmButton';
 import { Pagination } from '@/components/tableComponents/Pagination';
 import { EditStationDialog } from '@/components/tableComponents/EditStationDialog';
-import {
-	Drawer,
-	DrawerClose,
-	DrawerContent,
-	DrawerHeader,
-	DrawerTitle,
-	DrawerTrigger,
-} from '@/components/ui/drawer';
+import { Drawer, DrawerClose, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger } from '@/components/ui/drawer';
 import { Button } from '@/components/ui/button';
-import { Menu, X } from 'lucide-react';
+import { Ghost, Menu, X } from 'lucide-react';
 import { DataCard } from '@/components/cards/DataCard';
-import {
-	DragDropContext,
-	Droppable,
-	Draggable,
-	DropResult,
-} from '@hello-pangea/dnd';
-import {
-	deleteItem,
-	getItemsByStation,
-	toggleItemActive,
-	reorderItems,
-} from '@/app/api/item.Api';
-import { Icons } from '@/lib/icon';
-import {
-	Tooltip,
-	TooltipContent,
-	TooltipTrigger,
-} from '@/components/ui/tooltip';
-import { EditItemDialog } from '@/components/tableComponents/EditItemDialog';
-import MobileDrawerNav from '@/components/navBar/MobileDrawerNav';
+
 
 const LocationStationsPage = () => {
-	//icon
-	const UpDownIcon = Icons.sort;
 
 	//session
 	const { data: session, status } = useSession();
@@ -81,7 +48,6 @@ const LocationStationsPage = () => {
 	const [currentPage, setCurrentPage] = useState(1);
 	const [pageSize, setPageSize] = useState(10);
 	const [drawerOpen, setDrawerOpen] = useState(false);
-	const [items, setItems] = useState<Station[]>([]);
 
 	const currentUser = session?.user as User | undefined;
 	const sessionUserRole = session?.user?.appRole;
@@ -231,26 +197,6 @@ const LocationStationsPage = () => {
 		currentPage * pageSize
 	);
 
-	// drag & drop
-	const handleDragEnd = async (result: DropResult) => {
-		if (!result.destination) return;
-		const sourceIndex = result.source.index;
-		const destIndex = result.destination.index;
-
-		const updatedStations = Array.from(stations);
-		const [removed] = updatedStations.splice(sourceIndex, 1);
-		updatedStations.splice(destIndex, 0, removed);
-
-		setStations(updatedStations);
-
-		try {
-			const stationsIdsInOrder = updatedStations.map((i) => i.id!) as any;
-			await reorderStations(locationIdParam, stationsIdsInOrder);
-		} catch (err) {
-			toast.error('Failed to save new station order.');
-		}
-	};
-
 	if (status === 'loading' || loadingAccess) {
 		return (
 			<div className="flex justify-center items-center py-40 text-chart-3 text-xl">
@@ -281,19 +227,44 @@ const LocationStationsPage = () => {
 					<div className="flex items-center gap-3">
 						{/* Mobile Drawer */}
 
-						<MobileDrawerNav
-							open={drawerOpen}
-							setOpen={setDrawerOpen}
-							title="Account Menu"
-						>
-							<LocationNav
-								accountName={accountName}
-								accountImage={accountImage}
-								accountId={accountIdParam}
-								locationId={locationIdParam}
-								sessionUserRole={sessionUserRole}
-							/>
-						</MobileDrawerNav>
+						<Drawer open={drawerOpen} onOpenChange={setDrawerOpen}>
+							<DrawerTrigger asChild>
+								<Button
+									variant="ghost"
+									size="icon"
+									className="md:hidden"
+									aria-label="Open Menu"
+								>
+									<Menu className="w-6 h-6" />
+								</Button>
+							</DrawerTrigger>
+
+							<DrawerContent
+								side="left"
+								className="p-0 w-64 backdrop-blur-xl bg-background/80 shadow-lg"
+							>
+								<DrawerHeader className="flex justify-between items-center rounded-2xl pt-0 ">
+									<div className="flex justify-between items-center">
+										<DrawerTitle>Navigation</DrawerTitle>
+										<DrawerClose asChild>
+											<Button variant="ghost" size="icon">
+												<X className="w-5 h-5" />
+											</Button>
+										</DrawerClose>
+									</div>
+								</DrawerHeader>
+
+								<div className="pt-0">
+									<LocationNav
+										accountName={accountName}
+										accountImage={accountImage}
+										accountId={accountIdParam}
+										locationId={locationIdParam}
+										sessionUserRole={sessionUserRole}
+									/>
+								</div>
+							</DrawerContent>
+						</Drawer>
 
 						<h1 className="text-2xl font-semibold">
 							{currentLocation?.locationName}
@@ -330,118 +301,81 @@ const LocationStationsPage = () => {
 						</div>
 
 						{/* Desktop Table */}
-
-						<DragDropContext onDragEnd={handleDragEnd}>
-							<Droppable droppableId="items">
-								{(provided) => (
-									<div
-										className="hidden md:block bg-accent p-4 rounded-2xl shadow-md w-full md:w-3/4 mx-auto mt-8"
-										{...provided.droppableProps}
-										ref={provided.innerRef}
-									>
-										{/* Table headers */}
-										<div className="flex justify-between items-center font-bold text-lg px-2 py-1 border-b border-accent mb-2">
-											<span className="flex items-center gap-2 w-1/2">
-												<UpDownIcon className="w-5 h-5" />
-												Station Name
-											</span>
-											<span className="w-1/4 text-center">Status</span>
-											<span className="w-1/4 text-center">Actions</span>
-										</div>
-
-										{/* Draggable rows */}
-										{paginatedStations.map((station, index) => (
-											<Draggable
-												key={station.id}
-												draggableId={station.id!}
-												index={index}
+						<div className="hidden md:block bg-accent p-4 rounded-2xl text-chart-3 shadow-md w-full md:w-3/4 mx-auto mt-8">
+							<ReusableTable<Station>
+								data={paginatedStations}
+								rowKey={(station) => station.id!}
+								columns={[
+									{
+										header: 'Station Name',
+										render: (station) => (
+											<Link
+												href={`/accounts/${accountIdParam}/locations/${locationIdParam}/stations/${station.id}`}
 											>
-												{(provided) => (
-													<div
-														className="flex justify-between items-center p-2 mb-2 bg-background rounded-2xl text-chart-3"
-														ref={provided.innerRef}
-														{...provided.draggableProps}
-														{...provided.dragHandleProps}
-													>
-														{/* Icon + Name */}
-														<div className="flex items-center gap-2 w-1/2">
-															<Tooltip>
-																<TooltipTrigger>
-																	<UpDownIcon className="w-5 h-5" />
-																</TooltipTrigger>
-																<TooltipContent>
-																	<p>Drag and Drop items to sort them.</p>
-																</TooltipContent>
-															</Tooltip>
+												{station.stationName}
+											</Link>
+										),
+									},
+									{
+										header: 'Status',
+										className: 'text-center',
+										render: (station) => (
+											<StatusSwitchOrBadge
+												entity={{
+													id: station.id!,
+													active: station.stationActive,
+												}}
+												getLabel={() => `Station: ${station.stationName}`}
+												onToggle={handleToggleActive}
+												canToggle={canToggle}
+											/>
+										),
+									},
+									{
+										header: 'Actions',
+										className: 'text-center',
+										render: (station) =>
+											sessionUserRole === 'MANAGER' ? (
+												<div className="flex justify-center gap-4 items-center">
+													<EditStationDialog
+														station={station}
+														locationId={locationIdParam}
+														stations={stations}
+														onUpdate={(id, name) =>
+															setStations((prev) =>
+																prev.map((station) =>
+																	station.id === id
+																		? { ...station, stationName: name }
+																		: station
+																)
+															)
+														}
+													/>
 
-															<span>{station.stationName}</span>
-															<Link
-																href={`/accounts/${accountIdParam}/locations/${locationIdParam}/stations/${station.id}`}
-															>
-																{station.stationName}
-															</Link>
-														</div>
-
-														{/* Status */}
-														<div className="w-1/4 text-center">
-															<StatusSwitchOrBadge
-																entity={{
-																	id: station.id!,
-																	active: station.stationActive,
-																}}
-																getLabel={() =>
-																	`Station: ${station.stationName}`
-																}
-																onToggle={handleToggleActive}
-																canToggle={canToggle}
-															/>
-														</div>
-
-														{/* Actions */}
-														<div className="w-1/4 flex justify-center items-center gap-2">
-															{sessionUserRole === AppRole.MANAGER && (
-																<>
-																	<EditStationDialog
-																		station={station}
-																		locationId={locationIdParam}
-																		stations={stations}
-																		onUpdate={(id, name) =>
-																			setStations((prev) =>
-																				prev.map((station) =>
-																					station.id === id
-																						? { ...station, stationName: name }
-																						: station
-																				)
-																			)
-																		}
-																	/>
-																	<DeleteConfirmButton
-																		item={{
-																			id: station.id!,
-																			stationId: locationIdParam,
-																		}}
-																		entityLabel="Station"
-																		onDelete={async (id) => {
-																			await deleteItem(locationIdParam, id);
-																			setItems((prev) =>
-																				prev.filter((it) => it.id !== id)
-																			);
-																		}}
-																		getItemName={() => station.stationName}
-																	/>
-																</>
-															)}
-														</div>
-													</div>
-												)}
-											</Draggable>
-										))}
-
-										{provided.placeholder}
-									</div>
-								)}
-							</Droppable>
-						</DragDropContext>
+													{station.id && (
+														<DeleteConfirmButton
+															item={{
+																id: station.id,
+																locationId: locationIdParam,
+															}}
+															entityLabel="Location"
+															onDelete={async (id) => {
+																await deleteStation(locationIdParam, id);
+																setStations((prev) =>
+																	prev.filter((station) => station.id !== id)
+																);
+															}}
+															getItemName={() => station.stationName}
+														/>
+													)}
+												</div>
+											) : (
+												<span className="text-ring">No Actions</span>
+											),
+									},
+								]}
+							/>
+						</div>
 
 						{/* Mobile Cards */}
 						<div className="md:hidden mt-6 space-y-2 p-2">

@@ -85,17 +85,14 @@ const LeftNav = ({ accountName, accountImage, accountId, sessionUserRole }: Left
 					pathname={pathname}
 				/>
 			</div>
-
-			{sessionUserRole === 'MANAGER' &&
-				<div className="flex flex-col gap-2 px-4 mt-6">
-					<NavLink
-						href={`/accounts/${accountId}/accountUsers`}
-						label="Users For Account"
-						icon={<UserIcon />}
-						pathname={pathname}
-					/>
-				</div>
-			}
+			<div className="flex flex-col gap-2 px-4 mt-6">
+				<NavLink
+					href={`/accounts/${accountId}/accountUsers`}
+					label="Users For Account"
+					icon={<UserIcon />}
+					pathname={pathname}
+				/>
+			</div>
 		</nav>
 	);
 };
