@@ -1,9 +1,21 @@
 'use client';
 
+import {
+	deleteItem,
+	getItemsByStation,
+	toggleItemActive,
+	reorderItems,
+} from '@/app/api/item.Api';
+import {
+	DragDropContext,
+	Droppable,
+	Draggable,
+	DropResult,
+} from '@hello-pangea/dnd';
 import { ReusableTable } from '@/components/tableComponents/ReusableTableProps';
 import { getAccountsForUser } from '@/app/api/accountApi';
 import { getUserLocationAccess } from '@/app/api/locationApi';
-import { deleteStation, getStationsByLocation, toggleStationActive } from '@/app/api/stationApi';
+import { deleteStation, getStationsByLocation, reorderStations, toggleStationActive } from '@/app/api/stationApi';
 import { AppRole, Locations, Station, User } from '@/app/types';
 import LocationNav from '@/components/navBar/LocationNav';
 import Spinner from '@/components/spinner/Spinner';
@@ -18,15 +30,17 @@ import { StatusSwitchOrBadge } from '@/components/tableComponents/StatusSwitchOr
 import { DeleteConfirmButton } from '@/components/tableComponents/DeleteConfirmButton';
 import { Pagination } from '@/components/tableComponents/Pagination';
 import { EditStationDialog } from '@/components/tableComponents/EditStationDialog';
-import { Drawer, DrawerClose, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger } from '@/components/ui/drawer';
-import { Button } from '@/components/ui/button';
-import { Menu, X } from 'lucide-react';
 import { DataCard } from '@/components/cards/DataCard';
 import router from 'next/router';
 import MobileDrawerNav from '@/components/navBar/MoibileDrawerNav';
+import { Icons } from '@/lib/icon';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
 
 const LocationStationsPage = () => {
+
+	//icon
+		const UpDownIcon = Icons.sort;
 
 	//session
 	const { data: session, status } = useSession();
@@ -196,7 +210,27 @@ const LocationStationsPage = () => {
 	const paginatedStations = filteredStations.slice(
 		(currentPage - 1) * pageSize,
 		currentPage * pageSize
-	);
+	); 
+
+	// drag & drop
+		const handleDragEnd = async (result: DropResult) => {
+			if (!result.destination) return;
+			const sourceIndex = result.source.index;
+			const destIndex = result.destination.index;
+	
+			const updatedStations = Array.from(stations);
+			const [removed] = updatedStations.splice(sourceIndex, 1);
+			updatedStations.splice(destIndex, 0, removed);
+	
+			setStations(updatedStations);
+	
+			try {
+				const stationIdsInOrder = updatedStations.map((i) => i.id!) as any;
+				await reorderStations(locationIdParam, stationIdsInOrder);
+			} catch (err) {
+				toast.error('Failed to save new station order.');
+			}
+		};
 
 	if (status === 'loading' || loadingAccess) {
 		return (
@@ -275,82 +309,115 @@ const LocationStationsPage = () => {
 							/>
 						</div>
 
-						{/* Desktop Table */}
-						<div className="hidden md:block bg-accent p-4 rounded-2xl text-chart-3 shadow-md w-full md:w-3/4 mx-auto mt-8">
-							<ReusableTable<Station>
-								data={paginatedStations}
-								rowKey={(station) => station.id!}
-								columns={[
-									{
-										header: 'Station Name',
-										render: (station) => (
-											<Link
-												href={`/accounts/${accountIdParam}/locations/${locationIdParam}/stations/${station.id}`}
-											>
-												{station.stationName}
-											</Link>
-										),
-									},
-									{
-										header: 'Status',
-										className: 'text-center',
-										render: (station) => (
-											<StatusSwitchOrBadge
-												entity={{
-													id: station.id!,
-													active: station.stationActive,
-												}}
-												getLabel={() => `Station: ${station.stationName}`}
-												onToggle={handleToggleActive}
-												canToggle={canToggle}
-											/>
-										),
-									},
-									{
-										header: 'Actions',
-										className: 'text-center',
-										render: (station) =>
-											sessionUserRole === 'MANAGER' ? (
-												<div className="flex justify-center gap-4 items-center">
-													<EditStationDialog
-														station={station}
-														locationId={locationIdParam}
-														stations={stations}
-														onUpdate={(id, name) =>
-															setStations((prev) =>
-																prev.map((station) =>
-																	station.id === id
-																		? { ...station, stationName: name }
-																		: station
-																)
-															)
-														}
-													/>
+						{/* Dragable Desktop Table */}
 
-													{station.id && (
-														<DeleteConfirmButton
-															item={{
-																id: station.id,
-																locationId: locationIdParam,
-															}}
-															entityLabel="Location"
-															onDelete={async (id) => {
-																await deleteStation(locationIdParam, id);
-																setStations((prev) =>
-																	prev.filter((station) => station.id !== id)
-																);
-															}}
-															getItemName={() => station.stationName}
-														/>
-													)}
-												</div>
-											) : (
-												<span className="text-ring">No Actions</span>
-											),
-									},
-								]}
-							/>
-						</div>
+						<DragDropContext onDragEnd={handleDragEnd}>
+							<Droppable droppableId="items">
+								{(provided) => (
+									<div
+										className="hidden md:block bg-accent p-4 rounded-2xl shadow-md w-full md:w-3/4 mx-auto mt-8"
+										{...provided.droppableProps}
+										ref={provided.innerRef}
+									>
+										{/* Table headers */}
+										<div className="flex justify-between items-center font-bold text-lg px-2 py-1 border-b border-accent mb-2">
+											<span className="flex items-center gap-2 w-1/2">
+												<UpDownIcon className="w-5 h-5" />
+												Station Name
+											</span>
+											<span className="w-1/4 text-center">Status</span>
+											<span className="w-1/4 text-center">Actions</span>
+										</div>
+
+										{/* Draggable rows */}
+										{paginatedStations.map((station, index) => (
+											<Draggable
+												key={station.id}
+												draggableId={station.id!}
+												index={index}
+											>
+												{(provided) => (
+													<div
+														className="flex justify-between items-center p-2 mb-2 bg-background rounded-2xl text-chart-3"
+														ref={provided.innerRef}
+														{...provided.draggableProps}
+														{...provided.dragHandleProps}
+													>
+														{/* Icon + Name */}
+														<div className="flex items-center gap-2 w-1/2">
+															<Tooltip>
+																<TooltipTrigger>
+																	<UpDownIcon className="w-5 h-5" />
+																</TooltipTrigger>
+																<TooltipContent>
+																	<p>Drag and Drop items to sort them.</p>
+																</TooltipContent>
+															</Tooltip>
+
+															<span>{station.stationName}</span>
+														</div>
+
+														{/* Status */}
+														<div className="w-1/4 text-center">
+															<StatusSwitchOrBadge
+																entity={{
+																	id: station.id!,
+																	active: station.stationActive,
+																}}
+																getLabel={() => `item: ${station.stationName}`}
+																onToggle={handleToggleActive}
+																canToggle={canToggle}
+															/>
+														</div>
+
+														{/* Actions */}
+														<div className="w-1/4 flex justify-center items-center gap-2">
+															{sessionUserRole === AppRole.MANAGER && (
+																<>
+																	<EditStationDialog
+																		station={station}
+																		locationId={locationIdParam}
+																		stations={stations}
+																		onUpdate={(id, name) =>
+																			setStations((prev) =>
+																				prev.map((station) =>
+																					station.id === id
+																						? { ...station, stationName: name }
+																						: station
+																				)
+																			)
+																		}
+																	/>
+																	<DeleteConfirmButton
+																		item={{
+																			id: station.id!,
+																			locationId: locationIdParam,
+																		}}
+																		entityLabel="Location"
+																		onDelete={async (id) => {
+																			await deleteStation(locationIdParam, id);
+																			setStations((prev) =>
+																				prev.filter(
+																					(station) => station.id !== id
+																				)
+																			);
+																		}}
+																		getItemName={() => station.stationName}
+																	/>
+																</>
+															)}
+														</div>
+													</div>
+												)}
+											</Draggable>
+										))}
+
+										{provided.placeholder}
+									</div>
+								)}
+							</Droppable>
+						</DragDropContext>
+
 
 						{/* Mobile Cards */}
 						<div className="md:hidden mt-6 space-y-2 p-2">
