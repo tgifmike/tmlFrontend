@@ -353,8 +353,12 @@ const LocationStationsPage = () => {
 																	<p>Drag and Drop items to sort them.</p>
 																</TooltipContent>
 															</Tooltip>
-
-															<span>{station.stationName}</span>
+															<Link
+																href={`/accounts/${accountIdParam}/locations/${locationIdParam}/stations/${station.id}`}
+															>
+																{station.stationName}
+															</Link>
+															{/* <span>{station.stationName}</span> */}
 														</div>
 
 														{/* Status */}
@@ -417,7 +421,6 @@ const LocationStationsPage = () => {
 								)}
 							</Droppable>
 						</DragDropContext>
-
 
 						{/* Mobile Cards */}
 						<div className="md:hidden mt-6 space-y-2 p-2">
