@@ -31,10 +31,9 @@ import { toast } from 'sonner';
 import { Icons } from '@/lib/icon';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import router from 'next/router';
-
+import MobileDrawerNav from '@/components/navBar/MoibileDrawerNav';
 
 const StationPage = () => {
-
 	//icon
 	const UpDownIcon = Icons.sort;
 
@@ -65,6 +64,7 @@ const StationPage = () => {
 	const [searchTerm, setSearchTerm] = useState('');
 	const [currentPage, setCurrentPage] = useState(1);
 	const [pageSize, setPageSize] = useState(10);
+	const [drawerOpen, setDrawerOpen] = useState(false);
 
 	const currentUser = session?.user as User | undefined;
 	const sessionUserRole = session?.user?.appRole;
@@ -209,8 +209,10 @@ const StationPage = () => {
 	}
 
 	return (
-		<main className="flex">
-			<div className="w-1/6 border-r-2 bg-ring h-screen">
+		<main className="flex min-h-screen overflow-hidden">
+			{/* Desktop Sidebar */}
+			{/* left nav */}
+			<aside className="hidden md:block w-1/6 border-r h-screen bg-ring">
 				<LocationNav
 					accountName={accountName}
 					accountImage={accountImage}
@@ -218,19 +220,45 @@ const StationPage = () => {
 					locationId={locationIdParam}
 					sessionUserRole={sessionUserRole}
 				/>
-			</div>
-			<div className="p-4 flex-1">
-				<div className="flex justify-between items-center">
-					<h1 className="text-3xl font-bold mb-4">
-						{currentLocation?.locationName}
-					</h1>
-					<p className="text-4xl">Items on <span className='text-chart-3 italic'>{ stationName}</span> Station</p>
+			</aside>
+
+			{/* main content */}
+			<section className="flex-1 flex flex-col">
+				{/* Header */}
+				<header className="flex justify-between items-center p-1 md:p-2  border-b bg-background/70 backdrop-blur-md sticky top-0 z-20">
+					{/* Left */}
+					<div className="flex gap-3">
+						{/* Mobile Drawer */}
+						<MobileDrawerNav
+							open={drawerOpen}
+							setOpen={setDrawerOpen}
+							title="Menu"
+						>
+							<LocationNav
+								accountName={accountName}
+								accountImage={accountImage}
+								accountId={accountIdParam}
+								locationId={locationIdParam}
+								sessionUserRole={sessionUserRole}
+							/>
+						</MobileDrawerNav>
+
+						<h1 className="text-3xl font-bold mb-4">
+							{currentLocation?.locationName}
+						</h1>
+					</div>
+
+					{/* center */}
+					<div>
+						<p className="md:text-2xl">Item List:</p>
+					</div>
+
+					{/* Right */}
 					<CreateItemDialog
 						onItemCreated={handleItemCreated}
 						stationId={stationIdParam}
 					/>
-				</div>
-
+				</header>
 				<div className="w-full md:w-3/4 mx-auto flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 px-4 mt-4">
 					<UserControls
 						showActiveOnly={showActiveOnly}
@@ -359,7 +387,7 @@ const StationPage = () => {
 						totalItems={items.length}
 					/>
 				</div>
-			</div>
+			</section>
 		</main>
 	);
 };

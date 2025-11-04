@@ -31,16 +31,14 @@ const MobileDrawerNav: React.FC<MobileDrawerNavProps> = ({
 	return (
 		<Drawer open={open} onOpenChange={setOpen}>
 			{/* Button that triggers the drawer */}
-			<DrawerTrigger
-				className='flex items-center'
-				asChild>
+			<DrawerTrigger asChild>
 				<Button
 					variant="ghost"
-					size="lg"
+					size={'icon'}
 					className="md:hidden"
 					aria-label="Open menu"
 				>
-					<Menu className="w-16 h-16" />
+					<Menu className="w-[25px]! h-[25px]!" />
 				</Button>
 			</DrawerTrigger>
 
