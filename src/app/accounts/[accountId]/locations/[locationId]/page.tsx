@@ -6,8 +6,8 @@ import { AppRole, Locations, User } from '@/app/types';
 import LocationNav from '@/components/navBar/LocationNav';
 import Spinner from '@/components/spinner/Spinner';
 import { useSession } from 'next-auth/react';
-import { useParams } from 'next/navigation';
-import router from 'next/router';
+import { useParams, useRouter } from 'next/navigation';
+
 import React, { useEffect, useState } from 'react'
 import { toast } from 'sonner';
 
@@ -22,7 +22,8 @@ const LocationPage = () => {
     const canToggle = currentUser?.appRole === AppRole.MANAGER;
     const params = useParams<{ accountId: string, locationId: string }>();
     const accountIdParam = params.accountId;
-    const locationIdParam = params.locationId;
+	const locationIdParam = params.locationId;
+	const router = useRouter();
 
     // state
     const [loadingAccess, setLoadingAccess] = useState(true);
@@ -45,10 +46,12 @@ const LocationPage = () => {
 				try {
 					const response = await getAccountsForUser(session.user.id);
 					const account = response.data?.find(
-						(acc) => acc.id?.toString() === accountIdParam
+					// const account = accountList.find(
+						(acc:any) => acc.id?.toString() === accountIdParam
 					);
 
 					if (!account) {
+						// console.warn('No matching account found', { accountList, accountIdParam });
 						toast.error('You do not have access to this account.');
 						router.push('/accounts');
 						return;
@@ -62,7 +65,7 @@ const LocationPage = () => {
 
 					if (!location) {
 						toast.error('You do not have access to this location.');
-						router.push(`/accounts/${accountIdParam}/locations`);
+						router.push(`/accounts/${accountIdParam}`);
 						return;
 					}
 
@@ -88,7 +91,7 @@ const LocationPage = () => {
 			hasAccess,
 		]);
 
-    
+
 
    //show loadding state
     if (loadingAccess)

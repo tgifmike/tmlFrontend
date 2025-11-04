@@ -120,11 +120,7 @@ export default function UserAccessPage() {
 		setOpen(true);
 	};
 
-	// const handleOpenLocation = (user: User) => {
-	// 	setSelectedUser(user);
-	// 	setSelectedLocations(userLocationAccess[user.id ?? ''] || []);
-	// 	setLocationOpen(true);
-	// };
+
 
 	const handleOpenLocation = async (user: User) => {
 		setSelectedUser(user);
@@ -137,6 +133,9 @@ export default function UserAccessPage() {
 		setSelectedLocations(userLocationAccess[user.id ?? ''] || []);
 		setLocationOpen(true);
 	};
+
+
+
 
 	const handleToggleAccount = (accountId: string) => {
 		setSelectedAccounts((prev) =>
