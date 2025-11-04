@@ -64,3 +64,12 @@ export const deleteStation = async(
         url: `/stations/${locationId}/deleteStation/${stationId}`
     })
 }
+
+//reorder sort stations
+export const reorderStations = async (locationId: string, stations: Station[]) => {
+	return request({
+		method: 'PUT',
+		url: `/stations/${locationId}/stations/reorder`,
+		data: stations,
+	})
+}
