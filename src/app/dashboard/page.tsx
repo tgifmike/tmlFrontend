@@ -3,13 +3,18 @@
 import { useSession } from 'next-auth/react';
 import React, { useEffect, useState } from 'react'
 import { Account } from '../types';
-import { toast } from 'sonner';
 import router from 'next/router';
 import { getAccountsForUser } from '../api/accountApi';
-import { set } from 'zod';
-import { Card, CardAction, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+	Card,
+	CardContent,
+	CardDescription,
+	CardFooter,
+	CardHeader,
+	CardTitle,
+} from '@/components/ui/card';
 import Link from 'next/link';
-import { Divide } from 'lucide-react';
+import TimeOfDayGreeting from '@/components/login/TimeOfDayGreeting';
 
 const Dashboard = () => {
   //session
@@ -17,34 +22,26 @@ const Dashboard = () => {
   const isSRAdmin = session?.user?.accessRole === 'SRADMIN';
 
   //set state
-const [accounts, setAccounts] = useState<Account[] | null>(null);
+  const [accounts, setAccounts] = useState<Account[] | null>(null);
   const [loadingAccess, setLoadingAccess] = useState(true);
   const [hasAccess, setHasAccess] = useState(false);
   const [accountName, setAccountName] = useState<string | null>(null);
 
+  const displayName = session?.user.name?.split(' ')[0] ?? 'You';
+
   useEffect(() => {
-		if (status !== 'authenticated' || !session?.user?.id )
-			return;
+		if (status !== 'authenticated' || !session?.user?.id) return;
 		if (hasAccess) return; // prevent rerun
 
 		const verifyAccess = async () => {
 			try {
 				const response = await getAccountsForUser(session.user.id);
-				
 
-				// if (!account) {
-				// 	toast.error('You do not have access to this account.');
-				// 	router.push('/accounts');
-				// 	return;
-				// }
-     //   console.log('Accounts for user:', response.data);
 				setHasAccess(true);
-				//setAccountName(account.accountName);
+
 				setAccounts(response.data ?? null);
-			 } catch (err) {
-			// 	toast.error('Failed to verify account access.');
-      //   router.push('/accounts');
-        console.error('Error verifying account access:', err);
+			} catch (err) {
+				console.error('Error verifying account access:', err);
 			} finally {
 				setLoadingAccess(false);
 			}
@@ -53,30 +50,11 @@ const [accounts, setAccounts] = useState<Account[] | null>(null);
 		verifyAccess();
 	}, [status, session?.user?.id, router, hasAccess]);
   
-  // Determine time of day greeting
-	const hour = new Date().getHours();
-	const timeOfDay =
-		hour < 5
-			? 'Its the middle of the night'
-			: hour < 8
-			? 'Good morning'
-			: hour < 12
-			? 'Good morning'
-			: hour < 13
-			? 'Good afternoon'
-			: hour < 17
-			? 'Good afternoon'
-			: hour < 20
-			? 'Good evening'
-			: 'Its getting late';
-
-	const name = session?.user?.name?.split(' ')[0] ?? 'You'; // fallback if name missing
+ 
   return (
 		<main>
-			<div className="p-4">
-				<p className="text-4xl">
-					{timeOfDay} <span className="text-chart-3 italic">{name},</span>
-				</p>
+			<div className="flex ">
+				<TimeOfDayGreeting name={session?.user?.name} />
 			</div>
 
 			{isSRAdmin && (
@@ -110,7 +88,8 @@ const [accounts, setAccounts] = useState<Account[] | null>(null);
 					<CardHeader>
 						<CardTitle className="text-4xl">Accounts</CardTitle>
 						<CardDescription className="text-2xl">
-							{name} you have access to {accounts?.length} accounts:
+							{displayName} you have access to {accounts?.length}{' '}
+							accounts:
 						</CardDescription>
 						{/* <CardAction>action</CardAction> */}
 					</CardHeader>
@@ -131,7 +110,7 @@ const [accounts, setAccounts] = useState<Account[] | null>(null);
 								</ul>
 							</div>
 						) : (
-							<div className="text-red-600 text-4xl">
+							<div className="text-destructive text-4xl">
 								<p>
 									You do not have any accounts assigned to you. Please contact
 									your administrator.
