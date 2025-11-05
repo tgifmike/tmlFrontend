@@ -97,3 +97,11 @@ export const getUserLocationAccess = async (userId: string) => {
             url: `/user-access-locations/${userId}/locations`,
         });
 }
+
+//get location based weather
+export const getWeather = async (lat: number, lon: number) => {
+    return request({
+        method: 'GET',
+        url: `/api/weather/getWeather?lat=${lat}&lon=${lon}`,
+    })
+}
