@@ -67,10 +67,17 @@ export interface Station {
 export interface Item {
 	id?: string;
 	itemName: string;
+	shelfLife: string;
+	panSize: string;
+	toolName: string;
+	isTool: boolean;
+	portionSize: string;
+	isPortioned: boolean;
 	itemTemperature: number;
 	isTempTaken: boolean;
 	isCheckMark: boolean;
-	notes: string;
+	itemNotes: string;
+	lineCheckNotes: string;
 	itemActive: boolean;
 	sortOrder: number;
 	createdAt?: string | null;

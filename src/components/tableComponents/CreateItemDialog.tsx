@@ -19,6 +19,13 @@ import {
 	DialogTitle,
 	DialogTrigger,
 } from '../ui/dialog';
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from '../ui/select';
 import { Button } from '../ui/button';
 import {
 	Form,
@@ -38,6 +45,43 @@ type CreateItemDialogProps = {
 	stationId: string;
 };
 
+const toolOptions = [
+	{ label: '3oz Scoop(Ivory #10)', value: '3oz Scoop' },
+	{ label: 'teaspoon', value: 'teaspoon' },
+	{ label: '2oz Ladel', value: '2oz Ladel' },
+	{ label: '3oz Ladel', value: '3oz Ladel' },
+	{ label: '4oz Ladel', value: '4oz Ladel' },
+	{ label: '5oz Ladel', value: '5oz Ladel' },
+];
+
+const shelfLifeOptions = [
+	{ label: '4 Hours', value: '4 hours' },
+	{ label: '8 Hours', value: '8 hours' },
+	{ label: '1 Day', value: '1 Day' },
+	{ label: '2 Days', value: '2 Days' },
+	{ label: '3 Days', value: '3 Days' },
+	{ label: '4 Days', value: '4 Days' },
+	{ label: '5 Days', value: '5 Days' },
+];
+
+const panSizeOptions = [
+	{ label: 'Original Package', value: 'Original Package' },
+	{ label: '1/9 Pan', value: '1/9 Pan' },
+	{ label: '1/6 Pan', value: '1/6 Pan' },
+	{ label: '1/3 Pan', value: '1/3 Pan' },
+	{ label: '1/2 Pan', value: '1/2 Pan' },
+	{ label: 'Squeeze Bottle', value: 'Squeeze Bottle' },
+	{ label: 'Shaker', value: 'Shaker' },
+];
+
+const portionSizeOptions = [
+	{ label: '1 oz', value: '1 oz' },
+	{ label: '2 oz', value: '2 oz' },
+	{ label: '4 oz', value: '4 oz' },
+	{ label: '6 oz', value: '6 oz' },
+	{ label: '8 oz', value: '8 oz' },
+];
+
 // Zod schema
 const getSchema = (items: Item[] = []) =>
 	z.object({
@@ -49,9 +93,15 @@ const getSchema = (items: Item[] = []) =>
 					!items.some((i) => i.itemName.toLowerCase() === name.toLowerCase()),
 				{ message: 'Item name already exists' }
 			),
+		shelfLife: z.string().min(1, 'Shelf life cannot be empty'),
+		panSize: z.string().min(1, 'Pan Size cannot be empty'),
+		isTool: z.boolean().default(false),
+		isPortioned: z.boolean().default(false),
 		isTempTaken: z.boolean().default(false),
 		isCheckMark: z.boolean().default(false),
-		notes: z.string().optional(),
+		itemNotes: z.string().optional(),
+		toolName: z.string().optional(),
+		portionSize: z.string().optional(),
 	});
 
 
@@ -75,9 +125,15 @@ export default function CreateItemDialog({
        resolver: zodResolver(schema) as any,
 			defaultValues: {
 				itemName: '',
+				shelfLife: '',
+				panSize: '',
+				isTool: false,
+				isPortioned: false,
 				isTempTaken: false,
 				isCheckMark: false,
-				notes: '',
+				itemNotes: '',
+				toolName: '',
+				portionSize: '',
 			},
 			mode: 'onChange',
 		});
@@ -147,6 +203,157 @@ export default function CreateItemDialog({
 								</FormItem>
 							)}
 						/>
+						{/* shelf life */}
+						<FormField
+							control={form.control}
+							name="shelfLife"
+							render={({ field }) => (
+								<FormItem>
+									<FormLabel>Shelf Life</FormLabel>
+									<FormControl>
+										<Select onValueChange={field.onChange} value={field.value}>
+											<SelectTrigger>
+												<SelectValue placeholder="Select shelf life" />
+											</SelectTrigger>
+											<SelectContent>
+												{shelfLifeOptions.map((option) => (
+													<SelectItem key={option.value} value={option.value}>
+														{option.label}
+													</SelectItem>
+												))}
+											</SelectContent>
+										</Select>
+									</FormControl>
+									<FormMessage />
+								</FormItem>
+							)}
+						/>
+						{/* pan size */}
+						<FormField
+							control={form.control}
+							name="panSize"
+							render={({ field }) => (
+								<FormItem>
+									<FormLabel>Pan Size</FormLabel>
+									<FormControl>
+										<Select onValueChange={field.onChange} value={field.value}>
+											<SelectTrigger>
+												<SelectValue placeholder="Select pan size" />
+											</SelectTrigger>
+											<SelectContent>
+												{panSizeOptions.map((option) => (
+													<SelectItem key={option.value} value={option.value}>
+														{option.label}
+													</SelectItem>
+												))}
+											</SelectContent>
+										</Select>
+									</FormControl>
+									<FormMessage />
+								</FormItem>
+							)}
+						/>
+
+						{/* is it a tool */}
+						<FormField
+							control={form.control}
+							name="isTool"
+							render={({ field }) => (
+								<FormItem className="flex items-center justify-between">
+									<FormLabel className="mb-0">Is tool needed?</FormLabel>
+									<FormControl>
+										<Switch
+											checked={field.value}
+											onCheckedChange={(checked) => {
+												field.onChange(checked);
+												if (!checked) form.setValue('toolName', ''); // clear tool if unchecked
+											}}
+										/>
+									</FormControl>
+								</FormItem>
+							)}
+						/>
+
+						{/* tool dropdown appears only when isTool is true */}
+						{form.watch('isTool') && (
+							<FormField
+								control={form.control}
+								name="toolName"
+								render={({ field }) => (
+									<FormItem>
+										<FormLabel>Select Tool</FormLabel>
+										<FormControl>
+											<Select
+												onValueChange={field.onChange}
+												value={field.value}
+											>
+												<SelectTrigger className="w-full">
+													<SelectValue placeholder="Choose a tool" />
+												</SelectTrigger>
+												<SelectContent>
+													{toolOptions.map((tool) => (
+														<SelectItem key={tool.value} value={tool.value}>
+															{tool.label}
+														</SelectItem>
+													))}
+												</SelectContent>
+											</Select>
+										</FormControl>
+										<FormMessage />
+									</FormItem>
+								)}
+							/>
+						)}
+
+						{/* is it a portion size*/}
+						<FormField
+							control={form.control}
+							name="isPortioned"
+							render={({ field }) => (
+								<FormItem className="flex items-center justify-between">
+									<FormLabel className="mb-0">
+										Is it a portionable item?
+									</FormLabel>
+									<FormControl>
+										<Switch
+											checked={field.value}
+											onCheckedChange={(checked) => field.onChange(checked)}
+										/>
+									</FormControl>
+								</FormItem>
+							)}
+						/>
+
+						{/* Portion Size Dropdown */}
+						{form.watch('isPortioned') && (
+							<FormField
+								control={form.control}
+								name="portionSize"
+								render={({ field }) => (
+									<FormItem>
+										<FormLabel>Portion Size</FormLabel>
+										<FormControl>
+											<Select
+												onValueChange={field.onChange}
+												value={field.value}
+											>
+												<SelectTrigger>
+													<SelectValue placeholder="Select portion size" />
+												</SelectTrigger>
+												<SelectContent>
+													{portionSizeOptions.map((option) => (
+														<SelectItem key={option.value} value={option.value}>
+															{option.label}
+														</SelectItem>
+													))}
+												</SelectContent>
+											</Select>
+										</FormControl>
+										<FormMessage />
+									</FormItem>
+								)}
+							/>
+						)}
 
 						{/* Temperature Taken */}
 						<FormField
@@ -154,7 +361,9 @@ export default function CreateItemDialog({
 							name="isTempTaken"
 							render={({ field }) => (
 								<FormItem className="flex items-center justify-between">
-									<FormLabel className="mb-0">Temperature Taken</FormLabel>
+									<FormLabel className="mb-0">
+										Will you take temperature of item?
+									</FormLabel>
 									<FormControl>
 										<Switch
 											checked={field.value}
@@ -171,7 +380,9 @@ export default function CreateItemDialog({
 							name="isCheckMark"
 							render={({ field }) => (
 								<FormItem className="flex items-center justify-between">
-									<FormLabel className="mb-0">Check Mark</FormLabel>
+									<FormLabel className="mb-0">
+										Will you be checking if item is correct?
+									</FormLabel>
 									<FormControl>
 										<Switch
 											checked={field.value}
@@ -182,15 +393,18 @@ export default function CreateItemDialog({
 							)}
 						/>
 
-						{/* Notes */}
+						{/* item Notes */}
 						<FormField
 							control={form.control}
-							name="notes"
+							name="itemNotes"
 							render={({ field }) => (
 								<FormItem>
 									<FormLabel>Notes</FormLabel>
 									<FormControl>
-										<Textarea placeholder="Enter notes (optional)" {...field} />
+										<Textarea
+											placeholder="Enter item notes (optional)"
+											{...field}
+										/>
 									</FormControl>
 									<FormMessage />
 								</FormItem>

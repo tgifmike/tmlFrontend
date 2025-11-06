@@ -343,28 +343,17 @@ const StationPage = () => {
 																		item={item}
 																		items={items}
 																		stationId={stationIdParam}
-																		onUpdate={(
-																			id,
-																			itemName,
-																			isTempTaken,
-																			isCheckMark,
-																			notes
-																		) =>
+																		onUpdate={(updatedItem) =>
 																			setItems((prev) =>
 																				prev.map((it) =>
-																					it.id === id
-																						? {
-																								...it,
-																								itemName,
-																								isTempTaken,
-																								isCheckMark,
-																								notes,
-																						  }
+																					it.id === updatedItem.id
+																						? updatedItem
 																						: it
 																				)
 																			)
 																		}
 																	/>
+
 																	<DeleteConfirmButton
 																		item={{
 																			id: item.id!,
@@ -425,23 +414,11 @@ const StationPage = () => {
 																item={item}
 																items={items}
 																stationId={stationIdParam}
-																onUpdate={(
-																	id,
-																	itemName,
-																	isTempTaken,
-																	isCheckMark,
-																	notes
-																) =>
+																onUpdate={(updatedItem) =>
 																	setItems((prev) =>
 																		prev.map((it) =>
-																			it.id === id
-																				? {
-																						...it,
-																						itemName,
-																						isTempTaken,
-																						isCheckMark,
-																						notes,
-																				  }
+																			it.id === updatedItem.id
+																				? updatedItem
 																				: it
 																		)
 																	)
