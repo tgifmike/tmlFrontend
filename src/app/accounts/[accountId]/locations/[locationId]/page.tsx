@@ -92,7 +92,7 @@ const LocationPage = () => {
 					location.locationLongitude
 				);
 				setWeather(weatherData.data as WeatherResponse);
-				console.log(weatherData.data);
+				
 			} catch (err) {
 				toast.error('You do not have access to this location.');
 				router.push('/accounts');
