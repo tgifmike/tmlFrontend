@@ -58,8 +58,10 @@ export interface Locations {
 
 export interface Station {
 	id?: string;
+	items: any;
 	stationName: string;
 	stationActive: boolean;
+	location: Location;
 	sortOrder: number;
 	createdAt?: string | null;
 	updatedAt?: string | null;
@@ -86,6 +88,8 @@ export interface Item {
 	lineCheckNotes: string;
 	itemActive: boolean;
 	sortOrder: number;
+	location: Location;
+	items?: Item[];
 	createdAt?: string | null;
 	updatedAt?: string | null;
 }
