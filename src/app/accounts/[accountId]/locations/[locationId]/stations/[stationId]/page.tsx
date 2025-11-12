@@ -34,6 +34,7 @@ import router from 'next/router';
 import MobileDrawerNav from '@/components/navBar/MoibileDrawerNav';
 import { DataCard } from '@/components/cards/DataCard';
 
+
 const StationPage = () => {
 	//icon
 	const UpDownIcon = Icons.sort;
@@ -66,6 +67,8 @@ const StationPage = () => {
 	const [currentPage, setCurrentPage] = useState(1);
 	const [pageSize, setPageSize] = useState(10);
 	const [drawerOpen, setDrawerOpen] = useState(false);
+	const [selectedItem, setSelectedItem] = useState<Item | null>(null);
+	const [open, setOpen] = useState(false);
 
 	const currentUser = session?.user as User | undefined;
 	const sessionUserRole = session?.user?.appRole;
@@ -163,6 +166,23 @@ const StationPage = () => {
 	// handle item created
 	const handleItemCreated = (newItem: Item) => {
 		setItems((prev) => [...prev, newItem]);
+	};
+
+	const handleItemUpdate = (updatedItem: Item) => {
+		setItems((prev) =>
+			prev.map((i) => (i.id === updatedItem.id ? updatedItem : i))
+		);
+	};
+
+
+	const handleSave = (savedItem: Item) => {
+		if (items.some((i) => i.id === savedItem.id)) {
+			// Edit
+			setItems(items.map((i) => (i.id === savedItem.id ? savedItem : i)));
+		} else {
+			// Create
+			setItems([...items, savedItem]);
+		}
 	};
 
 	// filtered & paginated
@@ -295,7 +315,8 @@ const StationPage = () => {
 										</div>
 
 										{/* Draggable rows */}
-										{paginatedItems.map((item, index) => (
+											{paginatedItems.map((item, index) => (
+											
 											<Draggable
 												key={item.id}
 												draggableId={item.id!}
@@ -339,19 +360,13 @@ const StationPage = () => {
 														<div className="w-1/4 flex justify-center items-center gap-2">
 															{sessionUserRole === AppRole.MANAGER && (
 																<>
+																	{/* Edit Item */}
 																	<EditItemDialog
-																		item={item}
+																		key={item.id}
+																		item={item} 
 																		items={items}
 																		stationId={stationIdParam}
-																		onUpdate={(updatedItem) =>
-																			setItems((prev) =>
-																				prev.map((it) =>
-																					it.id === updatedItem.id
-																						? updatedItem
-																						: it
-																				)
-																			)
-																		}
+																		onUpdate={handleItemUpdate}
 																	/>
 
 																	<DeleteConfirmButton
@@ -411,19 +426,12 @@ const StationPage = () => {
 													{sessionUserRole === 'MANAGER' ? (
 														<>
 															<EditItemDialog
-																item={item}
+																item={items.find((i) => i.id === item.id)!} // <-- pass the latest item from state
 																items={items}
 																stationId={stationIdParam}
-																onUpdate={(updatedItem) =>
-																	setItems((prev) =>
-																		prev.map((it) =>
-																			it.id === updatedItem.id
-																				? updatedItem
-																				: it
-																		)
-																	)
-																}
+																onUpdate={handleItemUpdate}
 															/>
+
 															{item.id && (
 																<DeleteConfirmButton
 																	item={{

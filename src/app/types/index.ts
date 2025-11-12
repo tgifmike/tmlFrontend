@@ -58,8 +58,11 @@ export interface Locations {
 
 export interface Station {
 	id?: string;
+	items: any;
 	stationName: string;
 	stationActive: boolean;
+	location: Location;
+	sortOrder: number;
 	createdAt?: string | null;
 	updatedAt?: string | null;
 }
@@ -73,13 +76,60 @@ export interface Item {
 	isTool: boolean;
 	portionSize: string;
 	isPortioned: boolean;
+	temperature: number;
 	itemTemperature: number;
+	tempCategory: string;
+	minTemp: number;
+	maxTemp: number;
 	isTempTaken: boolean;
+	ischecked: boolean;
 	isCheckMark: boolean;
 	itemNotes: string;
 	lineCheckNotes: string;
 	itemActive: boolean;
 	sortOrder: number;
+	location: Location;
+	items?: Item[];
 	createdAt?: string | null;
 	updatedAt?: string | null;
 }
+// types/lineCheck.ts
+// export interface Item {
+//   id: string;
+//   itemName: string;
+//   isChecked: boolean;
+//   notes?: string;
+//   temperature?: number;
+// }
+
+export interface LineCheckStation {
+	id: string;
+	stationName: string;
+	sortOrder: number;
+	items: Item[];
+}
+
+export interface LineCheck {
+	id: string;
+	checkTime: string;
+	stations: LineCheckStation[];
+	username?: string;
+}
+
+interface LineCheckItem {
+	id: string;
+	itemName: string;
+	isTool: boolean;
+	isPortioned: boolean;
+	isTempTaken: boolean;
+	isCheckMark: boolean;
+	shelfLife?: string;
+	panSize?: string;
+	itemNotes?: string;
+	temperature?: number;
+	minTemp: number;
+	maxTemp: number; // user input
+	checked?: boolean; // user input
+	lineNotes?: string; // user input per item
+}
+

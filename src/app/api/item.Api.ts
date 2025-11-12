@@ -29,7 +29,7 @@ export const getItemsById = async (stationId: string, itemId: string) => {
 
 //update item
 export const updateItem = async (stationId: string, itemId: string, data: any) => {
-    return request<Item[]>({
+    return request<Item>({
 		method: 'PATCH',
 		url: `/items/${stationId}/updateItem/${itemId}`,
 		data,
@@ -38,7 +38,7 @@ export const updateItem = async (stationId: string, itemId: string, data: any) =
 
 //toggle active
 export const toggleItemActive = async (stationId: string, itemId: string, itemActive:boolean) =>{
-    return request<Item[]>({
+    return request<Item>({
 		method: 'PATCH',
 		url: `/items/${stationId}/${itemId}/active?active=${itemActive}`,
 	});
@@ -46,7 +46,7 @@ export const toggleItemActive = async (stationId: string, itemId: string, itemAc
 
 //update item
 export const deleteItem = async (stationId: string, itemId: string) => {
-    return request<Item[]>({
+    return request<void>({
 		method: 'DELETE',
 		url: `/items/${stationId}/deleteItem/${itemId}`,
 	});

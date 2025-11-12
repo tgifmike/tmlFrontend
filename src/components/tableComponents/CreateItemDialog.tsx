@@ -38,6 +38,7 @@ import {
 import { Input } from '../ui/input';
 import { Textarea } from '../ui/textarea';
 import { Switch } from '../ui/switch';
+import { panSizeOptions, portionSizeOptions, shelfLifeOptions, tempCategories, tempCategoryRanges, toolOptions } from '@/lib/constants/usConstants';
 
 type CreateItemDialogProps = {
 	onItemCreated?: (item: Item) => void;
@@ -45,64 +46,36 @@ type CreateItemDialogProps = {
 	stationId: string;
 };
 
-const toolOptions = [
-	{ label: '3oz Scoop(Ivory #10)', value: '3oz Scoop' },
-	{ label: 'teaspoon', value: 'teaspoon' },
-	{ label: '2oz Ladel', value: '2oz Ladel' },
-	{ label: '3oz Ladel', value: '3oz Ladel' },
-	{ label: '4oz Ladel', value: '4oz Ladel' },
-	{ label: '5oz Ladel', value: '5oz Ladel' },
-];
-
-const shelfLifeOptions = [
-	{ label: '4 Hours', value: '4 hours' },
-	{ label: '8 Hours', value: '8 hours' },
-	{ label: '1 Day', value: '1 Day' },
-	{ label: '2 Days', value: '2 Days' },
-	{ label: '3 Days', value: '3 Days' },
-	{ label: '4 Days', value: '4 Days' },
-	{ label: '5 Days', value: '5 Days' },
-];
-
-const panSizeOptions = [
-	{ label: 'Original Package', value: 'Original Package' },
-	{ label: '1/9 Pan', value: '1/9 Pan' },
-	{ label: '1/6 Pan', value: '1/6 Pan' },
-	{ label: '1/3 Pan', value: '1/3 Pan' },
-	{ label: '1/2 Pan', value: '1/2 Pan' },
-	{ label: 'Squeeze Bottle', value: 'Squeeze Bottle' },
-	{ label: 'Shaker', value: 'Shaker' },
-];
-
-const portionSizeOptions = [
-	{ label: '1 oz', value: '1 oz' },
-	{ label: '2 oz', value: '2 oz' },
-	{ label: '4 oz', value: '4 oz' },
-	{ label: '6 oz', value: '6 oz' },
-	{ label: '8 oz', value: '8 oz' },
-];
-
 // Zod schema
 const getSchema = (items: Item[] = []) =>
-	z.object({
-		itemName: z
-			.string()
-			.min(1, 'Item name cannot be empty')
-			.refine(
-				(name) =>
-					!items.some((i) => i.itemName.toLowerCase() === name.toLowerCase()),
-				{ message: 'Item name already exists' }
-			),
-		shelfLife: z.string().min(1, 'Shelf life cannot be empty'),
-		panSize: z.string().min(1, 'Pan Size cannot be empty'),
-		isTool: z.boolean().default(false),
-		isPortioned: z.boolean().default(false),
-		isTempTaken: z.boolean().default(false),
-		isCheckMark: z.boolean().default(false),
-		itemNotes: z.string().optional(),
-		toolName: z.string().optional(),
-		portionSize: z.string().optional(),
-	});
+	z
+		.object({
+			itemName: z
+				.string()
+				.min(1, 'Item name cannot be empty')
+				.refine(
+					(name) =>
+						!items.some((i) => i.itemName.toLowerCase() === name.toLowerCase()),
+					{ message: 'Item name already exists' }
+				),
+			shelfLife: z.string().min(1, 'Shelf life cannot be empty'),
+			panSize: z.string().min(1, 'Pan Size cannot be empty'),
+			isTool: z.boolean().default(false),
+			isPortioned: z.boolean().default(false),
+			isTempTaken: z.boolean().default(false),
+			tempCategory: z.string().optional(),
+			isCheckMark: z.boolean().default(false),
+			itemNotes: z.string().optional(),
+			toolName: z.string().optional(),
+			portionSize: z.string().optional(),
+		})
+		.refine(
+			(data) => {
+				// require tempCategory if isTempTaken
+				return !data.isTempTaken || !!data.tempCategory;
+			},
+			{ message: 'Temperature category is required if temperature is taken' }
+		);  //need to add other optons
 
 
 export default function CreateItemDialog({
@@ -110,7 +83,11 @@ export default function CreateItemDialog({
 	existingItems = [],
 	stationId,
 }: CreateItemDialogProps) {
+
+	//icons 
 	const ItemIcon = Icons.items;
+	
+	//state
 	const [open, setOpen] = useState(false);
 
    
@@ -141,7 +118,21 @@ export default function CreateItemDialog({
 	// Submit handler
 	const onSubmit = async (values: FormValues) => {
 		try {
-			const { data, error } = await createItem(stationId, values);
+			// Create a payload that extends FormValues with optional min/max temps
+			const payload: FormValues & { minTemp?: number; maxTemp?: number } = {
+				...values,
+			};
+
+			// Set min/max if temp is taken
+			if (values.isTempTaken && values.tempCategory) {
+				const range = tempCategoryRanges[values.tempCategory];
+				if (range) {
+					payload.minTemp = range.min;
+					payload.maxTemp = range.max;
+				}
+			}
+
+			const { data, error } = await createItem(stationId, payload);
 			if (error || !data) {
 				if (error?.includes('409') || error?.toLowerCase().includes('exists')) {
 					toast.error('Item name already exists.');
@@ -153,8 +144,7 @@ export default function CreateItemDialog({
 
 			toast.success(`Item ${data.itemName} created successfully`);
 			form.reset();
-            setOpen(false);
-           
+			setOpen(false);
 
 			onItemCreated?.(data);
 		} catch (error: any) {
@@ -253,7 +243,6 @@ export default function CreateItemDialog({
 								</FormItem>
 							)}
 						/>
-
 						{/* is it a tool */}
 						<FormField
 							control={form.control}
@@ -273,7 +262,6 @@ export default function CreateItemDialog({
 								</FormItem>
 							)}
 						/>
-
 						{/* tool dropdown appears only when isTool is true */}
 						{form.watch('isTool') && (
 							<FormField
@@ -304,7 +292,6 @@ export default function CreateItemDialog({
 								)}
 							/>
 						)}
-
 						{/* is it a portion size*/}
 						<FormField
 							control={form.control}
@@ -323,7 +310,6 @@ export default function CreateItemDialog({
 								</FormItem>
 							)}
 						/>
-
 						{/* Portion Size Dropdown */}
 						{form.watch('isPortioned') && (
 							<FormField
@@ -373,7 +359,35 @@ export default function CreateItemDialog({
 								</FormItem>
 							)}
 						/>
-
+						{form.watch('isTempTaken') && (
+							<FormField
+								control={form.control}
+								name="tempCategory"
+								render={({ field }) => (
+									<FormItem>
+										<FormLabel>Temperature Category</FormLabel>
+										<FormControl>
+											<Select
+												onValueChange={field.onChange}
+												value={field.value}
+											>
+												<SelectTrigger>
+													<SelectValue placeholder="Select temp category" />
+												</SelectTrigger>
+												<SelectContent>
+													{tempCategories.map((option) => (
+														<SelectItem key={option.value} value={option.value}>
+															{option.label}
+														</SelectItem>
+													))}
+												</SelectContent>
+											</Select>
+										</FormControl>
+										<FormMessage />
+									</FormItem>
+								)}
+							/>
+						)}
 						{/* Check Mark */}
 						<FormField
 							control={form.control}
@@ -392,7 +406,6 @@ export default function CreateItemDialog({
 								</FormItem>
 							)}
 						/>
-
 						{/* item Notes */}
 						<FormField
 							control={form.control}
@@ -410,7 +423,6 @@ export default function CreateItemDialog({
 								</FormItem>
 							)}
 						/>
-
 						<DialogFooter>
 							<Button
 								type="submit"
