@@ -86,7 +86,7 @@ export interface Item {
 	ischecked: boolean;
 	isCheckMark: boolean;
 	itemNotes: string;
-	lineCheckNotes: string;
+	observations: string;
 	itemActive: boolean;
 	sortOrder: number;
 	location: Location;
@@ -131,6 +131,6 @@ interface LineCheckItem {
 	minTemp: number;
 	maxTemp: number; // user input
 	checked?: boolean; // user input
-	lineNotes?: string; // user input per item
+	observations?: string; // user input per item
 }
 
