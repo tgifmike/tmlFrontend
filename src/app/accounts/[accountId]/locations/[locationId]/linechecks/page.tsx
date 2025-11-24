@@ -331,7 +331,7 @@ const LocationLineChecksPage = () => {
 								</AccordionTrigger>
 
 								<AccordionContent>
-									{stations
+									{lc.stations
 										?.slice()
 										.sort((a, b) => a.sortOrder - b.sortOrder)
 										.map((station) => (

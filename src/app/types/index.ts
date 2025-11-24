@@ -25,6 +25,7 @@ export interface User {
 	accessRole?: string | null;
 	appRole?: string | null;
 	firstLogin?: boolean | null;
+	googleId?: string | null;
 	createdAt?: string | null;
 	updatedAt?: string | null;
 }

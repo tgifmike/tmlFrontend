@@ -20,6 +20,7 @@ export const authOptions: NextAuthOptions = {
 						userName: user.name ?? '',
 						userEmail: user.email,
 						userImage: user.image ?? undefined,
+						googleId: user.id,
 						userAppRole: user.appRole ?? undefined,
 						userAccessRole: user.accessRole ?? undefined,
 					});
@@ -28,6 +29,7 @@ export const authOptions: NextAuthOptions = {
 						token.name = dbUser.userName ?? '';
 						token.email = dbUser.userEmail ?? '';
 						token.picture = dbUser.userImage ?? '';
+						token.googleId = dbUser.googleId ?? '';
 						token.appRole = dbUser.appRole ?? 'MEMBER';
 						token.accessRole = dbUser.accessRole ?? 'USER';
 					}
