@@ -219,7 +219,7 @@ const LocationLineChecksPage = () => {
 						id: it.id!,
 						checked: it.isCheckMark,
 						temperature: it.itemTemperature,
-						lineCheckNotes: it.lineCheckNotes,
+						lineCheckNotes: it.observations,
 					})),
 				})),
 			}));
@@ -421,17 +421,7 @@ const LocationLineChecksPage = () => {
 																					{item.itemNotes || '-'}
 																				</TableCell>
 																				<TableCell>
-																					<Input
-																						value={item.lineCheckNotes || ''}
-																						onChange={(e) =>
-																							handleItemChange(
-																								item.id!,
-																								'lineCheckNotes',
-																								e.target.value
-																							)
-																						}
-																						placeholder="Enter observations..."
-																					/>
+																					{item.observations || '-'}
 																				</TableCell>
 																			</TableRow>
 																		);
