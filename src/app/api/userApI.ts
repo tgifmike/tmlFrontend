@@ -78,6 +78,7 @@ type CreateUserPayload = {
 	userImage?: string;
 	userAppRole?: string;
 	userAccessRole?: string;
+	googleId?: string;
 };
 
 export const createUser = async (
