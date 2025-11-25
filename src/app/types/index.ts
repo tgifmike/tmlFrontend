@@ -76,7 +76,7 @@ export interface Item {
 	toolName: string;
 	isTool: boolean;
 	portionSize: string;
-	isPortioned: boolean;
+	portioned: boolean;
 	temperature: number;
 	itemTemperature: number;
 	tempCategory: string;
@@ -85,12 +85,16 @@ export interface Item {
 	isTempTaken: boolean;
 	ischecked: boolean;
 	isCheckMark: boolean;
-	itemNotes: string;
+	templateNotes: string;
 	observations: string;
 	itemActive: boolean;
 	sortOrder: number;
 	location: Location;
 	items?: Item[];
+	checkMark?: boolean;
+
+	tool?: boolean;
+	tempTaken?: boolean;
 	createdAt?: string | null;
 	updatedAt?: string | null;
 }

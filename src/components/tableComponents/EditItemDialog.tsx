@@ -125,11 +125,11 @@ export function EditItemDialog({
 			shelfLife: item.shelfLife ?? '',
 			panSize: item.panSize ?? '',
 			isTool: item.isTool ?? false,
-			isPortioned: item.isPortioned ?? false,
+			isPortioned: item.portioned ?? false,
 			isTempTaken: item.isTempTaken ?? false,
 			tempCategory: item.tempCategory ?? '',
 			isCheckMark: item.isCheckMark ?? false,
-			itemNotes: item.itemNotes ?? '',
+			itemNotes: item.templateNotes ?? '',
 			toolName: item.toolName ?? undefined,
 			portionSize: item.portionSize ?? undefined,
 		});
