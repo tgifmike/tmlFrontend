@@ -372,53 +372,53 @@ const LocationLineChecksPage = () => {
 																				<TableCell>{item.shelfLife}</TableCell>
 																				<TableCell>{item.panSize}</TableCell>
 																				<TableCell>
-																					{item.isTool ? item.toolName : '-'}
+																					{item.tool ? item.toolName : '-'}
 																				</TableCell>
 																				<TableCell>
-																					{item.isPortioned
+																					{item.portioned
 																						? item.portionSize
 																						: '-'}
 																				</TableCell>
 																				<TableCell className="flex flex-col">
-																					{item.isTempTaken ? (
+																					{item.tempTaken ? (
+																						// ==== TEMPERATURE ITEM ====
 																						<>
-																							<Input
-																								type="number"
-																								value={item.temperature ?? ''}
-																								onChange={(e) =>
-																									handleItemChange(
-																										item.id!,
-																										'temperature',
-																										Number(e.target.value)
-																									)
+																							<span
+																								className={`font-medium text-lg
+        																				${
+																									item.temperature >=
+																										item.minTemp &&
+																									item.temperature <=
+																										item.maxTemp
+																										? 'text-green-600'
+																										: 'text-red-600'
 																								}
-																								className={`w-24 text-center ${
-																									isTempInvalid
-																										? 'bg-red-200 border-red-500'
-																										: 'bg-green-200'
-																								}`}
-																							/>
-																							<span className="text-xs text-gray-500 mt-1">
+																									 `}
+																							>
+																								{item.temperature ?? '-'}°
+																							</span>
+
+																							<span className="text-xs text-gray-500">
 																								{item.minTemp}° - {item.maxTemp}
 																								°
 																							</span>
 																						</>
 																					) : (
-																						<Switch
-																							checked={item.isCheckMark}
-																							onCheckedChange={(val) =>
-																								handleItemChange(
-																									item.id!,
-																									'isCheckMark',
-																									val
-																								)
-																							}
-																						/>
+																						// ==== CHECKMARK ITEM ====
+																						<span
+																							className={`text-xl font-bold ${
+																								item.checkMark
+																									? 'text-green-600'
+																									: 'text-red-600'
+																							}`}
+																						>
+																							{item.checkMark ? '✓' : '✘'}
+																						</span>
 																					)}
 																				</TableCell>
 
 																				<TableCell>
-																					{item.itemNotes || '-'}
+																					{item.templateNotes || '-'}
 																				</TableCell>
 																				<TableCell>
 																					{item.observations || '-'}
@@ -432,9 +432,9 @@ const LocationLineChecksPage = () => {
 												</CardContent>
 											</Card>
 										))}
-									<Button onClick={recordLineCheck} className="mt-2">
+									{/* <Button onClick={recordLineCheck} className="mt-2">
 										Record Line Check
-									</Button>
+									</Button> */}
 								</AccordionContent>
 							</AccordionItem>
 						))}
