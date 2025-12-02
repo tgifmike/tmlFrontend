@@ -5,6 +5,7 @@ import { useSession } from 'next-auth/react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { toast } from 'sonner';
+import { PDFDownloadLink } from '@react-pdf/renderer';
 
 import { getAccountsForUser } from '@/app/api/accountApi';
 import { getUserLocationAccess } from '@/app/api/locationApi';
@@ -14,6 +15,7 @@ import {
 	getLineChecksApi,
 	recordLineCheckApi,
 } from '@/app/api/linecheckApi';
+
 import {
 	AppRole,
 	LineCheck,
@@ -26,12 +28,11 @@ import {
 import LocationNav from '@/components/navBar/LocationNav';
 import MobileDrawerNav from '@/components/navBar/MoibileDrawerNav';
 import Spinner from '@/components/spinner/Spinner';
+import LineCheckPdf from '@/components/locaitons/LineCheckPdf';
 
 // ShadCN UI imports
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Switch } from '@/components/ui/switch';
 import {
 	Accordion,
 	AccordionContent,
@@ -50,7 +51,7 @@ import {
 const LocationLineChecksPage = () => {
 	const { data: session, status } = useSession();
 	const currentUser = session?.user as User | undefined;
-	const sessionUserRole = session?.user?.appRole;
+	const sessionUserRole = currentUser?.appRole;
 	const canToggle = currentUser?.appRole === AppRole.MANAGER;
 	const params = useParams<{ accountId: string; locationId: string }>();
 	const router = useRouter();
@@ -90,6 +91,7 @@ const LocationLineChecksPage = () => {
 				const account = accountsRes.data?.find(
 					(acc) => acc.id?.toString() === accountIdParam
 				);
+
 				if (!account) {
 					toast.error('You do not have access to this account.');
 					router.push('/accounts');
@@ -103,6 +105,7 @@ const LocationLineChecksPage = () => {
 				const location = fetchedLocations.find(
 					(loc) => loc.id?.toString() === locationIdParam
 				);
+
 				if (!location) {
 					toast.error('You do not have access to this location.');
 					router.push(`/accounts/${accountIdParam}/locations`);
@@ -110,20 +113,16 @@ const LocationLineChecksPage = () => {
 				}
 
 				const stationRes = await getStationsByLocation(locationIdParam);
-			const sortedStations = (stationRes.data ?? [])
-				.map((s) => ({
-					...s,
-					sortOrder: Number(s.sortOrder) || 0,
-				}))
-				.sort((a, b) => a.sortOrder - b.sortOrder);
+				const sortedStations: Station[] = (stationRes.data ?? [])
+					.map((s) => ({ ...s, sortOrder: Number(s.sortOrder) || 0 }))
+					.sort((a, b) => a.sortOrder - b.sortOrder);
 
-			console.log('Sorted Stations:', sortedStations);
-			setStations(sortedStations);
+				setStations(sortedStations);
+				setCurrentLocation(location);
+				setAccountName(account.accountName || null);
+				setAccountImage(account.imageBase64 || null);
 
 				setHasAccess(true);
-				setAccountName(account.accountName);
-				setAccountImage(account.imageBase64 || null);
-				setCurrentLocation(location);
 			} catch {
 				toast.error('You do not have access to this location.');
 				router.push('/accounts');
@@ -147,20 +146,16 @@ const LocationLineChecksPage = () => {
 				const sortedLineChecks = data.map((lc) => ({
 					...lc,
 					stations: (lc.stations ?? [])
-						.map((st) => ({
-							...st,
-							sortOrder: Number(st.sortOrder) || 0,
-							items: (st.items ?? [])
-								.map((it) => ({
-									...it,
-									sortOrder: Number(it.sortOrder) || 0,
-								}))
+						.map((s) => ({
+							...s,
+							sortOrder: Number(s.sortOrder) || 0,
+							items: (s.items ?? [])
+								.map((it) => ({ ...it, sortOrder: Number(it.sortOrder) || 0 }))
 								.sort((a, b) => a.sortOrder - b.sortOrder),
 						}))
 						.sort((a, b) => a.sortOrder - b.sortOrder),
 				}));
 
-				console.log('Sorted LineChecks:', sortedLineChecks);
 				setLineChecks(sortedLineChecks);
 			} catch (err) {
 				console.error(err);
@@ -231,15 +226,15 @@ const LocationLineChecksPage = () => {
 		}
 	};
 
-	if (loadingAccess)
+	if (loadingAccess) {
 		return (
 			<div className="flex justify-center items-center py-40 text-xl">
 				<Spinner />
 				<span className="ml-4">Loading Line Checks…</span>
 			</div>
 		);
+	}
 
-	// --- Render ---
 	return (
 		<main className="flex min-h-screen overflow-hidden">
 			{/* Sidebar */}
@@ -249,7 +244,7 @@ const LocationLineChecksPage = () => {
 					accountImage={accountImage}
 					accountId={accountIdParam}
 					locationId={locationIdParam}
-					sessionUserRole={sessionUserRole}
+					sessionUserRole={currentUser?.appRole ?? AppRole.MEMBER} // fallback
 				/>
 			</aside>
 
@@ -267,7 +262,7 @@ const LocationLineChecksPage = () => {
 								accountImage={accountImage}
 								accountId={accountIdParam}
 								locationId={locationIdParam}
-								sessionUserRole={sessionUserRole}
+								sessionUserRole={currentUser?.appRole ?? AppRole.MEMBER} // fallback
 							/>
 						</MobileDrawerNav>
 						<h1 className="text-3xl font-bold">
@@ -331,110 +326,114 @@ const LocationLineChecksPage = () => {
 								</AccordionTrigger>
 
 								<AccordionContent>
-									{lc.stations
-										?.slice()
-										.sort((a, b) => a.sortOrder - b.sortOrder)
-										.map((station) => (
-											<Card key={station.id} className="mb-4">
-												<CardHeader>
-													<CardTitle>Station: {station.stationName}</CardTitle>
-												</CardHeader>
-												<CardContent>
-													<div className="overflow-x-auto">
-														<Table>
-															<TableHeader>
-																<TableRow>
-																	<TableHead>Item Name</TableHead>
-																	<TableHead>Shelf Life</TableHead>
-																	<TableHead>Container</TableHead>
-																	<TableHead>Tool</TableHead>
-																	<TableHead>Portion Size</TableHead>
-																	<TableHead>Temp / Checked</TableHead>
-																	<TableHead>Notes</TableHead>
-																	<TableHead>Observations</TableHead>
-																</TableRow>
-															</TableHeader>
+									{lc.stations?.map((station) => (
+										<Card
+											key={station.id}
+											id={`linecheck-${lc.id}`}
+											className="mb-4"
+										>
+											<CardHeader>
+												<CardTitle>Station: {station.stationName}</CardTitle>
+											</CardHeader>
+											<CardContent>
+												<div className="overflow-x-auto">
+													<Table>
+														<TableHeader>
+															<TableRow>
+																<TableHead>Item Name</TableHead>
+																<TableHead>Shelf Life</TableHead>
+																<TableHead>Container</TableHead>
+																<TableHead>Tool</TableHead>
+																<TableHead>Portion Size</TableHead>
+																<TableHead>Temp / Checked</TableHead>
+																<TableHead>Notes</TableHead>
+																<TableHead>Observations</TableHead>
+															</TableRow>
+														</TableHeader>
+														<TableBody>
+															{station.items
+																?.slice()
+																.sort((a, b) => a.sortOrder - b.sortOrder)
+																.map((item: Item) => (
+																	<TableRow key={item.id}>
+																		<TableCell>{item.itemName}</TableCell>
+																		<TableCell>
+																			{item.shelfLife || '-'}
+																		</TableCell>
+																		<TableCell>{item.panSize || '-'}</TableCell>
+																		<TableCell>
+																			{item.tool ? item.toolName : '-'}
+																		</TableCell>
+																		<TableCell>
+																			{item.portioned ? item.portionSize : '-'}
+																		</TableCell>
+																		<TableCell>
+																			{item.tempTaken ? (
+																				<div className="flex flex-col">
+																					<span
+																						className={`font-medium text-lg ${
+																							item.temperature! >=
+																								item.minTemp! &&
+																							item.temperature! <= item.maxTemp!
+																								? 'text-green-600'
+																								: 'text-red-600'
+																						}`}
+																					>
+																						{item.temperature ?? '-'}°
+																					</span>
+																					<span className="text-xs text-gray-500">
+																						{item.minTemp}° - {item.maxTemp}°
+																					</span>
+																				</div>
+																			) : (
+																				<span
+																					className={`text-xl font-bold ${
+																						item.ischecked
+																							? 'text-green-600'
+																							: 'text-red-600'
+																					}`}
+																				>
+																					{item.ischecked ? '✓' : '✘'}
+																				</span>
+																			)}
+																		</TableCell>
+																		<TableCell>
+																			{item.templateNotes || '-'}
+																		</TableCell>
+																		<TableCell>
+																			{item.observations || '-'}
+																		</TableCell>
+																	</TableRow>
+																))}
+														</TableBody>
+													</Table>
+												</div>
+											</CardContent>
+										</Card>
+									))}
 
-															<TableBody>
-																{station.items
-																	?.slice()
-																	.sort(
-																		(a: Item, b: Item) =>
-																			a.sortOrder - b.sortOrder
-																	)
-																	.map((item: Item) => {
-																		const isTempInvalid =
-																			item.temperature! < item.minTemp! ||
-																			item.temperature! > item.maxTemp!;
-																		return (
-																			<TableRow key={item.id}>
-																				<TableCell>{item.itemName}</TableCell>
-																				<TableCell>{item.shelfLife}</TableCell>
-																				<TableCell>{item.panSize}</TableCell>
-																				<TableCell>
-																					{item.tool ? item.toolName : '-'}
-																				</TableCell>
-																				<TableCell>
-																					{item.portioned
-																						? item.portionSize
-																						: '-'}
-																				</TableCell>
-																				<TableCell className="flex flex-col">
-																					{item.tempTaken ? (
-																						// ==== TEMPERATURE ITEM ====
-																						<>
-																							<span
-																								className={`font-medium text-lg
-        																				${
-																									item.temperature >=
-																										item.minTemp &&
-																									item.temperature <=
-																										item.maxTemp
-																										? 'text-green-600'
-																										: 'text-red-600'
-																								}
-																									 `}
-																							>
-																								{item.temperature ?? '-'}°
-																							</span>
-
-																							<span className="text-xs text-gray-500">
-																								{item.minTemp}° - {item.maxTemp}
-																								°
-																							</span>
-																						</>
-																					) : (
-																						// ==== CHECKMARK ITEM ====
-																						<span
-																							className={`text-xl font-bold ${
-																								item.checkMark
-																									? 'text-green-600'
-																									: 'text-red-600'
-																							}`}
-																						>
-																							{item.checkMark ? '✓' : '✘'}
-																						</span>
-																					)}
-																				</TableCell>
-
-																				<TableCell>
-																					{item.templateNotes || '-'}
-																				</TableCell>
-																				<TableCell>
-																					{item.observations || '-'}
-																				</TableCell>
-																			</TableRow>
-																		);
-																	})}
-															</TableBody>
-														</Table>
-													</div>
-												</CardContent>
-											</Card>
-										))}
-									{/* <Button onClick={recordLineCheck} className="mt-2">
-										Record Line Check
-									</Button> */}
+									<PDFDownloadLink
+										document={
+											<LineCheckPdf
+												lineCheck={lc}
+												accountName={accountName || undefined}
+												accountImage={accountImage || undefined}
+											/>
+										}
+										fileName={`linecheck-${lc.id}.pdf`}
+										style={{
+											textDecoration: 'none',
+											padding: '8px 12px',
+											border: '1px solid #2E5FFF',
+											borderRadius: 4,
+											color: '#2E5FFF',
+											fontWeight: 'bold',
+										}}
+									>
+										{({ loading }) =>
+											loading ? 'Generating PDF...' : 'Download PDF'
+										}
+									</PDFDownloadLink>
 								</AccordionContent>
 							</AccordionItem>
 						))}
