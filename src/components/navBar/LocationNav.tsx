@@ -8,6 +8,8 @@ import UploadAccountImagePopover from './UploadAccountImagePopover';
 import { getAccountById, getAccountsForUser } from '@/app/api/accountApi';
 import { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
+import { Tooltip } from '../ui/tooltip';
+import { TooltipContent, TooltipTrigger } from '@radix-ui/react-tooltip';
 
 type LeftNavProps = {
 	accountName: string | null;
@@ -29,6 +31,8 @@ const LocationNav = ({ accountName, accountImage, accountId, sessionUserRole, lo
 	const SettingsIcon = Icons.settings;
 	const ClipboardIcon = Icons.Clipboard;
 	const WeatherIcon = Icons.sun;
+	const StationsIcon = Icons.stations;
+	//const ItemsIcon = Icons.items;
 
 	//set stae
 	const [image, setImage] = useState<string | null>(null);
@@ -36,7 +40,7 @@ const LocationNav = ({ accountName, accountImage, accountId, sessionUserRole, lo
 	const pathname = usePathname();
 
 	return (
-		<nav className="sticky left-0 top-[104px] bg-ring h-[calc(100vh-104px)] overflow-y-auto">
+		<nav className="sticky left-0 top-[10px] bg-ring h-[calc(100vh-104px)] overflow-y-auto">
 			<div className="flex justify-center mt-6">
 				<p className="text-sm md:text-2xl text-chart-3 font-bold text-center">
 					{accountName}
@@ -85,25 +89,63 @@ const LocationNav = ({ accountName, accountImage, accountId, sessionUserRole, lo
 			</div>
 			<div className="flex flex-col gap-2 px-4 pb-6">
 				<NavLink
-					href={`/accounts/${accountId}/locations/${locationId}/settings`}
-					label="Settings"
-					icon={<SettingsIcon />}
-					pathname={pathname}
-				/>
-			</div>
-			<div className="flex flex-col gap-2 px-4 pb-6">
-				<NavLink
 					href={`/accounts/${accountId}/locations/${locationId}/linechecks`}
 					label="Line Checks"
 					icon={<ClipboardIcon />}
 					pathname={pathname}
 				/>
 			</div>
+			{/* <div className="flex flex-col gap-2 px-4 pb-6">
+				<Tooltip>
+					<TooltipTrigger asChild>
+						<NavLink
+							href={`/accounts/${accountId}/locations/${locationId}/stations`}
+							label="Manage Stations"
+							icon={<StationsIcon />}
+							pathname={pathname}
+						/>
+					</TooltipTrigger>
+					<TooltipContent>
+						<p>Use stations to manager items in that station</p>
+					</TooltipContent>
+				</Tooltip>
+			</div> */}
+			{sessionUserRole === 'MANAGER' && (
+				<div className="flex flex-col gap-2 px-4 pb-6">
+					<Tooltip>
+						<TooltipTrigger asChild>
+							<span>
+								<NavLink
+									href={`/accounts/${accountId}/locations/${locationId}/stations`}
+									label="Manage Stations"
+									icon={<StationsIcon />}
+									pathname={pathname}
+								/>
+							</span>
+						</TooltipTrigger>
+						<TooltipContent
+							side="right"
+							align="center"
+							className="bg-black text-white text-sm font-semibold px-3 py-2 rounded-lg shadow-lg max-w-xs z-50"
+						>
+							<p>Use Manage Stations to manage items in each station</p>
+						</TooltipContent>
+					</Tooltip>
+				</div>
+			)}
 			<div className="flex flex-col gap-2 px-4 pb-6">
 				<NavLink
 					href={`/accounts/${accountId}/locations/${locationId}/weather`}
 					label="Weather"
 					icon={<WeatherIcon />}
+					pathname={pathname}
+				/>
+			</div>
+			<div className="flex flex-col gap-2 px-4 pb-6">
+				<NavLink
+					href={`/accounts/${accountId}/locations/${locationId}/settings`}
+					label="Settings"
+					icon={<SettingsIcon />}
 					pathname={pathname}
 				/>
 			</div>
