@@ -12,6 +12,7 @@ import { getUserLocationAccess } from '@/app/api/locationApi';
 import { getStationsByLocation } from '@/app/api/stationApi';
 import {
 	createLineCheckApi,
+	getCompletedLineChecksByLocationApi,
 	getLineChecksApi,
 	recordLineCheckApi,
 } from '@/app/api/linecheckApi';
@@ -138,7 +139,7 @@ const LocationLineChecksPage = () => {
 	useEffect(() => {
 		const fetchLineChecks = async () => {
 			try {
-				const res = await getLineChecksApi();
+				const res = await getCompletedLineChecksByLocationApi(locationIdParam);
 				const data: LineCheck[] = Array.isArray(res.data)
 					? res.data
 					: JSON.parse(res.data ?? '[]');
@@ -271,17 +272,17 @@ const LocationLineChecksPage = () => {
 					</div>
 				</header>
 
-				<div className="p-4">
+				{/* <div className="p-4">
 					<Link
 						className="text-xl hover:underline"
 						href={`/accounts/${accountIdParam}/locations/${locationIdParam}/stations`}
 					>
 						Manage Stations
 					</Link>
-				</div>
+				</div> */}
 
 				{/* Create Line Check */}
-				<div className="p-4">
+				{/* <div className="p-4">
 					<h2 className="text-xl font-bold mb-4">Create New Line Check</h2>
 					<div className="grid grid-cols-2 md:grid-cols-4 gap-2">
 						{stations.map((station) => (
@@ -303,7 +304,7 @@ const LocationLineChecksPage = () => {
 					>
 						{loading ? 'Creating...' : 'Create Line Check'}
 					</Button>
-				</div>
+				</div> */}
 
 				{/* Line Checks */}
 				<div className="p-4">
@@ -319,9 +320,9 @@ const LocationLineChecksPage = () => {
 								<AccordionTrigger>
 									<div className="flex justify-between w-full">
 										<span>
-											Check Time: {new Date(lc.checkTime).toLocaleString()}
+											Line Check Start Time: {new Date(lc.checkTime).toLocaleString()}
 										</span>
-										<span>Created By: {lc.username || 'Unknown'}</span>
+										<span>Preformed By: {lc.username || 'Unknown'}</span>
 									</div>
 								</AccordionTrigger>
 

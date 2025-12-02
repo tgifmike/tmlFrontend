@@ -37,3 +37,14 @@ export const recordLineCheckApi = (payload: any) => {
 	});
 };
 
+//get linecheck that complted and by location
+export const getCompletedLineChecksByLocationApi = async (
+	locationId: string
+) => {
+	return request<LineCheck[]>({
+		method: 'GET',
+		url: `/line-checks/completed/by-location/${locationId}`,
+	});
+};
+
+
