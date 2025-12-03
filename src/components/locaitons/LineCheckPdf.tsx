@@ -24,12 +24,13 @@ interface Props {
 	lineCheck: LineCheck;
 	accountName?: string;
 	accountImage?: string | null;
+	locationName?: string;
 }
 
 const styles = StyleSheet.create({
 	page: {
   fontSize: 8,
-  paddingTop: 15,
+  paddingTop: 45,
   paddingBottom: 15,
   paddingLeft: 15,
   paddingRight: 65, // optimal
@@ -43,24 +44,26 @@ const styles = StyleSheet.create({
 	headerContainer: {
 		flexDirection: 'row',
 		justifyContent: 'space-between',
-		alignItems: 'center',
-		marginBottom: 10,
+		alignItems: 'flex-start',
+		height: 40,
+		marginBottom: 2,
 	},
 	headerText: {
 		fontSize: 12,
 		fontWeight: 'bold',
+		lineHeight: 1,
 	},
 	accountImage: {
-		width: 60,
-		height: 60,
+		width: 50,
+		height: 50,
 		borderRadius: 30,
 		objectFit: 'cover',
 		overflow: 'hidden',
-		marginRight: 40,
+		marginRight: 0,
 	},
 	/* Station Section */
 	stationSection: {
-		marginTop: 10,
+		marginTop: 2,
 		padding: 8,
 		borderWidth: 1,
 		borderColor: '#000',
@@ -68,7 +71,7 @@ const styles = StyleSheet.create({
 		//overflow: 'hidden',
 	},
 	stationHeader: {
-		fontSize: 12,
+		fontSize: 10,
 		fontWeight: 'bold',
 		marginBottom: 5,
 	},
@@ -143,15 +146,50 @@ const LineCheckPdf: React.FC<Props> = ({
 	lineCheck,
 	accountName,
 	accountImage,
+	locationName,
 }) => (
 	<Document>
 		<Page size="A4" orientation="landscape" style={styles.page}>
 			{/* HEADER */}
-			<View style={styles.headerContainer}>
-				<Text style={styles.headerText}>Line Check</Text>
+			<View
+				style={{
+					flexDirection: 'row',
+					justifyContent: 'space-between',
+					alignItems: 'flex-start',
+					marginBottom: 6, // very small clean spacing
+				}}
+			>
+				{/* Left column: title + info */}
+				<View style={{ flexDirection: 'column', gap: 2 }}>
+					<Text style={{ fontSize: 12, fontWeight: 'bold' }}>Line Check</Text>
+
+					<Text>Account Name: {accountName}</Text>
+					<Text>Location Name: {locationName}</Text>
+					<Text>Performed by: {lineCheck.username || '-'}</Text>
+					<Text>
+						Line Check Start Time:{' '}
+						{lineCheck.checkTime
+							? new Date(lineCheck.checkTime).toLocaleString()
+							: '-'}
+					</Text>
+					<Text>
+						Line Check Complete Time:{' '}
+						{lineCheck.completedAt
+							? new Date(lineCheck.completedAt).toLocaleString()
+							: '-'}
+					</Text>
+				</View>
+
+				{/* Right column: logo */}
 				{accountImage ? (
 					<Image
-						style={styles.accountImage}
+						style={{
+							width: 60,
+							height: 60,
+							borderRadius: 30,
+							objectFit: 'cover',
+							marginLeft: 20,
+						}}
 						src={
 							accountImage.startsWith('data:image')
 								? accountImage
@@ -162,14 +200,9 @@ const LineCheckPdf: React.FC<Props> = ({
 					<Text>No Logo added</Text>
 				)}
 			</View>
-
-			<Text>Started: {new Date(lineCheck.checkTime).toLocaleString()}</Text>
-			{accountName && <Text>Account: {accountName}</Text>}
-			<Text>Performed by: {lineCheck.username || '-'}</Text>
-
 			{/* STATIONS */}
 			{lineCheck.stations?.map((station) => (
-				<View key={station.id} style={styles.stationSection} wrap>
+				<View key={station.id} style={styles.stationSection} wrap={false}>
 					<Text style={styles.stationHeader}>
 						Station: {station.stationName}
 					</Text>
@@ -191,7 +224,7 @@ const LineCheckPdf: React.FC<Props> = ({
 							item.temperature <= item.maxTemp;
 
 						return (
-							<View key={item.id} style={rowStyles}>
+							<View key={item.id} style={rowStyles} wrap={false}>
 								<Text style={[styles.cell, styles.itemName]}>
 									{item.itemName}
 								</Text>
@@ -245,13 +278,13 @@ const LineCheckPdf: React.FC<Props> = ({
 											styles.checked,
 											styles.centeredCell,
 											{
-												color: item.ischecked ? 'green' : 'red',
+												color: item.itemChecked ? 'green' : 'red',
 												fontSize: 12,
 												fontFamily: 'DejaVuSans',
 											},
 										]}
 									>
-										{item.ischecked ? '✓' : '✘'}
+										{item.itemChecked ? '✓' : '✘'}
 									</Text>
 								)}
 
@@ -266,6 +299,23 @@ const LineCheckPdf: React.FC<Props> = ({
 					})}
 				</View>
 			))}
+
+			{/* Page Number */}
+			<Text
+				style={{
+					position: 'absolute',
+					bottom: 10,
+					left: 0,
+					right: 0,
+					textAlign: 'center',
+					fontSize: 10,
+					color: '#555',
+				}}
+				render={({ pageNumber, totalPages }) =>
+					`Page ${pageNumber} / ${totalPages}`
+				}
+				fixed
+			/>
 		</Page>
 	</Document>
 );

@@ -205,27 +205,27 @@ const LocationLineChecksPage = () => {
 		);
 	};
 
-	const recordLineCheck = async () => {
-		try {
-			const payload = lineChecks.map((lc) => ({
-				id: lc.id,
-				stations: lc.stations.map((st) => ({
-					id: st.id,
-					items: st.items.map((it) => ({
-						id: it.id!,
-						checked: it.isCheckMark,
-						temperature: it.itemTemperature,
-						lineCheckNotes: it.observations,
-					})),
-				})),
-			}));
-			await recordLineCheckApi(payload);
-			toast.success('Line check recorded!');
-		} catch (err) {
-			console.error(err);
-			toast.error('Failed to record line check');
-		}
-	};
+	// const recordLineCheck = async () => {
+	// 	try {
+	// 		const payload = lineChecks.map((lc) => ({
+	// 			id: lc.id,
+	// 			stations: lc.stations.map((st) => ({
+	// 				id: st.id,
+	// 				items: st.items.map((it) => ({
+	// 					id: it.id!,
+	// 					isItemChecked: it.isItemChecked,
+	// 					temperature: it.itemTemperature,
+	// 					lineCheckNotes: it.observations,
+	// 				})),
+	// 			})),
+	// 		}));
+	// 		await recordLineCheckApi(payload);
+	// 		toast.success('Line check recorded!');
+	// 	} catch (err) {
+	// 		console.error(err);
+	// 		toast.error('Failed to record line check');
+	// 	}
+	// };
 
 	if (loadingAccess) {
 		return (
@@ -320,13 +320,22 @@ const LocationLineChecksPage = () => {
 								<AccordionTrigger>
 									<div className="flex justify-between w-full">
 										<span>
-											Line Check Start Time: {new Date(lc.checkTime).toLocaleString()}
+											Line Check Start Time:{' '}
+											{new Date(lc.checkTime).toLocaleString()}
 										</span>
 										<span>Preformed By: {lc.username || 'Unknown'}</span>
 									</div>
 								</AccordionTrigger>
 
 								<AccordionContent>
+									<div className='text-md border-2 p-2 m-2 rounded-2xl'>
+										<p>Account Name: {accountName}</p>
+										<p>Location Name: {currentLocation?.locationName}</p>
+										<p>Line Check Performed By: {lc.username}</p>
+										<p>Line Check Start Time: {lc.checkTime}</p>
+										<p>Line Check Complete Time: {lc.completedAt}</p>
+									</div>
+
 									{lc.stations?.map((station) => (
 										<Card
 											key={station.id}
@@ -389,12 +398,12 @@ const LocationLineChecksPage = () => {
 																			) : (
 																				<span
 																					className={`text-xl font-bold ${
-																						item.ischecked
+																						item.itemChecked
 																							? 'text-green-600'
 																							: 'text-red-600'
 																					}`}
 																				>
-																					{item.ischecked ? '✓' : '✘'}
+																					{item.itemChecked ? '✓' : '✘'}
 																				</span>
 																			)}
 																		</TableCell>
@@ -419,6 +428,7 @@ const LocationLineChecksPage = () => {
 												lineCheck={lc}
 												accountName={accountName || undefined}
 												accountImage={accountImage || undefined}
+												locationName={currentLocation?.locationName || ''}
 											/>
 										}
 										fileName={`linecheck-${lc.id}.pdf`}
@@ -426,7 +436,7 @@ const LocationLineChecksPage = () => {
 											textDecoration: 'none',
 											padding: '8px 12px',
 											border: '1px solid #2E5FFF',
-											borderRadius: 4,
+											borderRadius: 8,
 											color: '#2E5FFF',
 											fontWeight: 'bold',
 										}}
