@@ -92,9 +92,10 @@ export interface Item {
 	location: Location;
 	items?: Item[];
 	checkMark?: boolean;
-
+	itemChecked?: boolean;
 	tool?: boolean;
 	tempTaken?: boolean;
+	completedAt?: string | null;
 	createdAt?: string | null;
 	updatedAt?: string | null;
 }
@@ -117,6 +118,7 @@ export interface LineCheckStation {
 export interface LineCheck {
 	id: string;
 	checkTime: string;
+	completedAt?: string | null;
 	stations: LineCheckStation[];
 	username?: string;
 }
@@ -135,6 +137,7 @@ interface LineCheckItem {
 	minTemp: number;
 	maxTemp: number; // user input
 	checked?: boolean; // user input
-	observations?: string; // user input per item
+	observations?: string;
+	 // user input per item
 }
 
