@@ -29,6 +29,7 @@ import {
 import { useForm } from 'react-hook-form';
 import { Input } from '../ui/input';
 import { US_STATES, US_TIME_ZONES } from '@/lib/constants/usConstants';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 
 type CreateLocationDialogProps = {
 	onLocationCreated: (location: Locations) => void;
@@ -202,16 +203,23 @@ export default function CreateLocationDialog({
 							render={({ field }) => (
 								<FormItem>
 									<FormLabel>State</FormLabel>
-									<FormControl>
-										<select {...field} className="input">
-											<option value="">Select a state</option>
+									<Select
+										onValueChange={field.onChange}
+										defaultValue={field.value}
+									>
+										<FormControl>
+											<SelectTrigger>
+												<SelectValue placeholder="Select a state" />
+											</SelectTrigger>
+										</FormControl>
+										<SelectContent>
 											{US_STATES.map((state) => (
-												<option key={state} value={state}>
+												<SelectItem key={state} value={state}>
 													{state}
-												</option>
+												</SelectItem>
 											))}
-										</select>
-									</FormControl>
+										</SelectContent>
+									</Select>
 									<FormMessage />
 								</FormItem>
 							)}
@@ -239,16 +247,23 @@ export default function CreateLocationDialog({
 							render={({ field }) => (
 								<FormItem>
 									<FormLabel>Time Zone</FormLabel>
-									<FormControl>
-										<select {...field} className="input">
-											<option value="">Select a time zone</option>
+									<Select
+										onValueChange={field.onChange}
+										defaultValue={field.value}
+									>
+										<FormControl>
+											<SelectTrigger>
+												<SelectValue placeholder="Select a time zone" />
+											</SelectTrigger>
+										</FormControl>
+										<SelectContent>
 											{US_TIME_ZONES.map((tz) => (
-												<option key={tz} value={tz}>
+												<SelectItem key={tz} value={tz}>
 													{tz}
-												</option>
+												</SelectItem>
 											))}
-										</select>
-									</FormControl>
+										</SelectContent>
+									</Select>
 									<FormMessage />
 								</FormItem>
 							)}
