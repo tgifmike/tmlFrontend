@@ -1,8 +1,10 @@
 'use client';
 
 import { getAccountsForUser } from '@/app/api/accountApi';
+import { getCompletedLineChecksByLocationApi } from '@/app/api/linecheckApi';
 import { getUserLocationAccess, getWeather } from '@/app/api/locationApi';
-import { AppRole, Locations, User } from '@/app/types';
+import { AppRole, LineCheck, Locations, User } from '@/app/types';
+import LineCheckDashboard from '@/components/locaitons/LineCheckDashboard';
 import WeatherWidget from '@/components/locaitons/WeatherWidget';
 import TimeOfDayGreeting from '@/components/login/TimeOfDayGreeting';
 import LocationNav from '@/components/navBar/LocationNav';
@@ -43,6 +45,7 @@ const LocationPage = () => {
 	const [drawerOpen, setDrawerOpen] = useState(false);
 	const [currentLocation, setCurrentLocation] = useState<any>();
 	const [weather, setWeather] = useState<WeatherResponse | null>(null);
+	const [lineChecks, setLineChecks] = useState<LineCheck[]>([]);
 
 	useEffect(() => {
 		if (
@@ -111,6 +114,22 @@ const LocationPage = () => {
 		hasAccess,
 	]);
 
+	useEffect(() => {
+		if (!locationIdParam) return;
+		const fetchLineChecks = async () => {
+			try {
+				const res = await getCompletedLineChecksByLocationApi(locationIdParam);
+				const data: LineCheck[] = Array.isArray(res.data)
+					? res.data
+					: JSON.parse(res.data ?? '[]');
+				setLineChecks(data);
+			} catch {
+				setLineChecks([]);
+			}
+		};
+		fetchLineChecks();
+	}, [locationIdParam]);
+
 	//show loadding state
 	if (loadingAccess)
 		return (
@@ -137,7 +156,7 @@ const LocationPage = () => {
 			{/* main content */}
 			<section className="flex-1 flex flex-col">
 				{/* Header */}
-				<header className="flex justify-between items-center px-4 py-3 border-b bg-background/70 backdrop-blur-md sticky top-0 z-20">
+				<header className="flex justify-between items-center px-4 py-3 border-b  backdrop-blur-md sticky top-0 z-20">
 					{/* Left */}
 					<div className="flex gap-8">
 						{/* Mobile Drawer */}
@@ -156,12 +175,20 @@ const LocationPage = () => {
 						</MobileDrawerNav>
 						<h1 className="text-3xl font-bold mb-4">{locationName} Home</h1>
 					</div>
+					<TimeOfDayGreeting name={session?.user?.name} />
 				</header>
-				<div className='flex justify-between'>
-					<div className='p-4'>
+				<div className="flex justify-between">
+					{/* <div className="p-4">
 						<TimeOfDayGreeting name={session?.user?.name} />
+					</div> */}
+
+					<div className="w-1/3">
+						<LineCheckDashboard
+							lineChecks={lineChecks}
+							locationId={locationIdParam!}
+						/>
 					</div>
-					<div className='p-5'>
+					<div className="w-1/3 mt-4">
 						{currentLocation && (
 							<WeatherWidget
 								lat={currentLocation.locationLatitude}

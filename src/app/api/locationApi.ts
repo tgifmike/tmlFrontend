@@ -1,4 +1,5 @@
 
+import { LineCheckFormValues } from '@/components/locaitons/LineCheckSettingsForm';
 import { Locations } from '../types';
 import { request } from './axios';
 
@@ -105,3 +106,26 @@ export const getWeather = async (lat: number, lon: number) => {
         url: `/api/weather/getWeather?lat=${lat}&lon=${lon}`,
     })
 }
+
+// get line check settings for a location
+export const getLineCheckSettings = async (locationId: string) => {
+    return request<LineCheckFormValues>({
+        method: 'GET',
+        url: `/locations/${locationId}/line-check-settings`,
+    });
+};
+
+// update line check settings for a location
+export const updateLineCheckSettings = async (locationId: string, data: LineCheckFormValues) => {
+    // optional: map dayOfWeek to lowercase if needed for backend
+    const payload = {
+        dayOfWeek: data.dayOfWeek.toLowerCase(),
+        dailyGoal: data.dailyGoal,
+    };
+
+    return request<LineCheckFormValues>({
+        method: 'PUT',
+        url: `/locations/${locationId}/line-check-settings`,
+        data: payload,
+    });
+};

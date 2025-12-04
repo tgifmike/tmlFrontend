@@ -43,7 +43,7 @@ const TimeOfDayGreeting: React.FC<TimeOfDayGreetingProps> = ({ name }) => {
 	return (
 		<Card className="w-full max-w-md mx-auto border-0 shadow-none outline-0 ">
 			{' '}
-			<CardContent className="p-6 flex items-center gap-4">
+			<CardContent className="p-0 flex items-center gap-4">
 				<motion.span
 					className="text-4xl"
 					animate={{ y: [0, -5, 0] }}
