@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { ThemeProvider } from "@/components/theme/Theme-Provider";
 import { SessionProviderLib } from "@/lib/auth/SessionProviderLib";
 import NavBar from "@/components/navBar/NavBar";
+import { Analytics } from '@vercel/analytics/next';
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -58,6 +59,7 @@ export default function RootLayout({
 					>
 						<NavBar />
 						{children}
+						<Analytics />
 						<Toaster />
 					</ThemeProvider>
 				</SessionProviderLib>
