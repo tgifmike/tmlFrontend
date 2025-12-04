@@ -71,6 +71,12 @@ export const toolOptions = [
 	{ label: '4oz Ladel', value: '4oz Ladel' },
 	{ label: '5oz Ladel', value: '5oz Ladel' },
 	{ label: '6oz Ladel', value: '6oz Ladel' },
+	{ label: '7oz Ladel', value: '7oz Ladel' },
+	{ label: '8oz Ladel', value: '8oz Ladel' },
+	{ label: '9oz Ladel', value: '9oz Ladel' },
+	{ label: '10oz Ladel', value: '10oz Ladel' },
+	{ label: '14oz Ladel', value: '14oz Ladel' },
+	{ label: 'N/A', value: 'N/A' },
 ];
 
 
@@ -85,7 +91,7 @@ export const shelfLifeOptions = [
 	{ label: '6 Days', value: '6 Days' },
 	{ label: '7 Days', value: '7 Days' },
 	{ label: '30 Days', value: '30 Days' },
-	
+	{ label: 'N/A', value: 'N/A' },
 ];
 
 export const panSizeOptions = [
@@ -97,6 +103,7 @@ export const panSizeOptions = [
 	{ label: 'Tray', value: 'Tray' },
 	{ label: 'Squeeze Bottle', value: 'Squeeze Bottle' },
 	{ label: 'Yellow Lid Shaker', value: 'Yellow Lid Shaker' },
+	{ label: 'Pizza Tray', value: 'Pizza Tray' },
 ];
 
 export const portionSizeOptions = [
@@ -108,6 +115,18 @@ export const portionSizeOptions = [
 	{ label: '6 oz', value: '6 oz' },
 	{ label: '7 oz', value: '7 oz' },
 	{ label: '8 oz', value: '8 oz' },
+	{ label: '9 oz', value: '9 oz' },
+	{ label: '10 oz', value: '10 oz' },
+	{ label: '11 oz', value: '11 oz' },
+	{ label: '12 oz', value: '12 oz' },
+	{ label: '14 oz', value: '14 oz' },
+	{ label: 'each', value: 'each' },
+	{ label: '3 each', value: '3 each' },
+	{ label: '6 each', value: '6 each' },
+	{ label: '10 each', value: '10 each' },
+	{ label: '12 each', value: '12 each' },
+	{ label: '20 each', value: '20 each' },
+	{ label: '30 each', value: '30 each' },
 ];
 
 export const tempCategoryRanges: Record<string, { min: number; max: number }> = {
