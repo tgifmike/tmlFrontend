@@ -3,6 +3,7 @@
 import { getAccountsForUser } from '@/app/api/accountApi';
 import { getUserLocationAccess, toggleLocationActive, updateLocation } from '@/app/api/locationApi';
 import { AppRole, Locations, User } from '@/app/types';
+import LineCheckSettingsForm from '@/components/locaitons/LineCheckSettingsForm';
 import LocationNav from '@/components/navBar/LocationNav';
 import MobileDrawerNav from '@/components/navBar/MoibileDrawerNav';
 import Spinner from '@/components/spinner/Spinner';
@@ -171,6 +172,7 @@ const LocationSettingsPage = () => {
 			locationState: '',
 			locationZipCode: '',
 			locationTimeZone: '',
+			
 		},
 	});
 
@@ -344,7 +346,7 @@ const LocationSettingsPage = () => {
 							<CardAction>
 								<Button
 									type="submit"
-									form='location-form'
+									form="location-form"
 									disabled={!isChanged || form.formState.isSubmitting}
 								>
 									{form.formState.isSubmitting ? 'Saving...' : 'Save Changes'}
@@ -354,7 +356,7 @@ const LocationSettingsPage = () => {
 						<CardContent>
 							<Form {...form}>
 								<form
-									id='location-form'
+									id="location-form"
 									onSubmit={form.handleSubmit(onSubmit)}
 									className="space-y-4"
 								>
@@ -500,11 +502,9 @@ const LocationSettingsPage = () => {
 											)}
 										/>
 									</div>
-								
 								</form>
 							</Form>
 						</CardContent>
-						
 					</Card>
 
 					<div className="flex flex-col w-1/3">
@@ -576,7 +576,11 @@ const LocationSettingsPage = () => {
 							</CardContent>
 						</Card>
 					</div>
+				
 				</div>
+				<LineCheckSettingsForm
+				locationId={locationIdParam}
+				/>
 			</section>
 		</main>
 	);

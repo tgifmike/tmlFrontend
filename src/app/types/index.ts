@@ -53,6 +53,8 @@ export interface Locations {
 	locationLatitude: number;
 	locationLongitude: number;
 	geocodedFromZipFallback: boolean;
+	lineCheckDailyGoal: number;
+	startOfWeek: string;
 	createdAt?: string | null;
 	updatedAt?: string | null;
 }
@@ -141,3 +143,14 @@ interface LineCheckItem {
 	 // user input per item
 }
 
+export interface LineCheckSettings {
+	startOfWeek:
+		| 'SUNDAY'
+		| 'MONDAY'
+		| 'TUESDAY'
+		| 'WEDNESDAY'
+		| 'THURSDAY'
+		| 'FRIDAY'
+		| 'SATURDAY';
+	dailyGoal: number;
+}
