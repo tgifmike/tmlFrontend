@@ -47,7 +47,7 @@ type CreateItemDialogProps = {
 };
 
 // Zod schema
-const getSchema = (items: Item[] = []) =>
+const getSchema = (items: Item[] = [], currentItemId?: string) =>
 	z
 		.object({
 			itemName: z
@@ -55,27 +55,42 @@ const getSchema = (items: Item[] = []) =>
 				.min(1, 'Item name cannot be empty')
 				.refine(
 					(name) =>
-						!items.some((i) => i.itemName.toLowerCase() === name.toLowerCase()),
+						!items.some(
+							(i) =>
+								i.itemName.toLowerCase() === name.toLowerCase() &&
+								i.id !== currentItemId
+						),
 					{ message: 'Item name already exists' }
 				),
+
 			shelfLife: z.string().min(1, 'Shelf life cannot be empty'),
-			panSize: z.string().min(1, 'Pan Size cannot be empty'),
+			panSize: z.string().min(1, 'Pan size cannot be empty'),
+
 			isTool: z.boolean().default(false),
+			toolName: z.string().optional(),
+
 			isPortioned: z.boolean().default(false),
+			portionSize: z.string().optional(),
+
 			isTempTaken: z.boolean().default(false),
 			tempCategory: z.string().optional(),
+
 			isCheckMark: z.boolean().default(false),
 			itemNotes: z.string().optional(),
-			toolName: z.string().optional(),
-			portionSize: z.string().optional(),
 		})
-		.refine(
-			(data) => {
-				// require tempCategory if isTempTaken
-				return !data.isTempTaken || !!data.tempCategory;
-			},
-			{ message: 'Temperature category is required if temperature is taken' }
-		);  //need to add other optons
+		.refine((data) => !data.isTool || !!data.toolName, {
+			message: 'Tool name is required when a tool is needed',
+			path: ['toolName'],
+		})
+		.refine((data) => !data.isPortioned || !!data.portionSize, {
+			message: 'Portion size is required for portioned items',
+			path: ['portionSize'],
+		})
+		.refine((data) => !data.isTempTaken || !!data.tempCategory, {
+			message: 'Temperature category is required when temperature is taken',
+			path: ['tempCategory'],
+		});
+
 
 
 export default function CreateItemDialog({
@@ -98,19 +113,19 @@ export default function CreateItemDialog({
 
 	// RHF form
    const form = useForm<FormValues>({
-			
-       resolver: zodResolver(schema) as any,
+			resolver: zodResolver(schema) as any,
 			defaultValues: {
 				itemName: '',
 				shelfLife: '',
 				panSize: '',
 				isTool: false,
+				toolName: '',
 				isPortioned: false,
+				portionSize: '',
 				isTempTaken: false,
+				tempCategory: '',
 				isCheckMark: false,
 				itemNotes: '',
-				toolName: '',
-				portionSize: '',
 			},
 			mode: 'onChange',
 		});
@@ -118,12 +133,13 @@ export default function CreateItemDialog({
 	// Submit handler
 	const onSubmit = async (values: FormValues) => {
 		try {
-			// Create a payload that extends FormValues with optional min/max temps
-			const payload: FormValues & { minTemp?: number; maxTemp?: number } = {
+			// Build backend payload
+			const payload: any = {
 				...values,
+				templateNotes: values.itemNotes || undefined,
 			};
 
-			// Set min/max if temp is taken
+			// Temp logic
 			if (values.isTempTaken && values.tempCategory) {
 				const range = tempCategoryRanges[values.tempCategory];
 				if (range) {
@@ -132,7 +148,26 @@ export default function CreateItemDialog({
 				}
 			}
 
+			// backend does NOT accept empty strings for enum fields
+			if (!payload.isTool) delete payload.toolName;
+			if (payload.toolName === '') delete payload.toolName;
+
+			if (!payload.isPortioned) delete payload.portionSize;
+			if (payload.portionSize === '') delete payload.portionSize;
+
+			if (!payload.isTempTaken) {
+				delete payload.tempCategory;
+				delete payload.minTemp;
+				delete payload.maxTemp;
+			}
+			if (payload.tempCategory === '') delete payload.tempCategory;
+
+			// empty notes → remove
+			if (!payload.itemNotes) delete payload.itemNotes;
+			if (!payload.templateNotes) delete payload.templateNotes;
+
 			const { data, error } = await createItem(stationId, payload);
+
 			if (error || !data) {
 				if (error?.includes('409') || error?.toLowerCase().includes('exists')) {
 					toast.error('Item name already exists.');
@@ -155,6 +190,7 @@ export default function CreateItemDialog({
 			toast.error(message);
 		}
 	};
+
 
 	return (
 		<Dialog open={open} onOpenChange={setOpen}>

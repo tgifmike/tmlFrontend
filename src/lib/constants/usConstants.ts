@@ -104,6 +104,7 @@ export const panSizeOptions = [
 	{ label: 'Squeeze Bottle', value: 'Squeeze Bottle' },
 	{ label: 'Yellow Lid Shaker', value: 'Yellow Lid Shaker' },
 	{ label: 'Pizza Tray', value: 'Pizza Tray' },
+	{ label: 'N/A', value: 'N/A' },
 ];
 
 export const portionSizeOptions = [
@@ -120,7 +121,9 @@ export const portionSizeOptions = [
 	{ label: '11 oz', value: '11 oz' },
 	{ label: '12 oz', value: '12 oz' },
 	{ label: '14 oz', value: '14 oz' },
-	{ label: 'each', value: 'each' },
+	{ label: '1/4 Cup', value: '1/4 Cup' },
+	{ label: '1 teaspoon', value: '1 teaspoon' },
+	{ label: '1 each', value: '1 each' },
 	{ label: '3 each', value: '3 each' },
 	{ label: '6 each', value: '6 each' },
 	{ label: '10 each', value: '10 each' },
