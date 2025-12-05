@@ -91,6 +91,7 @@ export interface Item {
 	sortOrder: number;
 	location: Location;
 	items?: Item[];
+	itemNotes?: string;
 	checkMark?: boolean;
 	itemChecked?: boolean;
 	tool?: boolean;
