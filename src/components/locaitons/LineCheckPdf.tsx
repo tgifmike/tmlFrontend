@@ -202,7 +202,8 @@ const LineCheckPdf: React.FC<Props> = ({
 			</View>
 			{/* STATIONS */}
 			{lineCheck.stations?.map((station) => (
-				<View key={station.id} style={styles.stationSection} wrap={false}>
+				<View key={station.id} style={styles.stationSection}>
+					{/* wrap={false}> */}
 					<Text style={styles.stationHeader}>
 						Station: {station.stationName}
 					</Text>
