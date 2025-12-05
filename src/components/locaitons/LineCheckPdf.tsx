@@ -133,11 +133,10 @@ const TableHeader = () => (
 		<Text style={[styles.cell, styles.centeredCell, styles.portion]}>
 			Portion Size
 		</Text>
+		<Text style={[styles.cell, styles.centeredCell, styles.notes]}>Notes</Text>
 		<Text style={[styles.cell, styles.centeredCell, styles.temp]}>
 			Temp/Checked
 		</Text>
-		{/* <Text style={[styles.cell, styles.checked]}>Checked</Text> */}
-		<Text style={[styles.cell, styles.centeredCell, styles.notes]}>Notes</Text>
 		<Text style={[styles.cell, styles.observations]}>Observations</Text>
 	</View>
 );
@@ -202,8 +201,13 @@ const LineCheckPdf: React.FC<Props> = ({
 			</View>
 			{/* STATIONS */}
 			{lineCheck.stations?.map((station) => (
-				<View key={station.id} style={styles.stationSection}>
+				<View
+					key={station.id}
+					style={styles.stationSection}>
+					wrap={true}
+					break={station.items.length > 10}
 					{/* wrap={false}> */}
+
 					<Text style={styles.stationHeader}>
 						Station: {station.stationName}
 					</Text>
@@ -247,6 +251,9 @@ const LineCheckPdf: React.FC<Props> = ({
 								>
 									{item.portioned ? item.portionSize : '-'}
 								</Text>
+								<Text style={[styles.cell, styles.centeredCell, styles.notes]}>
+									{item.templateNotes || '-'}
+								</Text>
 
 								{/* TEMP or CHECKMARK */}
 								{item.tempTaken ? (
@@ -289,9 +296,6 @@ const LineCheckPdf: React.FC<Props> = ({
 									</Text>
 								)}
 
-								<Text style={[styles.cell, styles.centeredCell, styles.notes]}>
-									{item.templateNotes || '-'}
-								</Text>
 								<Text style={[styles.cell, styles.observations]}>
 									{item.observations || '-'}
 								</Text>
