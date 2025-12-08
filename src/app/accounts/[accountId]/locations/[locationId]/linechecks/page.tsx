@@ -340,7 +340,7 @@ const LocationLineChecksPage = () => {
 							<AccordionItem key={day} value={day}>
 								<AccordionTrigger>
 									<div className="flex justify-between w-full text-lg font-semibold">
-										<span>{day}</span>
+										<span>Line Checks for: {day}</span>
 										<span>{lineChecksForDay.length} Line Checks</span>
 									</div>
 								</AccordionTrigger>
@@ -353,10 +353,16 @@ const LocationLineChecksPage = () => {
 														<span>
 															Performed by: {lc.username || 'Unknown'}
 														</span>
-														<span>
-															Start:{' '}
-															{new Date(lc.checkTime).toLocaleTimeString()}
-														</span>
+														<div className="flex gap-4">
+															<span>
+																Started:{' '}
+																{new Date(lc.checkTime).toLocaleTimeString()}
+															</span>
+															<span>
+																Completd:{' '}
+																{new Date(lc.completedAt).toLocaleTimeString()}
+															</span>
+														</div>
 													</div>
 												</AccordionTrigger>
 												<AccordionContent className="space-y-2">
