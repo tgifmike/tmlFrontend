@@ -121,7 +121,7 @@ export interface LineCheckStation {
 export interface LineCheck {
 	id: string;
 	checkTime: string;
-	completedAt?: string | null;
+	completedAt: string;
 	stations: LineCheckStation[];
 	username?: string;
 }
