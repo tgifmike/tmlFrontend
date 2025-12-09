@@ -151,7 +151,7 @@ const AccountPage = () => {
 		);
 
 	return (
-		<main className="flex min-h-screen overflow-hidden">
+		<main className="flex flex-1 overflow-hidden">
 			{/* Desktop Sidebar */}
 			<aside className="hidden md:block w-1/6 border-r h-screen bg-ring">
 				<LeftNav

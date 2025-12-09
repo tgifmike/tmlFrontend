@@ -145,7 +145,7 @@ const MainAccountPage = () => {
 	
 
 	return (
-		<main className="pt-4">
+		<div className="pt-4">
 			<div className="w-full max-w-5xl mx-auto flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 px-4">
 				<h1 className="text-2xl sm:text-3xl font-bold text-center sm:text-left">
 					Accounts
@@ -311,7 +311,7 @@ const MainAccountPage = () => {
 					totalItems={filteredAccounts.length}
 				/>
 			</div>
-		</main>
+		</div>
 	);
 };
 

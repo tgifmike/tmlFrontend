@@ -356,11 +356,15 @@ const LocationLineChecksPage = () => {
 														<div className="flex gap-4">
 															<span>
 																Started:{' '}
-																{new Date(lc.checkTime).toLocaleTimeString()}
+																{new Date(
+																	lc.checkTime 
+																).toLocaleTimeString()}
 															</span>
 															<span>
-																Completd:{' '}
-																{new Date(lc.completedAt).toLocaleTimeString()}
+																Completed:{' '}
+																{new Date(
+																	lc.completedAt 
+																).toLocaleTimeString()}
 															</span>
 														</div>
 													</div>
