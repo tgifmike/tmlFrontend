@@ -28,7 +28,7 @@ const LeftNav = ({ accountName, accountImage, accountId, sessionUserRole }: Left
 	const pathname = usePathname();
 
 	return (
-		<nav className="bg-ring h-full">
+		<nav className="bg-ring h-full overflow-y-auto">
 			<div className="flex justify-center mt-6">
 				<p className="text-sm md:text-2xl text-chart-3 font-bold text-center">
 					{accountName}

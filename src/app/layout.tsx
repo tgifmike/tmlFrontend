@@ -6,6 +6,8 @@ import { ThemeProvider } from "@/components/theme/Theme-Provider";
 import { SessionProviderLib } from "@/lib/auth/SessionProviderLib";
 import NavBar from "@/components/navBar/NavBar";
 import { Analytics } from '@vercel/analytics/next';
+import Footer from "@/components/navBar/Footer";
+
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -45,10 +47,7 @@ export default function RootLayout({
   return (
 		<html lang="en" suppressHydrationWarning>
 			<body
-				className={`${geistSans.variable} ${geistMono.variable} antialiased  w-full
-
-    
-    mx-auto`}
+				className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen flex flex-col`}
 			>
 				<SessionProviderLib>
 					<ThemeProvider
@@ -58,7 +57,8 @@ export default function RootLayout({
 						disableTransitionOnChange
 					>
 						<NavBar />
-						{children}
+						<main className="flex-1 w-full ">{children}</main>
+						<Footer />
 						<Analytics />
 						<Toaster />
 					</ThemeProvider>
