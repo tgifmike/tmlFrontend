@@ -155,3 +155,32 @@ export interface LineCheckSettings {
 		| 'SATURDAY';
 	dailyGoal: number;
 }
+export enum OptionType {
+	TOOL = 'TOOL',
+	SHELF_LIFE = 'SHELF_LIFE',
+	PAN_SIZE = 'PAN_SIZE',
+	PORTION_SIZE = 'PORTION_SIZE',
+};
+
+
+
+export interface OptionEntity {
+	id: string;
+	optionName: string;
+	optionActive: boolean;
+	sortOrder: number;
+	optionType: OptionType;
+	accountId: string;
+	account: {
+		id: string;
+		name?: string;
+		// add other account fields if needed
+	};
+	createdAt?: string;
+	updatedAt?: string;
+	createdBy?: string;
+	updatedBy?: string;
+	deletedAt?: string | null;
+	deletedBy?: string | null;
+}
+
