@@ -183,4 +183,10 @@ export interface OptionEntity {
 	deletedAt?: string | null;
 	deletedBy?: string | null;
 }
+const OptionTypeLabels: Record<OptionType, string> = {
+	[OptionType.TOOL]: 'Tool',
+	[OptionType.SHELF_LIFE]: 'Shelf Life',
+	[OptionType.PAN_SIZE]: 'Pan Size',
+	[OptionType.PORTION_SIZE]: 'Portion Size',
+};
 
