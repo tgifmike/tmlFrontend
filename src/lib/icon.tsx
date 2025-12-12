@@ -1,4 +1,5 @@
-import { ArrowDownUp, BadgeCheck, BadgeQuestionMark, Blocks, Box, ChevronDown, ClipboardPen, CloudSun, Cog, CookingPot, Grid2X2Plus, Hamburger, House, ImagePlus, LayoutDashboard, PackagePlus, Pencil, Sun, Trash2, User, UserPlus } from "lucide-react";
+import { max } from "date-fns";
+import { ArrowDownUp, BadgeCheck, BadgeQuestionMark, Blocks, Box, ChevronDown, ClipboardPen, CloudSun, Cog, CookingPot, Grid2X2Plus, Hamburger, House, ImagePlus, LayoutDashboard, Maximize, Maximize2, Minimize2, PackagePlus, Pencil, Sun, Trash2, User, UserPlus } from "lucide-react";
 
 
 
@@ -23,6 +24,8 @@ export const Icons = {
 	badgeCheck: BadgeCheck,
 	badgeQuestionMark: BadgeQuestionMark,
     sun: Sun,
-    cloudAndSun: CloudSun
+	cloudAndSun: CloudSun,
+	maximize: Maximize2,
+	minamize: Minimize2
     
 };

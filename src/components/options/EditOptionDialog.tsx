@@ -21,6 +21,7 @@ import {
 	SelectValue,
 } from '@/components/ui/select';
 import { toast } from 'sonner';
+import { Icons } from '@/lib/icon';
 
 interface EditOptionDialogProps {
 	option: OptionEntity;
@@ -38,6 +39,8 @@ export const EditOptionDialog: React.FC<EditOptionDialogProps> = ({
 		option.optionType
 	);
 	const [loading, setLoading] = useState(false);
+
+	const EditIcon = Icons.pencil;
 
 	const currentUser = (typeof window !== 'undefined' &&
 		(window as any).sessionUser) as User;
@@ -92,7 +95,9 @@ export const EditOptionDialog: React.FC<EditOptionDialogProps> = ({
 	return (
 		<Dialog open={open} onOpenChange={setOpen}>
 			<DialogTrigger asChild>
-				<Button>Edit</Button>
+				<Button variant="ghost" size="icon" className="text-chart-3">
+					<EditIcon className="!w-[30px] !h-[30px]" />
+				</Button>
 			</DialogTrigger>
 			<DialogContent className="sm:max-w-[425px]">
 				<DialogHeader>
