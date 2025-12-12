@@ -32,6 +32,7 @@ const LocationNav = ({ accountName, accountImage, accountId, sessionUserRole, lo
 	const ClipboardIcon = Icons.Clipboard;
 	const WeatherIcon = Icons.sun;
 	const StationsIcon = Icons.stations;
+	const ToolBoxIcon = Icons.toolbox;
 	//const ItemsIcon = Icons.items;
 
 	//set stae
@@ -129,6 +130,29 @@ const LocationNav = ({ accountName, accountImage, accountId, sessionUserRole, lo
 							className="bg-black text-white text-sm font-semibold px-3 py-2 rounded-lg shadow-lg max-w-xs z-50"
 						>
 							<p>Use Manage Stations to manage items in each station</p>
+						</TooltipContent>
+					</Tooltip>
+				</div>
+			)}
+			{sessionUserRole === 'MANAGER' && (
+				<div className="flex flex-col gap-2 px-4 pb-6">
+					<Tooltip>
+						<TooltipTrigger asChild>
+							<span>
+								<NavLink
+									href={`/accounts/${accountId}/locations/${locationId}/options`}
+									label="Options"
+									icon={<ToolBoxIcon />}
+									pathname={pathname}
+								/>
+							</span>
+						</TooltipTrigger>
+						<TooltipContent
+							side="right"
+							align="center"
+							className="bg-black text-white text-sm font-semibold px-3 py-2 rounded-lg shadow-lg max-w-xs z-50"
+						>
+							<p>Use Options to manage Tool, Shelf Life, Pan Size, and Portion Size Options</p>
 						</TooltipContent>
 					</Tooltip>
 				</div>
