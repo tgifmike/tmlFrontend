@@ -31,6 +31,7 @@ import { Input } from '../ui/input';
 type EditAccountProps = {
 	account: Account;
 	accounts?: Account[];
+	
 	onUpdate: (id: string, accountName: string) => void;
 };
 
@@ -54,6 +55,7 @@ const getSchema = (accounts: Account[] = [], currentAccountId: string) =>
 export function EditAccountDialog({
 	account,
 	accounts = [],
+
 	onUpdate,
 }: EditAccountProps) {
 	//icons
@@ -61,6 +63,8 @@ export function EditAccountDialog({
 
 	//set state
 	const [open, setOpen] = useState(false);
+
+
 
 	// ✅ Dynamically recompute schema whenever accounts or current account changes
 	const schema = useMemo(
