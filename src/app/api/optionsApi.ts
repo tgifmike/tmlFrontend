@@ -1,5 +1,5 @@
 
-import { OptionEntity, OptionType } from '../types';
+import { OptionAudit, OptionEntity, OptionHistory, OptionType } from '../types';
 import { request } from './axios';
 
 /**
@@ -59,16 +59,18 @@ export const updateOption = async (
 	optionId: string,
 	data: Partial<OptionEntity>,
 	userId: string
-) => {
-	return request<OptionEntity>({
+): Promise<OptionEntity> => {
+	const res = await request<OptionEntity>({
 		method: 'PUT',
 		url: `/options/${optionId}`,
 		data,
-		headers: {
-			'X-User-Id': userId,
-		},
+		headers: { 'X-User-Id': userId },
 	});
+
+	return res.data!; // ✅ Non-null assertion
 };
+
+
 
 /**
  * Soft delete an option
@@ -121,3 +123,18 @@ export const toggleOptionActive = async (
 		headers: { 'X-User-Id': userId },
 	});
 };
+
+//logs
+export const getOptionHistory = async (
+	accountId: string
+): Promise<OptionHistory[]> => {
+	const response = await request<OptionHistory[]>({
+		method: 'GET',
+		url: '/options/history',
+		params: { accountId },
+	});
+
+	return (response as { data: OptionHistory[] }).data;
+};
+
+

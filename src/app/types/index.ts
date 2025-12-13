@@ -183,10 +183,48 @@ export interface OptionEntity {
 	deletedAt?: string | null;
 	deletedBy?: string | null;
 }
-const OptionTypeLabels: Record<OptionType, string> = {
+
+export const OptionTypeLabels: Record<OptionType, string> = {
 	[OptionType.TOOL]: 'Tool',
 	[OptionType.SHELF_LIFE]: 'Shelf Life',
 	[OptionType.PAN_SIZE]: 'Pan Size',
 	[OptionType.PORTION_SIZE]: 'Portion Size',
 };
+
+export type OptionAudit = {
+	optionName: string;
+	optionActive: boolean;
+	optionType: string;
+	sortOrder: number;
+	createdAt: string;
+	createdBy: string;
+	updatedAt?: string;
+	updatedBy?: string;
+	deletedAt?: string;
+	deletedBy?: string;
+
+	// optional previous values for diffing
+	previousOptionName?: string;
+	previousOptionType?: string;
+	previousSortOrder?: number;
+	previousActive?: boolean;
+};
+
+export interface OptionHistory {
+	id: string;
+	optionId: string;
+	accountId: string;
+	optionName: string;
+	optionActive: boolean;
+	optionType: string;
+	sortOrder: number;
+	changedBy: string;
+	changedByName: string;
+	changeAt: string;
+	changeType: 'CREATED' | 'UPDATED' | 'DELETED';
+	oldValues: Record<string, any>; // This is key
+}
+
+
+
 
