@@ -84,6 +84,7 @@ const OptionsPage = () => {
 	const currentUser = session?.user as User | undefined;
 	const canToggle = currentUser?.appRole === AppRole.MANAGER;
 	const UpDownIcon = Icons.sort;
+	const LogIcon = Icons.log;
 
 	// Fetch options and verify access
 	useEffect(() => {
@@ -458,7 +459,7 @@ const OptionsPage = () => {
 				{/* Audit Table */}
 				{canToggle && (
 					<section className="mt-12 px-4 pb-8">
-						<h2 className="text-2xl font-bold mb-4">Option Audit Log</h2>
+						{/* <h2 className="text-2xl font-bold mb-4">Option Audit Log</h2> */}
 						{/* <OptionAuditTable accountId={accountIdParam} currentUser={currentUser} /> */}
 						<OptionAuditFeed
 							accountId={accountIdParam}
