@@ -17,6 +17,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
+import { Icons } from '@/lib/icon';
 
 
 type Props = {
@@ -30,6 +31,8 @@ export default function OptionAuditFeed({ accountId }: Props) {
 	const [history, setHistory] = useState<OptionHistory[]>([]);
 	const [usersMap, setUsersMap] = useState<UserMap>({});
 	const [loading, setLoading] = useState(true);
+
+	const LogIcon = Icons.log;
 
 	const getUserName = (id: string) => usersMap[id] ?? id;
 
@@ -133,18 +136,21 @@ const formatHistory = (h: OptionHistory): React.ReactNode => {
 
 
 	return (
-		<div className="w-3/4 mx-auto">
+		<div className="w-3/4">
 			<Accordion type="single" collapsible>
 				<AccordionItem value="audit-feed">
-					<AccordionTrigger className="text-lg font-semibold">
-						Click here to see Audit Log
+					<AccordionTrigger className="text-lg font-semibold text-destructive text-center">
+						<div className='flex gap-2'>
+							<LogIcon className="w-6 h-6" />
+							Show Audit Log
+						</div>
 					</AccordionTrigger>
 
 					<AccordionContent>
 						<Card>
 							<CardHeader>
-								<CardTitle>Audit Feed</CardTitle>
-								<CardDescription>
+								<CardTitle className="text-3xl">Audit Feed</CardTitle>
+								<CardDescription className="text-lg">
 									Review the history of changes made to options in this account.
 								</CardDescription>
 							</CardHeader>

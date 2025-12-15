@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { OptionEntity, OptionType, User } from '@/app/types';
+import { OptionEntity, OptionType, OptionTypeLabels, User } from '@/app/types';
 import { createOption } from '@/app/api/optionsApi';
 import {
 	Dialog,
@@ -21,6 +21,7 @@ import {
 	SelectValue,
 } from '@/components/ui/select';
 import { toast } from 'sonner';
+import { Switch } from '../ui/switch';
 
 interface CreateOptionDialogProps {
 	accountId: string;
@@ -36,7 +37,11 @@ export const CreateOptionDialog: React.FC<CreateOptionDialogProps> = ({
 	const [open, setOpen] = useState(false);
 	const [optionName, setOptionName] = useState('');
 	const [optionActive, setOptionActive] = useState(true);
-	const [optionType, setOptionType] = useState<OptionType>(OptionType.TOOL);
+	const [optionType, setOptionType] = useState<OptionType | undefined>(
+		undefined
+	);
+
+//	const [optionType, setOptionType] = useState<OptionType>(OptionType.TOOL);
 	const [loading, setLoading] = useState(false);
 
 	const handleCreate = async () => {
@@ -99,8 +104,9 @@ export const CreateOptionDialog: React.FC<CreateOptionDialogProps> = ({
 						/>
 					</div>
 
-					<div className="grid gap-2">
+					<div className="flex justify-between items-center">
 						<label>Option Type</label>
+
 						<Select
 							value={optionType}
 							onValueChange={(val) => setOptionType(val as OptionType)}
@@ -108,17 +114,18 @@ export const CreateOptionDialog: React.FC<CreateOptionDialogProps> = ({
 							<SelectTrigger>
 								<SelectValue placeholder="Select option type" />
 							</SelectTrigger>
+
 							<SelectContent>
-								{Object.values(OptionType).map((type) => (
-									<SelectItem key={type} value={type}>
-										{type}
+								{Object.entries(OptionTypeLabels).map(([key, label]) => (
+									<SelectItem key={key} value={key}>
+										{label}
 									</SelectItem>
 								))}
 							</SelectContent>
 						</Select>
 					</div>
 
-					<div className="grid gap-2">
+					{/* <div className="grid gap-2">
 						<label>Status</label>
 						<select
 							value={optionActive ? 'active' : 'inactive'}
@@ -127,6 +134,14 @@ export const CreateOptionDialog: React.FC<CreateOptionDialogProps> = ({
 							<option value="active">Active</option>
 							<option value="inactive">Inactive</option>
 						</select>
+					</div> */}
+
+					<div className="flex items-center gap-4">
+						<Switch
+							checked={optionActive}
+							onCheckedChange={(checked) => setOptionActive(checked)}
+						/>
+						<span>{optionActive ? 'Active' : 'Inactive'}</span>
 					</div>
 
 					<Button onClick={handleCreate} disabled={loading}>
