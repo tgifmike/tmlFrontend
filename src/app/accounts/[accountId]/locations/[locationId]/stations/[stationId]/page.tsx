@@ -15,7 +15,7 @@ import {
 } from '@hello-pangea/dnd';
 import { getUserLocationAccess } from '@/app/api/locationApi';
 import { getStationsByLocation } from '@/app/api/stationApi';
-import { AppRole, Item, Locations, Station, User } from '@/app/types';
+import { AppRole, Item, Locations, OptionEntity, OptionHistory, Station, User } from '@/app/types';
 import LocationNav from '@/components/navBar/LocationNav';
 import Spinner from '@/components/spinner/Spinner';
 import CreateItemDialog from '@/components/tableComponents/CreateItemDialog';
@@ -33,6 +33,9 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip
 import router from 'next/router';
 import MobileDrawerNav from '@/components/navBar/MoibileDrawerNav';
 import { DataCard } from '@/components/cards/DataCard';
+import { getOptions } from '@/app/api/optionsApi';
+import { set } from 'zod';
+import Link from 'next/link';
 
 
 const StationPage = () => {
@@ -69,6 +72,7 @@ const StationPage = () => {
 	const [drawerOpen, setDrawerOpen] = useState(false);
 	const [selectedItem, setSelectedItem] = useState<Item | null>(null);
 	const [open, setOpen] = useState(false);
+	const [options, setOptions] = useState<OptionEntity[]>([]);
 
 	const currentUser = session?.user as User | undefined;
 	const sessionUserRole = session?.user?.appRole;
@@ -126,7 +130,17 @@ const StationPage = () => {
 				// sort by saved sortOrder
 				fetchedItems.sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
 
+				const optionsRes = await getOptions(accountIdParam);
+				if (!optionsRes.data) {
+					toast.error('Failed to fetch account options.');
+					return;
+				}
+				const optionsSorted = optionsRes.data.sort(
+					(a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0)
+				)
+
 				setItems(fetchedItems);
+				setOptions(optionsSorted);
 				setHasAccess(true);
 				setAccountName(account.accountName);
 				setAccountImage(account.imageBase64 || null);
@@ -220,6 +234,18 @@ const StationPage = () => {
 		}
 	};
 
+	const optionsByType = options.reduce<Record<string, OptionEntity[]>>((acc, option) => {
+		const type = option.optionType;
+		if (!acc[type]) acc[type] = [];
+		acc[type].push(option);
+		return acc;
+	}, {});
+
+	const tools = optionsByType['TOOL'] ?? [];
+	const panSize = optionsByType['PAN_SIZE'] ?? [];
+	const portionSize = optionsByType['PORTION_SIZE'] ?? [];
+	const shelfLife = optionsByType['SHELF_LIFE'] ?? [];
+		
 	if (status === 'loading' || loadingAccess) {
 		return (
 			<div className="flex justify-center items-center py-40 text-chart-3 text-xl">
@@ -271,13 +297,23 @@ const StationPage = () => {
 
 					{/* center */}
 					<div>
-						<p className="md:text-2xl">Item List:</p>
+						<p className=" md:text-2xl">
+							Items for Station{' '}
+							<Link
+								className="text-chart-3 italic"
+								href={`/accounts/${accountIdParam}/locations/${locationIdParam}/stations/${stationIdParam}`} > { stationName }
+								</Link>
+						</p>
 					</div>
 
 					{/* Right */}
 					<CreateItemDialog
 						onItemCreated={handleItemCreated}
 						stationId={stationIdParam}
+						tools={tools}
+						panSizes={panSize}
+						portionSizes={portionSize}
+						shelfLifes={shelfLife}
 					/>
 				</header>
 
@@ -315,8 +351,7 @@ const StationPage = () => {
 										</div>
 
 										{/* Draggable rows */}
-											{paginatedItems.map((item, index) => (
-											
+										{paginatedItems.map((item, index) => (
 											<Draggable
 												key={item.id}
 												draggableId={item.id!}
@@ -363,8 +398,12 @@ const StationPage = () => {
 																	{/* Edit Item */}
 																	<EditItemDialog
 																		key={item.id}
-																		item={item} 
+																		item={item}
 																		items={items}
+																		tools={tools}
+																		panSizes={panSize}
+																		portionSizes={portionSize}
+																		shelfLifes={shelfLife}
 																		stationId={stationIdParam}
 																		onUpdate={handleItemUpdate}
 																	/>

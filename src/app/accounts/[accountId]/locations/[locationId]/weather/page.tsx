@@ -208,11 +208,12 @@ const ExtendedForecastPage = () => {
 							>
 								<CardHeader>
 									<CardTitle className="text-xl">
-										{day.name} - {formatDay(day.startTime)}
+										Forecast For <span className='text-background text-3xl'> {day.name}</span>
 									</CardTitle>
 									<CardDescription>
 										<p className="text-xl text-foreground pl-6 font-bold">
-											Forecast:
+											{/* Forecast: */}
+											{formatDay(day.startTime)}
 										</p>
 									</CardDescription>
 								</CardHeader>
@@ -223,7 +224,7 @@ const ExtendedForecastPage = () => {
 											alt="Weather condition"
 											width={80}
 											height={80}
-											className="md:object-contain w-75 h-75 rounded-2xl md:shadow-2xl"
+											className="md:object-contain w-55 h-55 rounded-2xl md:shadow-2xl"
 										/>
 									</div>
 									{/* <div className="w-1/4 flex justify-center items-center">
@@ -237,7 +238,7 @@ const ExtendedForecastPage = () => {
 									</div> */}
 
 									<div className="w-3/4">
-										<div className="p-4">
+										<div className="p-0">
 											<p className="text-2xl">{day.detailedForecast}</p>
 										</div>
 									</div>

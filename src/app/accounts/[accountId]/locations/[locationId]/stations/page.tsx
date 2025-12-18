@@ -282,7 +282,10 @@ const LocationStationsPage = () => {
 
 					{/* center */}
 					<div>
-						<p className=" md:text-2xl">Station List:</p>
+						<p className=" md:text-2xl">
+							Stations for Account {" "}
+							<span className='text-chart-3 italic'> {accountName}</span>:
+						</p>
 					</div>
 
 					{/* Right */}

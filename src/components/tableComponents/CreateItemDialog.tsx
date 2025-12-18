@@ -7,7 +7,7 @@ import { toast } from 'sonner';
 import z from 'zod';
 
 import { createItem } from '@/app/api/item.Api';
-import { Item } from '@/app/types';
+import { Item, OptionEntity } from '@/app/types';
 import { Icons } from '@/lib/icon';
 
 import {
@@ -44,6 +44,10 @@ type CreateItemDialogProps = {
 	onItemCreated?: (item: Item) => void;
 	existingItems?: Item[];
 	stationId: string;
+	tools?: OptionEntity[];
+	panSizes?: OptionEntity[];
+	portionSizes?: OptionEntity[];
+	shelfLifes?: OptionEntity[];
 };
 
 // Zod schema
@@ -97,7 +101,13 @@ export default function CreateItemDialog({
 	onItemCreated,
 	existingItems = [],
 	stationId,
+	tools = [],
+	panSizes = [],
+	portionSizes = [],
+	shelfLifes = [],
 }: CreateItemDialogProps) {
+
+	console.log('tools in CreateItemDialog:', tools);
 
 	//icons 
 	const ItemIcon = Icons.items;
@@ -136,6 +146,7 @@ export default function CreateItemDialog({
 			// Build backend payload
 			const payload: any = {
 				...values,
+				portioned: values.isPortioned,
 				templateNotes: values.itemNotes || undefined,
 			};
 
@@ -242,9 +253,9 @@ export default function CreateItemDialog({
 												<SelectValue placeholder="Select shelf life" />
 											</SelectTrigger>
 											<SelectContent>
-												{shelfLifeOptions.map((option) => (
-													<SelectItem key={option.value} value={option.value}>
-														{option.label}
+												{shelfLifes.map((option) => (
+													<SelectItem key={option.id} value={option.optionName}>
+														{option.optionName}
 													</SelectItem>
 												))}
 											</SelectContent>
@@ -267,9 +278,9 @@ export default function CreateItemDialog({
 												<SelectValue placeholder="Select pan size" />
 											</SelectTrigger>
 											<SelectContent>
-												{panSizeOptions.map((option) => (
-													<SelectItem key={option.value} value={option.value}>
-														{option.label}
+												{panSizes.map((option) => (
+													<SelectItem key={option.id} value={option.optionName}>
+														{option.optionName}
 													</SelectItem>
 												))}
 											</SelectContent>
@@ -315,12 +326,19 @@ export default function CreateItemDialog({
 													<SelectValue placeholder="Choose a tool" />
 												</SelectTrigger>
 												<SelectContent>
+													{tools.map((tool) => (
+														<SelectItem key={tool.id} value={tool.optionName} >
+															{tool.optionName}
+														</SelectItem>
+													))}
+												</SelectContent>
+												{/* <SelectContent>
 													{toolOptions.map((tool) => (
 														<SelectItem key={tool.value} value={tool.value}>
 															{tool.label}
 														</SelectItem>
 													))}
-												</SelectContent>
+												</SelectContent> */}
 											</Select>
 										</FormControl>
 										<FormMessage />
@@ -363,9 +381,9 @@ export default function CreateItemDialog({
 													<SelectValue placeholder="Select portion size" />
 												</SelectTrigger>
 												<SelectContent>
-													{portionSizeOptions.map((option) => (
-														<SelectItem key={option.value} value={option.value}>
-															{option.label}
+													{portionSizes.map((option) => (
+														<SelectItem key={option.id} value={option.optionName}>
+															{option.optionName}
 														</SelectItem>
 													))}
 												</SelectContent>

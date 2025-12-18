@@ -173,22 +173,22 @@ const LocationPage = () => {
 								sessionUserRole={sessionUserRole}
 							/>
 						</MobileDrawerNav>
-						<h1 className="text-3xl font-bold mb-4">{locationName} Home</h1>
+						<h1 className="text-3xl font-bold mb-4">{locationName}</h1>
 					</div>
 					<TimeOfDayGreeting name={session?.user?.name} />
 				</header>
-				<div className="flex justify-between">
+				<div className="flex justify-between p-2 gap-3">
 					{/* <div className="p-4">
 						<TimeOfDayGreeting name={session?.user?.name} />
 					</div> */}
 
-					<div className="w-1/3">
+					<div className="w-3/5">
 						<LineCheckDashboard
 							lineChecks={lineChecks}
 							locationId={locationIdParam!}
 						/>
 					</div>
-					<div className="w-1/3 mt-4">
+					<div className="w-2/5">
 						{currentLocation && (
 							<WeatherWidget
 								lat={currentLocation.locationLatitude}

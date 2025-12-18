@@ -1,7 +1,7 @@
 'use client';
 
 import { updateItem } from '@/app/api/item.Api';
-import { Item } from '@/app/types';
+import { Item, OptionEntity } from '@/app/types';
 import { Icons } from '@/lib/icon';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useMemo, useState } from 'react';
@@ -48,6 +48,10 @@ import {
 type EditItemDialogProps = {
 	item: Item;
 	items: Item[];
+	tools?: OptionEntity[];
+	panSizes?: OptionEntity[];
+	portionSizes?: OptionEntity[];
+	shelfLifes?: OptionEntity[];
 	stationId: string;
 	onUpdate: (updatedItem: Item) => void;
 };
@@ -102,6 +106,10 @@ export function EditItemDialog({
 	item,
 	items,
 	stationId,
+	tools = [],
+	panSizes = [],
+	portionSizes = [],
+	shelfLifes = [],
 	onUpdate,
 }: EditItemDialogProps) {
 	//icons
@@ -149,48 +157,44 @@ export function EditItemDialog({
 			isCheckMark: item.isCheckMark ?? false,
 			itemNotes: item.itemNotes ?? '',
 		});
-
 	}, [open, item]);
 
-	// 
-const onSubmit = async (values: FormValues) => {
-	try {
-		const selectedTemp = values.isTempTaken ? values.tempCategory : null;
+	//
+	const onSubmit = async (values: FormValues) => {
+		try {
+			const selectedTemp = values.isTempTaken ? values.tempCategory : null;
 
-		const payload = {
-			...values,
-			 templateNotes: values.itemNotes,
-			tempCategory: selectedTemp,
-			minTemp: selectedTemp ? tempCategoryRanges[selectedTemp]?.min : null,
-			maxTemp: selectedTemp ? tempCategoryRanges[selectedTemp]?.max : null,
-		};
+			const payload = {
+				...values,
+				portioned: values.isPortioned,
+				templateNotes: values.itemNotes,
+				tempCategory: selectedTemp,
+				minTemp: selectedTemp ? tempCategoryRanges[selectedTemp]?.min : null,
+				maxTemp: selectedTemp ? tempCategoryRanges[selectedTemp]?.max : null,
+			};
 
-		const { error, data } = await updateItem(stationId, item.id!, payload);
+			const { error, data } = await updateItem(stationId, item.id!, payload);
 
-		if (error) {
-			toast.error(
-				error.includes('exists') ? 'Item name already exists' : error
-			);
-			return;
+			if (error) {
+				toast.error(
+					error.includes('exists') ? 'Item name already exists' : error
+				);
+				return;
+			}
+
+			if (error || !data) {
+				toast.error(error || 'Failed to update item');
+				return;
+			}
+
+			onUpdate(data);
+			toast.success('Item updated successfully');
+			console.log(data);
+			setOpen(false);
+		} catch (err: any) {
+			toast.error(err?.message || 'Failed to update item');
 		}
-
-		if (error || !data) {
-			toast.error(error || 'Failed to update item');
-			return;
-		}
-
-		onUpdate(data);
-		toast.success('Item updated successfully');
-		console.log(data)
-		setOpen(false);
-	} catch (err: any) {
-		toast.error(err?.message || 'Failed to update item');
-	}
-};
-
-
-
-
+	};
 
 	return (
 		<Dialog open={open} onOpenChange={setOpen}>
@@ -236,9 +240,9 @@ const onSubmit = async (values: FormValues) => {
 												<SelectValue placeholder="Select shelf life" />
 											</SelectTrigger>
 											<SelectContent>
-												{shelfLifeOptions.map((o) => (
-													<SelectItem key={o.value} value={o.value}>
-														{o.label}
+												{shelfLifes.map((o) => (
+													<SelectItem key={o.id} value={o.optionName}>
+														{o.optionName}
 													</SelectItem>
 												))}
 											</SelectContent>
@@ -262,9 +266,9 @@ const onSubmit = async (values: FormValues) => {
 												<SelectValue placeholder="Select pan size" />
 											</SelectTrigger>
 											<SelectContent>
-												{panSizeOptions.map((o) => (
-													<SelectItem key={o.value} value={o.value}>
-														{o.label}
+												{panSizes.map((o) => (
+													<SelectItem key={o.id} value={o.optionName}>
+														{o.optionName}
 													</SelectItem>
 												))}
 											</SelectContent>
@@ -310,9 +314,9 @@ const onSubmit = async (values: FormValues) => {
 													<SelectValue placeholder="Choose a tool" />
 												</SelectTrigger>
 												<SelectContent>
-													{toolOptions.map((tool) => (
-														<SelectItem key={tool.value} value={tool.value}>
-															{tool.label}
+													{tools.map((tool) => (
+														<SelectItem key={tool.id} value={tool.optionName}>
+															{tool.optionName}
 														</SelectItem>
 													))}
 												</SelectContent>
@@ -358,9 +362,9 @@ const onSubmit = async (values: FormValues) => {
 													<SelectValue placeholder="Select portion size" />
 												</SelectTrigger>
 												<SelectContent>
-													{portionSizeOptions.map((option) => (
-														<SelectItem key={option.value} value={option.value}>
-															{option.label}
+													{portionSizes.map((option) => (
+														<SelectItem key={option.id} value={option.optionName}>
+															{option.optionName}
 														</SelectItem>
 													))}
 												</SelectContent>

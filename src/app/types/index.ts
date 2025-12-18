@@ -226,5 +226,11 @@ export interface OptionHistory {
 }
 
 
-
+// export type Option = {
+// 	id: string;
+// 	optionName: string;
+// 	optionActive: boolean;
+// 	sortOrder: number;
+// 	optionType: string;
+// };
 

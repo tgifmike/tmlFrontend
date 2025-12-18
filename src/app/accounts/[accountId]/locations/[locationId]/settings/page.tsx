@@ -297,7 +297,7 @@ const LocationSettingsPage = () => {
 		return (
 			<div className="flex justify-center items-center py-40  text-chart-3 text-xl">
 				<Spinner />
-				<span className="ml-4">Loading Locations…</span>
+				<span className="ml-4">Loading Location Settings…</span>
 			</div>
 		);
 
@@ -337,6 +337,7 @@ const LocationSettingsPage = () => {
 						</MobileDrawerNav>
 						<h1 className="text-3xl font-bold mb-4">{locationName}</h1>
 					</div>
+					<p  className="text-3xl font-bold mb-4">Location Settings</p>
 				</header>
 				<div className="flex">
 					<Card className="w-2/3 mx-auto m-4">
@@ -576,11 +577,8 @@ const LocationSettingsPage = () => {
 							</CardContent>
 						</Card>
 					</div>
-				
 				</div>
-				<LineCheckSettingsForm
-				locationId={locationIdParam}
-				/>
+				<LineCheckSettingsForm locationId={locationIdParam} />
 			</section>
 		</main>
 	);
