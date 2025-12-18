@@ -98,11 +98,11 @@ const WeatherWidget: React.FC<WeatherWidgetProps> = ({
 	};
 
 	return (
-		<Card className={`w-full max-w-md space-y-4 ${getGradient()}`}>
+		<Card className={`w-full space-y-4 ${getGradient()}`}>
 			{/* Current Weather */}{' '}
 			<CardHeader>
 				{' '}
-				<CardTitle>Current Weather</CardTitle>{' '}
+				<CardTitle className='text-2xl text-chart-3 font-bold'>Current Weather</CardTitle>{' '}
 			</CardHeader>{' '}
 			<CardContent className="flex items-center gap-6">
 				{current && (

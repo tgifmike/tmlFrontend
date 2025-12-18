@@ -88,24 +88,28 @@ const LineCheckDashboard: React.FC<DashboardProps> = ({
 	const goalPerDay = settings.dailyGoal;
 
 	return (
-		<div className="space-y-4 p-2">
+		<div className="w-full">
 			{/* <h2 className="text-3xl font-bold text-gray-800">Line Check Dashboard</h2> */}
 
-			<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+			<div className="border-2 p-4 rounded-2xl shadow-2xl bg-accent">
+				<p className='text-2xl text-chart-3 pb-3 font-bold'>Line check Dashboard</p>
+				<div className="grid grid-cols-1 md:grid-cols-4 gap-4">
 				<Card className="bg-blue-50 shadow-md hover:shadow-lg transition-all rounded-xl">
 					<CardHeader>
 						<CardTitle className="text-lg font-semibold flex justify-between items-center">
-							Line Checks Completed Today
-							{/* {formattedToday}
-							<Badge variant="default">{todayCount}</Badge> */}
+							{/* Line Checks Completed Today */}
+							{formattedToday}
+							<Badge className="text-lg" variant="secondary">
+								{todayCount}
+							</Badge>
 						</CardTitle>
 					</CardHeader>
 					<CardContent className="flex justify-between items-center text-lg">
-						{formattedToday}
-						<Badge className="text-lg" variant="secondary">
+						{/* {formattedToday} */}
+						{/* <Badge className="text-lg" variant="secondary">
 							{todayCount}
-						</Badge>
-						{/* <p className="text-gray-600">Line Checks Completed Today</p> */}
+						</Badge> */}
+						<p className="text-gray-600">Line Checks Completed Today</p>
 					</CardContent>
 				</Card>
 
@@ -129,7 +133,9 @@ const LineCheckDashboard: React.FC<DashboardProps> = ({
 					<CardHeader>
 						<CardTitle className="text-lg font-semibold flex justify-between items-center">
 							Avg / Day
-							<Badge variant="secondary">{avgPerDay.toFixed(1)}</Badge>
+							<Badge className="text-lg" variant="secondary">
+								{avgPerDay.toFixed(1)}
+							</Badge>
 						</CardTitle>
 					</CardHeader>
 					<CardContent>
@@ -141,14 +147,14 @@ const LineCheckDashboard: React.FC<DashboardProps> = ({
 
 				<Card className="bg-gray-50 shadow-md hover:shadow-lg transition-all rounded-xl">
 					<CardHeader>
-						<CardTitle className='flex justify-between items-center'>
+						<CardTitle className="flex justify-between items-center">
 							Goal Status
 							<Badge
 								variant="secondary"
 								className={
 									todayCount >= goalPerDay
-										? 'bg-green-600 text-white'
-										: 'bg-red-600 text-white'
+										? 'bg-green-600 text-white text-lg'
+										: 'bg-red-600 text-white text-lg'
 								}
 							>
 								{todayCount}/{goalPerDay}
@@ -156,8 +162,6 @@ const LineCheckDashboard: React.FC<DashboardProps> = ({
 						</CardTitle>
 					</CardHeader>
 					<CardContent className="space-y-2">
-						
-
 						{/* Progress bar */}
 						<Progress
 							value={Math.min((todayCount / goalPerDay) * 100, 100)}
@@ -168,7 +172,8 @@ const LineCheckDashboard: React.FC<DashboardProps> = ({
 							Progress towards daily goal of {goalPerDay} line checks
 						</span>
 					</CardContent>
-				</Card>
+					</Card>
+				</div>	
 			</div>
 		</div>
 	);
