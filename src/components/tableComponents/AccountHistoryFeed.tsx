@@ -1,4 +1,4 @@
-'use client';
+// 'use client';
 
 import { useEffect, useState, useMemo } from 'react';
 import { toast } from 'sonner';
@@ -22,7 +22,7 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Icons } from '@/lib/icon';
 import { getAllAccountHistory } from '@/app/api/accountApi';
-import { getUsersForAccounts } from '@/app/api/userApI';
+//import { getUsersForAccounts } from '@/app/api/userApI';
 import { Input } from '../ui/input';
 import {
 	Select,
@@ -36,10 +36,12 @@ type UserMap = Record<string, string>;
 
 export default function GlobalAccountHistoryFeed({
 	currentUser,
+	updates = [],
 }: {
 	currentUser?: User;
+	updates?: AccountHistory[];
 }) {
-	const [history, setHistory] = useState<AccountHistory[]>([]);
+	const [backendHistory, setBackendHistory] = useState<AccountHistory[]>([]);
 	const [usersMap, setUsersMap] = useState<UserMap>({});
 	const [loading, setLoading] = useState(true);
 	const [search, setSearch] = useState('');
@@ -51,20 +53,21 @@ export default function GlobalAccountHistoryFeed({
 	const LogIcon = Icons.log;
 	const getUserName = (id: string) => usersMap[id] ?? id;
 
+	// Fetch backend history only once
 	useEffect(() => {
 		const load = async () => {
 			try {
 				const h = await getAllAccountHistory();
-				setHistory(h);
+				setBackendHistory(h);
 
 				const userIds = Array.from(new Set(h.map((item) => item.changedBy)));
-				const usersRes = await getUsersForAccounts(userIds);
-				const users: User[] = usersRes.data ?? [];
-				const map: UserMap = {};
-				users.forEach((u) => {
-					if (u.id) map[u.id] = u.userName ?? u.id;
-				});
-				setUsersMap(map);
+				// const usersRes = await getUsersForAccounts(userIds);
+				// const users: User[] = usersRes.data ?? [];
+				// const map: UserMap = {};
+				// users.forEach((u) => {
+				// 	if (u.id) map[u.id] = u.userName ?? u.id;
+				// });
+				// setUsersMap(map);
 			} catch (err) {
 				console.error(err);
 				toast.error('Failed to load account history');
@@ -75,17 +78,25 @@ export default function GlobalAccountHistoryFeed({
 		load();
 	}, []);
 
-	const filteredHistory = useMemo(() => {
-		let sorted = [...history];
+	// Combine backend history and live updates, avoid duplicates
+	const combinedHistory = useMemo(() => {
+		const map = new Map<string, AccountHistory>();
+		[...updates, ...backendHistory].forEach((h) => {
+			map.set(h.id, h); // latest update wins
+		});
+		return Array.from(map.values());
+	}, [backendHistory, updates]);
 
-		// Sort by date
+	// Apply sorting & filtering
+	const filteredHistory = useMemo(() => {
+		let sorted = [...combinedHistory];
+
 		sorted.sort((a, b) =>
 			sortOrder === 'newest'
 				? new Date(b.changeAt).getTime() - new Date(a.changeAt).getTime()
 				: new Date(a.changeAt).getTime() - new Date(b.changeAt).getTime()
 		);
 
-		// Filter by search and changeType
 		return sorted.filter((h) => {
 			const who = h.changedByName || getUserName(h.changedBy) || '';
 			const matchesSearch =
@@ -95,7 +106,7 @@ export default function GlobalAccountHistoryFeed({
 				changeTypeFilter === 'ALL' || h.changeType === changeTypeFilter;
 			return matchesSearch && matchesType;
 		});
-	}, [history, search, sortOrder, changeTypeFilter]);
+	}, [combinedHistory, search, sortOrder, changeTypeFilter]);
 
 	if (loading) {
 		return (
@@ -106,7 +117,7 @@ export default function GlobalAccountHistoryFeed({
 		);
 	}
 
-	if (!history || history.length === 0) {
+	if (!combinedHistory || combinedHistory.length === 0) {
 		return <p className="p-4 text-center">No account history found.</p>;
 	}
 
@@ -186,54 +197,48 @@ export default function GlobalAccountHistoryFeed({
 												value={search}
 												onChange={(e) => setSearch(e.target.value)}
 												className="text-xl rounded-full"
-                                            />
-                                            </div>
+											/>
+										</div>
 
-											{/* Sort Order Dropdown */}
-											<div className="flex gap-2">
-												<Select
-													value={sortOrder}
-													onValueChange={(v) =>
-														setSortOrder(v as 'newest' | 'oldest')
-													}
-												>
-													<SelectTrigger className="w-36">
-														<SelectValue>
-															{sortOrder === 'newest'
-																? 'Newest → Oldest'
-																: 'Oldest → Newest'}
-														</SelectValue>
-													</SelectTrigger>
-													<SelectContent>
-														<SelectItem value="newest">
-															Newest → Oldest
-														</SelectItem>
-														<SelectItem value="oldest">
-															Oldest → Newest
-														</SelectItem>
-													</SelectContent>
-												</Select>
-												{/* Change Type Filter Dropdown */}
-												<Select
-													value={changeTypeFilter}
-													onValueChange={(v) =>
-														setChangeTypeFilter(
-															v as 'ALL' | 'CREATED' | 'UPDATED' | 'DELETED'
-														)
-													}
-												>
-													<SelectTrigger className="w-36">
-														<SelectValue>{changeTypeFilter}</SelectValue>
-													</SelectTrigger>
-													<SelectContent>
-														<SelectItem value="ALL">All</SelectItem>
-														<SelectItem value="CREATED">Created</SelectItem>
-														<SelectItem value="UPDATED">Updated</SelectItem>
-														<SelectItem value="DELETED">Deleted</SelectItem>
-													</SelectContent>
-												</Select>
-											</div>
-										
+										<div className="flex gap-2">
+											<Select
+												value={sortOrder}
+												onValueChange={(v) =>
+													setSortOrder(v as 'newest' | 'oldest')
+												}
+											>
+												<SelectTrigger className="w-36">
+													<SelectValue>
+														{sortOrder === 'newest'
+															? 'Newest → Oldest'
+															: 'Oldest → Newest'}
+													</SelectValue>
+												</SelectTrigger>
+												<SelectContent>
+													<SelectItem value="newest">Newest → Oldest</SelectItem>
+													<SelectItem value="oldest">Oldest → Newest</SelectItem>
+												</SelectContent>
+											</Select>
+
+											<Select
+												value={changeTypeFilter}
+												onValueChange={(v) =>
+													setChangeTypeFilter(
+														v as 'ALL' | 'CREATED' | 'UPDATED' | 'DELETED'
+													)
+												}
+											>
+												<SelectTrigger className="w-36">
+													<SelectValue>{changeTypeFilter}</SelectValue>
+												</SelectTrigger>
+												<SelectContent>
+													<SelectItem value="ALL">All</SelectItem>
+													<SelectItem value="CREATED">Created</SelectItem>
+													<SelectItem value="UPDATED">Updated</SelectItem>
+													<SelectItem value="DELETED">Deleted</SelectItem>
+												</SelectContent>
+											</Select>
+										</div>
 									</CardTitle>
 									<CardDescription className="text-lg">
 										Review changes made to all accounts over time.

@@ -145,13 +145,13 @@ export const getUsersForAccount = async (accountId: string) => {
 }
 
 // fetch user info for a list of user IDs
-export const getUsersForAccounts = async (userIds: string[]) => {
-  // Example endpoint: /users?ids=id1,id2,id3
-  const response = await request<User[]>({
-    method: 'GET',
-    url: '/users',
-    params: { ids: userIds.join(',') },
-  });
+// export const getUsersForAccounts = async (userIds: string[]) => {
+//   // Example endpoint: /users?ids=id1,id2,id3
+//   const response = await request<User[]>({
+//     method: 'GET',
+//     url: '/users',
+//     params: { ids: userIds.join(',') },
+//   });
 
-  return response;
-};
+//   return response;
+// };

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { AccessRole, Account, AppRole, User } from '../types';
+import { AccessRole, Account, AccountHistory, AppRole, User } from '../types';
 import { toast } from 'sonner';
 import {
 	deleteAccount,
@@ -39,6 +39,10 @@ const MainAccountPage = () => {
 	const [searchTerm, setSearchTerm] = useState('');
 	const [currentPage, setCurrentPage] = useState(1);
 	const [pageSize, setPageSize] = useState(10);
+	const [accountHistoryUpdates, setAccountHistoryUpdates] = useState<
+		AccountHistory[]
+	>([]);
+
 
 	useEffect(() => {
 		// Only fetch if session is loaded and user id exists
@@ -59,6 +63,11 @@ const MainAccountPage = () => {
 			setLoading(false);
 		}
 	}, [status, session]);
+
+	const handleAccountUpdated = (updated: AccountHistory) => {
+		setAccountHistoryUpdates((prev) => [updated, ...prev]);
+	};
+
 
 	//toggle account active
 	const handleToggleActive = async (accountId: string, checked: boolean) => {
@@ -351,9 +360,8 @@ const MainAccountPage = () => {
 				/>
 			</div>
 
-			<div className='flex justify-center items-center'>
-				{SRADMIN && <AccountHistoryFeed />}
-				
+			<div className="flex justify-center items-center">
+				{SRADMIN && <AccountHistoryFeed updates={accountHistoryUpdates} />}
 			</div>
 		</div>
 	);
