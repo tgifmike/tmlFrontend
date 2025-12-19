@@ -183,39 +183,5 @@ const formatHistory = (h: OptionHistory): React.ReactNode => {
 				</AccordionItem>
 			</Accordion>
 		</div>
-		// <div>
-		// 	<Card className="flex w-3/4 mx-auto">
-		// 		<CardHeader>
-		// 			<CardTitle>Audit Feed</CardTitle>
-		// 			<CardDescription>
-		// 				Review the history of changes made to options in this account.
-		// 			</CardDescription>
-		// 		</CardHeader>
-		// 		<CardContent className="space-y-4">
-		// 			{history.map((h) => (
-		// 				<div key={h.id} className="space-y-2">
-		// 					<div className="flex justify-between items-start">
-		// 						<span>{formatHistory(h)}</span>
-
-		// 						<Badge
-		// 							variant={
-		// 								h.changeType === 'CREATED'
-		// 									? 'default'
-		// 									: h.changeType === 'UPDATED'
-		// 									? 'secondary'
-		// 									: 'destructive'
-		// 							}
-		// 						>
-		// 							{h.changeType}
-		// 						</Badge>
-		// 					</div>
-
-		// 					<Separator />
-		// 				</div>
-		// 			))}
-		// 		</CardContent>
-		// 		<CardFooter></CardFooter>
-		// 	</Card>
-		// </div>
 	);
 }

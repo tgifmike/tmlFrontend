@@ -234,3 +234,15 @@ export interface OptionHistory {
 // 	optionType: string;
 // };
 
+export interface AccountHistory {
+	id: string;
+	accountId: string;
+	accountName?: string;
+	accountActive?: boolean;
+	imageBase64?: string;
+	changedBy: string;
+	changedByName: string;
+	changeAt: string; // ISO string from backend
+	changeType: 'CREATED' | 'UPDATED' | 'DELETED';
+	oldValues?: Record<string, string>;
+}

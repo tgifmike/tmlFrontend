@@ -2,7 +2,7 @@
 
 import { Account } from '@/app/types';
 import { Icons } from '../../lib/icon';
-import { useMemo, useState } from 'react';
+import { use, useMemo, useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -31,7 +31,7 @@ import { Input } from '../ui/input';
 type EditAccountProps = {
 	account: Account;
 	accounts?: Account[];
-	
+	userId: string;
 	onUpdate: (id: string, accountName: string) => void;
 };
 
@@ -55,7 +55,7 @@ const getSchema = (accounts: Account[] = [], currentAccountId: string) =>
 export function EditAccountDialog({
 	account,
 	accounts = [],
-
+	userId,
 	onUpdate,
 }: EditAccountProps) {
 	//icons
@@ -98,7 +98,8 @@ export function EditAccountDialog({
 		try {
 			const { error } = await updateAccountName(
 				account.id!,
-				values.accountName
+				values.accountName,
+				userId
 			);
 			if (error) {
 				if (error.toLowerCase().includes('exists')) {

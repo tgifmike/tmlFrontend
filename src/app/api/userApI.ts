@@ -143,3 +143,15 @@ export const getUsersForAccount = async (accountId: string) => {
 		url: `/user-access/${accountId}/getUsersForAccount`
 	})
 }
+
+// fetch user info for a list of user IDs
+export const getUsersForAccounts = async (userIds: string[]) => {
+  // Example endpoint: /users?ids=id1,id2,id3
+  const response = await request<User[]>({
+    method: 'GET',
+    url: '/users',
+    params: { ids: userIds.join(',') },
+  });
+
+  return response;
+};

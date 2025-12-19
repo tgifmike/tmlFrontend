@@ -1,5 +1,5 @@
 import  { request } from './axios';
-import { Account } from '../types';
+import { Account, AccountHistory } from '../types';
 
 
 
@@ -28,29 +28,55 @@ export const getAccountsForUser = async (userId: string) => {
     })
 }
 
-//toggle acount active
-export const toggleAccountActive = async (id: string, accountActive: boolean) => {
-    return request<Account>({
-        method: 'PATCH',
-        url: `/accounts/${id}/active?active=${accountActive}`
-    });
-}
+export const toggleAccountActive = async (
+	id: string,
+	accountActive: boolean,
+	userId: string,
+	userName: string
+) => {
+	return request<Account>({
+		method: 'PATCH',
+		url: `/accounts/${id}/active`,
+		params: {
+			active: accountActive,
+			userId,
+			userName,
+		},
+	});
+};
 
 
-export const updateAccountName = async (id: string, accountName: string) => {
-    return request<Account>({
-        method: 'PATCH',
-        url: `/accounts/by-id/${id}`,
-        data: {accountName},
-    });
-}
 
-export const deleteAccount = async (id: string) => {
-    return request<Account>({
-        method: 'DELETE',
-        url: `/accounts/${id}`,
-    });
-}
+
+export const updateAccountName = async (
+	id: string,
+	accountName: string,
+	userId: string
+) => {
+	return request<Account>({
+		method: 'PATCH',
+		url: `/accounts/${id}?userId=${userId}`,
+		data: { accountName },
+	});
+};
+
+
+
+// export const deleteAccount = async (id: string) => {
+//     return request<Account>({
+//         method: 'DELETE',
+//         url: `/accounts/${id}`,
+//     });
+// }
+
+export const deleteAccount = async (id: string, userId: string) => {
+	return request<void>({
+		method: 'DELETE',
+		url: `/accounts/${id}`,
+		params: { userId },
+	});
+};
+
 
 export const createAccount = async (data:any) => {
     return request<Account>({
@@ -93,3 +119,15 @@ export const updateAccountImage = async (accountId: string, base64Image: string)
         data: { imageBase64: base64Image },
     })
 };
+
+
+// fetch all account history (manager view, no accountId needed)
+export const getAllAccountHistory = async (): Promise<AccountHistory[]> => {
+  const response = await request<AccountHistory[]>({
+    method: 'GET',
+    url: '/accounts/history', // matches the backend endpoint
+  });
+
+  return (response as { data: AccountHistory[] }).data;
+};
+
