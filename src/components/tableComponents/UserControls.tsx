@@ -36,7 +36,7 @@ export const UserControls: React.FC<UserControlsProps> = ({
 			{/* Active Only Switch */}
 			<div className="flex flex-row gap-2 items-center">
 				<label className="text-lg font-medium">Show Active Only</label>
-				<Switch checked={showActiveOnly} onCheckedChange={setShowActiveOnly} />
+				<Switch className='' checked={showActiveOnly} onCheckedChange={setShowActiveOnly} />
 			</div>
 		</div>
 	);

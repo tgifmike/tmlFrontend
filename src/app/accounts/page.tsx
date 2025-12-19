@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { Account, AppRole, User } from '../types';
+import { AccessRole, Account, AppRole, User } from '../types';
 import { toast } from 'sonner';
 import {
 	deleteAccount,
@@ -19,6 +19,8 @@ import { Pagination } from '@/components/tableComponents/Pagination';
 import CreateAccountDialog from '@/components/tableComponents/CreateAccountForm';
 import { DataCard } from '@/components/cards/DataCard';
 import Link from 'next/link';
+import AccountHistoryFeed from '@/components/tableComponents/AccountHistoryFeed';
+
 
 const MainAccountPage = () => {
 	//icons
@@ -28,11 +30,12 @@ const MainAccountPage = () => {
 	const currentUser = session?.user as User | undefined;
 	const sessionUserRole = session?.user?.appRole;
 	const canToggle = currentUser?.appRole === AppRole.MANAGER;
+	const SRADMIN = currentUser?.accessRole === AccessRole.SRADMIN;
 
 	//set state
 	const [accounts, setAccounts] = useState<Account[]>([]);
 	const [loading, setLoading] = useState(true);
-	const [showActiveOnly, setShowActiveOnly] = useState(false);
+	const [showActiveOnly, setShowActiveOnly] = useState(true);
 	const [searchTerm, setSearchTerm] = useState('');
 	const [currentPage, setCurrentPage] = useState(1);
 	const [pageSize, setPageSize] = useState(10);
@@ -57,21 +60,40 @@ const MainAccountPage = () => {
 		}
 	}, [status, session]);
 
-
 	//toggle account active
 	const handleToggleActive = async (accountId: string, checked: boolean) => {
-		try {
-			await toggleAccountActive(accountId, checked);
+		// if (!currentUser?.id || !currentUser?.userName) {
+		// 	throw new Error('User not authenticated'); // let StatusSwitchOrBadge handle toast
+		// }
 
-			setAccounts((prev) =>
-				prev.map((a) =>
-					a.id === accountId ? { ...a, accountActive: checked } : a
-				)
+		// Optimistically update UI
+		setAccounts((prev) =>
+			prev.map((a) =>
+				a.id === accountId ? { ...a, accountActive: checked } : a
+			)
+		);
+
+		try {
+			const { error } = await toggleAccountActive(
+				accountId,
+				checked,
+				session?.user?.id!,
+				session?.user?.name!
+				// currentUser.id,
+				// currentUser.userName
 			);
 
-			const updatedAccount = accounts.find((a) => a.id === accountId);
-		} catch (error: any) {
-			toast.error('Failed to update user status: ' + error.message);
+			if (error) {
+				// Rollback UI change if API fails
+				setAccounts((prev) =>
+					prev.map((a) =>
+						a.id === accountId ? { ...a, accountActive: !checked } : a
+					)
+				);
+				throw new Error(error);
+			}
+		} catch (err: any) {
+			throw new Error(err?.message || 'Failed to update account');
 		}
 	};
 
@@ -91,7 +113,8 @@ const MainAccountPage = () => {
 	// Load pagination settings from localStorage safely
 	useEffect(() => {
 		if (typeof window !== 'undefined') {
-			const storedPage = Number(localStorage.getItem('mainAccountCurrentPage')) || 1;
+			const storedPage =
+				Number(localStorage.getItem('mainAccountCurrentPage')) || 1;
 			const storedPageSize =
 				Number(localStorage.getItem('mainAccountPageSize')) || 10;
 			setCurrentPage(storedPage);
@@ -141,8 +164,6 @@ const MainAccountPage = () => {
 				<span className="ml-4">Loading Accounts…</span>
 			</div>
 		);
-	
-	
 
 	return (
 		<div className="pt-4">
@@ -198,24 +219,33 @@ const MainAccountPage = () => {
 							render: (a) =>
 								sessionUserRole === 'MANAGER' ? (
 									<div className="flex justify-center gap-4 items-center">
-										<EditAccountDialog
-											account={a}
-											onUpdate={(id, name) =>
-												setAccounts((prev) =>
-													prev.map((account) =>
-														account.id === id
-															? { ...account, accountName: name }
-															: account
+										{currentUser?.id && (
+											<EditAccountDialog
+												account={a}
+												userId={currentUser.id}
+												onUpdate={(id, name) =>
+													setAccounts((prev) =>
+														prev.map((account) =>
+															account.id === id
+																? { ...account, accountName: name }
+																: account
+														)
 													)
-												)
-											}
-										/>
+												}
+											/>
+										)}
+
 										{a.id && (
 											<DeleteConfirmButton
-												item={{ id: a.id }} // <--- wrap in object with guaranteed string id
+												item={{ id: a.id }}
 												entityLabel="account"
 												onDelete={async (id) => {
-													await deleteAccount(id);
+													if (!currentUser?.id) {
+														toast.error('User not authenticated');
+														return;
+													}
+
+													await deleteAccount(id, currentUser.id);
 													setAccounts((prev) =>
 														prev.filter((acc) => acc.id !== id)
 													);
@@ -268,20 +298,29 @@ const MainAccountPage = () => {
 												<EditAccountDialog
 													account={account}
 													accounts={accounts}
+													userId={currentUser?.id!} // <-- pass the UUID from session
 													onUpdate={(id, name) =>
 														setAccounts((prev) =>
-															prev.map((a) =>
-																a.id === id ? { ...a, accountName: name } : a
+															prev.map((account) =>
+																account.id === id
+																	? { ...account, accountName: name }
+																	: account
 															)
 														)
 													}
 												/>
+
 												{account.id !== undefined && (
 													<DeleteConfirmButton
 														item={{ id: account.id }}
 														entityLabel="account"
 														onDelete={async (id) => {
-															await deleteAccount(id);
+															if (!currentUser?.id) {
+																toast.error('User not authenticated');
+																return;
+															}
+
+															await deleteAccount(id, currentUser.id);
 															setAccounts((prev) =>
 																prev.filter((a) => a.id !== id)
 															);
@@ -310,6 +349,11 @@ const MainAccountPage = () => {
 					setPageSize={setPageSize}
 					totalItems={filteredAccounts.length}
 				/>
+			</div>
+
+			<div className='flex justify-center items-center'>
+				{SRADMIN && <AccountHistoryFeed />}
+				
 			</div>
 		</div>
 	);
