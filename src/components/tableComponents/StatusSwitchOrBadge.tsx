@@ -84,7 +84,7 @@ export function StatusSwitchOrBadge<T extends { id: string; active: boolean }>({
 	};
 
 	if (canToggle) {
-		return <Switch checked={entity.active} onCheckedChange={handleToggle} />;
+		return <Switch className='flex' checked={entity.active} onCheckedChange={handleToggle} />;
 	}
 
 	return (

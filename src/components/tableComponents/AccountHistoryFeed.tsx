@@ -174,7 +174,7 @@ export default function GlobalAccountHistoryFeed({
 
 	return (
 		<div className="flex flex-col items-center w-full py-8">
-			<div className="w-1/2">
+			<div className="w-3/4">
 				<Accordion type="single" collapsible>
 					<AccordionItem value="global-account-history">
 						<AccordionTrigger className="text-lg font-semibold text-destructive text-center">
@@ -187,10 +187,10 @@ export default function GlobalAccountHistoryFeed({
 						<AccordionContent>
 							<Card>
 								<CardHeader className="flex flex-col gap-4">
-									<CardTitle className="flex justify-between items-center w-full text-3xl">
-										<div>Account History</div>
+									<CardTitle className="flex justify-between items-center w-full text-xl md:text-3xl">
+										<div className='text-xl md:text-2xl'>Account History</div>
 
-										<div className="w-1/3">
+										<div className="w-1/4 md:w-1/3">
 											<Input
 												type="text"
 												placeholder="Search by account or user..."
@@ -200,7 +200,7 @@ export default function GlobalAccountHistoryFeed({
 											/>
 										</div>
 
-										<div className="flex gap-2">
+										<div className="flex flex-col md:flex-row gap-2">
 											<Select
 												value={sortOrder}
 												onValueChange={(v) =>
