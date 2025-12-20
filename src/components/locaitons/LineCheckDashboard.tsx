@@ -94,12 +94,12 @@ const LineCheckDashboard: React.FC<DashboardProps> = ({
 			<div className="border-2 p-4 rounded-2xl shadow-2xl bg-accent">
 				<p className='text-2xl text-chart-3 pb-3 font-bold'>Line check Dashboard</p>
 				<div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-				<Card className="bg-blue-50 shadow-md hover:shadow-lg transition-all rounded-xl">
+				<Card className="bg-chart-5/30 shadow-md hover:shadow-lg transition-all rounded-xl">
 					<CardHeader>
-						<CardTitle className="text-lg font-semibold flex justify-between items-center">
+						<CardTitle className="text-lg font-semibold flex justify-between items-center ">
 							{/* Line Checks Completed Today */}
 							{formattedToday}
-							<Badge className="text-lg" variant="secondary">
+							<Badge className="text-xl" variant="secondary">
 								{todayCount}
 							</Badge>
 						</CardTitle>
@@ -109,43 +109,43 @@ const LineCheckDashboard: React.FC<DashboardProps> = ({
 						{/* <Badge className="text-lg" variant="secondary">
 							{todayCount}
 						</Badge> */}
-						<p className="text-gray-600">Line Checks Completed Today</p>
+						<p className="">Line Checks Completed Today</p>
 					</CardContent>
 				</Card>
 
-				<Card className="bg-green-50 shadow-md hover:shadow-lg transition-all rounded-xl">
+				<Card className="bg-chart-4/30 shadow-md hover:shadow-lg transition-all rounded-xl">
 					<CardHeader>
 						<CardTitle className="text-lg font-semibold flex justify-between items-center">
 							Week-to-Date
-							<Badge className="text-lg" variant="secondary">
+							<Badge className="text-xl" variant="secondary">
 								{wtdCount}
 							</Badge>
 						</CardTitle>
 					</CardHeader>
 					<CardContent>
-						<p className="text-gray-600">
+						<p className="">
 							Line Checks Completed Since {settings.startOfWeek}
 						</p>
 					</CardContent>
 				</Card>
 
-				<Card className="bg-yellow-50 shadow-md hover:shadow-lg transition-all rounded-xl">
+				<Card className="bg-chart-2/30 shadow-md hover:shadow-lg transition-all rounded-xl ">
 					<CardHeader>
 						<CardTitle className="text-lg font-semibold flex justify-between items-center">
 							Avg / Day
-							<Badge className="text-lg" variant="secondary">
+							<Badge className="text-xl" variant="secondary">
 								{avgPerDay.toFixed(1)}
 							</Badge>
 						</CardTitle>
 					</CardHeader>
 					<CardContent>
-						<p className="text-gray-600">
+						<p className="">
 							Average Line Checks Completed per day
 						</p>
 					</CardContent>
 				</Card>
 
-				<Card className="bg-gray-50 shadow-md hover:shadow-lg transition-all rounded-xl">
+				<Card className="bg-chart-3/30 shadow-md hover:shadow-lg transition-all rounded-xl">
 					<CardHeader>
 						<CardTitle className="flex justify-between items-center">
 							Goal Status
@@ -153,8 +153,8 @@ const LineCheckDashboard: React.FC<DashboardProps> = ({
 								variant="secondary"
 								className={
 									todayCount >= goalPerDay
-										? 'bg-green-600 text-white text-lg'
-										: 'bg-red-600 text-white text-lg'
+										? 'bg-green-600 text-white text-xl'
+										: 'bg-red-600 text-white text-xl'
 								}
 							>
 								{todayCount}/{goalPerDay}
@@ -168,7 +168,7 @@ const LineCheckDashboard: React.FC<DashboardProps> = ({
 							className="h-3 rounded-full"
 						/>
 
-						<span className="text-sm text-gray-500">
+						<span className="">
 							Progress towards daily goal of {goalPerDay} line checks
 						</span>
 					</CardContent>
