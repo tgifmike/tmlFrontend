@@ -32,6 +32,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { US_STATES, US_TIME_ZONES } from '@/lib/constants/usConstants';
 import { Icons } from '@/lib/icon';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { se } from 'date-fns/locale';
 import { useSession } from 'next-auth/react';
 import { useParams } from 'next/navigation';
 import router from 'next/router';
@@ -230,7 +231,12 @@ const LocationSettingsPage = () => {
 
 			//console.log('Updates going to backend:', updates);
 
-			const { data, error } = await updateLocation(currentLocation.id!, updates);
+			if (!session?.user.id) {
+				toast.error('You must be logged in to update a location.');
+				return;
+			}
+
+			const { data, error } = await updateLocation(currentLocation.id!, session?.user.id, updates);
 
 			if (error) {
 				if (error.toLowerCase().includes('exists')) {
@@ -275,7 +281,13 @@ const LocationSettingsPage = () => {
 		}
 
 		try {
-			await toggleLocationActive(locationId, checked);
+
+			if (!session?.user.id) {
+				toast.error('You must be logged in to update a location.');
+				return;
+			}
+
+			await toggleLocationActive(locationId, checked, session.user.id);
 		} catch (error: any) {
 			// Rollback both states
 			setLocations((prev) =>
@@ -578,7 +590,7 @@ const LocationSettingsPage = () => {
 						</Card>
 					</div>
 				</div>
-				<LineCheckSettingsForm locationId={locationIdParam} />
+				<LineCheckSettingsForm locationId={locationIdParam} userId={session?.user.id } />
 			</section>
 		</main>
 	);

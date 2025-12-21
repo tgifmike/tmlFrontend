@@ -32,6 +32,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 type EditLocationProps = {
 	location: Locations;
 	locations?: Locations[];
+	userId: string
 	onUpdate: (
 		id: string,
 		updatedFields: {
@@ -84,6 +85,7 @@ const getSchema = (locations: Locations[] = [], currentLocationId: string) =>
 export function EditLocationDialog({
 	location,
 	locations = [],
+	userId,
 	onUpdate,
 }: EditLocationProps) {
 	const EditIcon = Icons.pencil;
@@ -155,10 +157,10 @@ export function EditLocationDialog({
 				}
             });
             
-            console.log('Updates going to backend:', updates);
+           // console.log('Updates going to backend:', updates);
 
 
-			const { error } = await updateLocation(location.id!, updates);
+			const { error } = await updateLocation(location.id!, userId, updates);
 
 			if (error) {
 				if (error.toLowerCase().includes('exists')) {
@@ -179,7 +181,7 @@ export function EditLocationDialog({
 		locationTimeZone: values.locationTimeZone,
 	});
 
-			toast.success('Location updated successfully');
+			//toast.success('Location updated successfully');
 			setOpen(false);
 		} catch (error: any) {
 			const message =
@@ -258,7 +260,7 @@ export function EditLocationDialog({
 									<FormLabel>State</FormLabel>
 									<Select
 										onValueChange={field.onChange}
-										defaultValue={field.value}
+										value={field.value}
 									>
 										<FormControl>
 											<SelectTrigger>
@@ -300,7 +302,7 @@ export function EditLocationDialog({
 									<FormLabel>Time Zone</FormLabel>
 									<Select
 										onValueChange={field.onChange}
-										defaultValue={field.value}
+										value={field.value}
 									>
 										<FormControl>
 											<SelectTrigger>

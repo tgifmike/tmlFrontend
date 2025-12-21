@@ -246,3 +246,16 @@ export interface AccountHistory {
 	changeType: 'CREATED' | 'UPDATED' | 'DELETED';
 	oldValues?: Record<string, string>;
 }
+
+export interface LocationHistoryEntity {
+	id: string;
+	locationId: string;
+	locationName: string;
+	changeType: 'CREATED' | 'UPDATED' | 'DELETED';
+	changeAt: string;
+	changedBy?: string;
+	changedByName?: string;
+	oldValues?: string;
+	newValues?: string;
+}
+

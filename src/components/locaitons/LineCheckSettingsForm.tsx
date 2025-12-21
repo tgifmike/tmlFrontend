@@ -41,11 +41,13 @@ export const lineCheckSchema = z.object({
  export type LineCheckFormValues = z.infer<typeof lineCheckSchema>;
 
  interface LineCheckSettingsFormProps {
-		locationId: string;
+	 locationId: string;
+	 userId?: string;
  }
 
 export default function LineCheckSettingsForm({
 	locationId,
+	userId
 }: LineCheckSettingsFormProps) {
 	const form = useForm<LineCheckFormValues>({
 		resolver: zodResolver(lineCheckSchema),
@@ -106,7 +108,11 @@ export default function LineCheckSettingsForm({
 	const onSubmit = async (values: LineCheckFormValues) => {
 		setLoading(true);
 		try {
-			await updateLineCheckSettings(locationId, values);
+			if (!userId) {
+				toast.error('You must be logged in to update settings.');
+				return;
+			}
+			await updateLineCheckSettings(locationId, userId,  values);
             form.reset(values); // reset dirty state
             toast.success('Line check settings saved successfully');
         } catch (err) {
