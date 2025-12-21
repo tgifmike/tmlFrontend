@@ -590,7 +590,7 @@ const LocationSettingsPage = () => {
 						</Card>
 					</div>
 				</div>
-				<LineCheckSettingsForm locationId={locationIdParam} />
+				<LineCheckSettingsForm locationId={locationIdParam} userId={session?.user.id } />
 			</section>
 		</main>
 	);
