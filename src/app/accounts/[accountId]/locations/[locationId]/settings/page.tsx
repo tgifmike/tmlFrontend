@@ -230,7 +230,7 @@ const LocationSettingsPage = () => {
 
 			//console.log('Updates going to backend:', updates);
 
-			const { data, error } = await updateLocation(currentLocation.id!, updates);
+			const { data, error } = await updateLocation(currentLocation.id!, session?.user.id, updates);
 
 			if (error) {
 				if (error.toLowerCase().includes('exists')) {
@@ -275,7 +275,7 @@ const LocationSettingsPage = () => {
 		}
 
 		try {
-			await toggleLocationActive(locationId, checked);
+			await toggleLocationActive(locationId, session?.user.id, checked);
 		} catch (error: any) {
 			// Rollback both states
 			setLocations((prev) =>
