@@ -25,30 +25,32 @@ import { UserControls } from '@/components/tableComponents/UserControls';
 import CreateLocationDialog from '@/components/tableComponents/CreateLocationForm';
 import { EditLocationDialog } from '@/components/tableComponents/EditLocationDialog';
 import { DataCard } from '@/components/cards/DataCard';
-import { AppRole, Locations, User } from '@/app/types';
+import { AccessRole, AppRole, Locations, User } from '@/app/types';
 import { getAccountsForUser } from '@/app/api/accountApi';
 import {
 	deleteLocation,
 	getLocationsByAccountId,
 	getUserLocationAccess,
 	toggleLocationActive,
+	createLocation,
+	updateLocation,
 } from '@/app/api/locationApi';
 import router from 'next/router';
 import MobileDrawerNav from '@/components/navBar/MoibileDrawerNav';
+import LocationHistoryFeed from '@/components/tableComponents/LocationHistoryFeed';
 
 const AccountPage = () => {
-	//session
 	const { data: session, status } = useSession();
-	const params = useParams<{ accountId: string; locationId: string }>();
+	
+	const params = useParams<{ accountId: string }>();
 	const accountIdParam = params.accountId;
 
-	// state
 	const [loadingAccess, setLoadingAccess] = useState(true);
 	const [hasAccess, setHasAccess] = useState(false);
 	const [locations, setLocations] = useState<Locations[]>([]);
 	const [accountName, setAccountName] = useState<string | null>(null);
 	const [accountImage, setAccountImage] = useState<string | null>(null);
-	const [showActiveOnly, setShowActiveOnly] = useState(false);
+	const [showActiveOnly, setShowActiveOnly] = useState(true);
 	const [searchTerm, setSearchTerm] = useState('');
 	const [currentPage, setCurrentPage] = useState(1);
 	const [pageSize, setPageSize] = useState(10);
@@ -56,44 +58,36 @@ const AccountPage = () => {
 
 	const currentUser = session?.user as User | undefined;
 	const sessionUserRole = session?.user?.appRole;
+	const MANAGER = currentUser?.appRole === AppRole.MANAGER;
+	const SRADMIN = currentUser?.accessRole === AccessRole.SRADMIN;
 	const canToggle = currentUser?.appRole === AppRole.MANAGER;
+	const userId = currentUser?.id;
 
-	// verify user access
 	useEffect(() => {
-		if (status !== 'authenticated' || !session?.user?.id || !accountIdParam)
-			return;
-		if (hasAccess) return; // prevent rerun
+		if (status !== 'authenticated' || !userId || !accountIdParam) return;
+		if (hasAccess) return;
 
 		const verifyAccess = async () => {
 			try {
-				// Fetch accounts for user
-				const accountsRes = await getAccountsForUser(session.user.id);
+				const accountsRes = await getAccountsForUser(userId);
 				const account = accountsRes.data?.find(
 					(acc) => acc.id?.toString() === accountIdParam
 				);
-
 				if (!account) {
 					toast.error('You do not have access to this account.');
 					router.push('/accounts');
 					return;
 				}
 
-				// Fetch location access
 				const locationRes = await getLocationsByAccountId(accountIdParam);
 				const fetchedLocations = locationRes.data ?? [];
-
-				if (!location) {
-					toast.error('You do not have access to this location.');
-					router.push(`/accounts/${accountIdParam}/locations`);
-					return;
-				}
 
 				setHasAccess(true);
 				setAccountName(account.accountName);
 				setAccountImage(account.imageBase64 || null);
 				setLocations(fetchedLocations);
 			} catch (err) {
-				toast.error('You do not have access to this location.');
+				toast.error('You do not have access to this account.');
 				router.push('/accounts');
 			} finally {
 				setLoadingAccess(false);
@@ -101,10 +95,11 @@ const AccountPage = () => {
 		};
 
 		verifyAccess();
-	}, [status, session, accountIdParam, hasAccess, router]);
+	}, [status, userId, accountIdParam, hasAccess, router]);
 
-	// toggle active
+	// Toggle active
 	const handleToggleActive = async (locationId: string, checked: boolean) => {
+		if (!userId) return;
 		setLocations((prev) =>
 			prev.map((loc) =>
 				loc.id === locationId ? { ...loc, locationActive: checked } : loc
@@ -112,8 +107,8 @@ const AccountPage = () => {
 		);
 
 		try {
-			await toggleLocationActive(locationId, checked);
-		} catch (error: any) {
+			await toggleLocationActive(locationId, checked, userId);
+		} catch {
 			setLocations((prev) =>
 				prev.map((loc) =>
 					loc.id === locationId ? { ...loc, locationActive: !checked } : loc
@@ -123,12 +118,69 @@ const AccountPage = () => {
 		}
 	};
 
-	// handle create
-	const handleLocationCreated = (newLocation: Locations) => {
-		setLocations((prev) => [...prev, newLocation]);
+	// Delete location
+	const handleDeleteLocation = async (locationId: string) => {
+		if (!userId) return;
+		await deleteLocation(locationId, userId);
+		setLocations((prev) => prev.filter((l) => l.id !== locationId));
 	};
 
-	// filters
+	// Update location
+const handleUpdateLocation = async (
+	id: string,
+	updatedFields: Partial<Locations>
+) => {
+	if (!userId) return;
+
+	try {
+		const response = await updateLocation(id, userId, updatedFields);
+		const updated = response.data;
+
+		if (!updated) {
+			toast.error('Failed to update location.');
+			return;
+		}
+
+		setLocations((prev) => prev.map((l) => (l.id === id ? updated : l)));
+
+		toast.success(`Location ${updated.locationName} updated successfully.`);
+	} catch (error: any) {
+		toast.error(error?.message || 'Failed to update location.');
+	}
+};
+
+
+	// // Create location
+	// const handleLocationCreated = async (newLocation: Locations) => {
+	// 	if (!userId) return;
+
+	// 	try {
+	// 		const response = await createLocation(
+	// 			accountIdParam,
+	// 			userId,
+	// 			newLocation
+	// 		);
+	// 		const created = response.data;
+
+	// 		if (!created) {
+	// 			toast.error('Failed to create location.');
+	// 			return;
+	// 		}
+
+	// 		setLocations((prev) => [...prev, created]); // guaranteed to be Locations
+	// 		toast.success(`Location ${created.locationName} created successfully.`);
+	// 	} catch (error: any) {
+	// 		toast.error(error?.message || 'Failed to create location.');
+	// 	}
+	// };
+
+	//handel create
+	const handleLocationCreated = (newLocation: Locations) => {
+		setLocations((prev) => [...prev, newLocation]);
+		toast.success(`Location ${newLocation.locationName} added successfully.`);
+	};
+
+
 	const filteredLocations = locations.filter((loc) => {
 		const name = loc.locationName?.toLowerCase() || '';
 		return (
@@ -166,9 +218,7 @@ const AccountPage = () => {
 			<section className="flex-1 flex flex-col">
 				{/* Header */}
 				<header className="flex justify-between items-center px-4 py-3 border-b bg-background/70 backdrop-blur-md sticky top-0 z-20">
-					{/* Left */}
 					<div className="flex gap-8">
-						{/* Mobile Drawer */}
 						<MobileDrawerNav
 							open={drawerOpen}
 							setOpen={setDrawerOpen}
@@ -185,20 +235,16 @@ const AccountPage = () => {
 						<h1 className="text-2xl font-semibold">{accountName}</h1>
 					</div>
 
-					{/* Right */}
 					<CreateLocationDialog
 						onLocationCreated={handleLocationCreated}
 						accountId={accountIdParam}
+						userId={userId!}
 					/>
 				</header>
 
 				{/* Content */}
 				<div className="flex-1 overflow-y-auto p-4">
-					{loadingAccess ? (
-						<div className="flex justify-center items-center h-64">
-							<Spinner />
-						</div>
-					) : locations.length === 0 ? (
+					{locations.length === 0 ? (
 						<p className="text-destructive text-lg">
 							No locations found for this account.
 						</p>
@@ -235,10 +281,7 @@ const AccountPage = () => {
 											className: 'text-center',
 											render: (loc) => (
 												<StatusSwitchOrBadge
-													entity={{
-														id: loc.id!,
-														active: loc.locationActive,
-													}}
+													entity={{ id: loc.id!, active: loc.locationActive }}
 													getLabel={() => `Location: ${loc.locationName}`}
 													onToggle={handleToggleActive}
 													canToggle={canToggle}
@@ -253,27 +296,14 @@ const AccountPage = () => {
 													<div className="flex justify-center gap-4 items-center">
 														<EditLocationDialog
 															location={loc}
-															onUpdate={(
-																id,
-																updatedFields: Partial<Locations>
-															) => {
-																setLocations((prev) =>
-																	prev.map((l) =>
-																		l.id === id ? { ...l, ...updatedFields } : l
-																	)
-																);
-															}}
+															onUpdate={handleUpdateLocation}
+															userId={userId!}
 														/>
 														{loc.id && (
 															<DeleteConfirmButton
 																item={{ id: loc.id }}
 																entityLabel="Location"
-																onDelete={async (id) => {
-																	await deleteLocation(id);
-																	setLocations((prev) =>
-																		prev.filter((l) => l.id !== id)
-																	);
-																}}
+																onDelete={() => handleDeleteLocation(loc.id!)}
 																getItemName={() => loc.locationName}
 															/>
 														)}
@@ -309,40 +339,24 @@ const AccountPage = () => {
 											{
 												element: (
 													<div className="flex justify-center gap-4 items-center">
-														{sessionUserRole === 'MANAGER' ? (
+														{sessionUserRole === 'MANAGER' && (
 															<>
 																<EditLocationDialog
 																	location={loc}
-																	onUpdate={(
-																		id,
-																		updatedFields: Partial<Locations>
-																	) => {
-																		setLocations((prev) =>
-																			prev.map((l) =>
-																				l.id === id
-																					? { ...l, ...updatedFields }
-																					: l
-																			)
-																		);
-																	}}
+																	onUpdate={handleUpdateLocation}
+																	userId={userId!}
 																/>
-
 																{loc.id && (
 																	<DeleteConfirmButton
 																		item={{ id: loc.id }}
 																		entityLabel="Location"
-																		onDelete={async (id) => {
-																			await deleteLocation(id);
-																			setLocations((prev) =>
-																				prev.filter((l) => l.id !== id)
-																			);
-																		}}
+																		onDelete={() =>
+																			handleDeleteLocation(loc.id!)
+																		}
 																		getItemName={() => loc.locationName}
 																	/>
 																)}
 															</>
-														) : (
-															<span className="text-ring">No Actions</span>
 														)}
 													</div>
 												),
@@ -361,6 +375,12 @@ const AccountPage = () => {
 									setPageSize={setPageSize}
 									totalItems={filteredLocations.length}
 								/>
+							</div>
+
+							<div className="flex justify-center items-center">
+								{(SRADMIN || MANAGER) && (
+									<LocationHistoryFeed accountId={accountIdParam} />
+								)}
 							</div>
 						</>
 					)}
