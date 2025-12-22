@@ -21,7 +21,7 @@ export const UserControls: React.FC<UserControlsProps> = ({
 }) => {
 	
 	return (
-		<div className="w-full flex flex-col md:flex-row justify-between items-center mx-auto bg-accent py-4 px-6 rounded-2xl">
+		<div className="w-full flex flex-col md:flex-row justify-between items-center mx-auto bg-ring/40 py-4 px-6 rounded-2xl">
 			
 			{/* Search Input */}
 			<div className="">
