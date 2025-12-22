@@ -242,7 +242,7 @@ const LocationStationsPage = () => {
 	}
 
 	return (
-		<main className="flex min-h-screen overflow-hidden">
+		<main className="flex min-h-screen overflow-hidden ">
 			{/* Desktop Sidebar */}
 			<aside className="hidden md:block w-1/6 border-r h-screen bg-ring">
 				<LocationNav
@@ -318,12 +318,12 @@ const LocationStationsPage = () => {
 							<Droppable droppableId="items">
 								{(provided) => (
 									<div
-										className="hidden md:block bg-accent p-4 rounded-2xl shadow-md w-full md:w-3/4 mx-auto mt-8"
+										className="hidden md:block bg- p-4 rounded-2xl shadow-md w-full md:w-3/4 mx-auto mt-8 bg-ring/40"
 										{...provided.droppableProps}
 										ref={provided.innerRef}
 									>
 										{/* Table headers */}
-										<div className="flex justify-between items-center font-bold text-lg px-2 py-1 border-b border-accent mb-2">
+										<div className="flex justify-between items-center font-bold text-lg px-2 py-1 border-b border-accent mb-2 ">
 											<span className="flex items-center gap-2 w-1/2">
 												<UpDownIcon className="w-5 h-5" />
 												Station Name
@@ -341,7 +341,7 @@ const LocationStationsPage = () => {
 											>
 												{(provided) => (
 													<div
-														className="flex justify-between items-center p-2 mb-2 bg-background rounded-2xl text-chart-3"
+														className="flex justify-between items-center p-2 mb-2 bg-accent rounded-2xl text-chart-3"
 														ref={provided.innerRef}
 														{...provided.draggableProps}
 														{...provided.dragHandleProps}
