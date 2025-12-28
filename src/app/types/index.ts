@@ -281,9 +281,14 @@ export interface StationDto {
 	id?: string;
 	stationName: string;
 	sortOrder?: number;
-	location?: Location;
+	location?: {
+		id?: string;
+		locationName?: string;
+	};
 	items?: Item[];
 	stationActive: boolean;
+	createdAt?: string;
+	updatedAt?: string;
 }
 
 export interface StationHistoryEntity {
