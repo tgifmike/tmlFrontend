@@ -64,7 +64,10 @@ export interface Station {
 	items: any[];
 	stationName: string;
 	stationActive: boolean;
-	location: Location;
+	location?: {
+		id?: string;
+		locationName?: string;
+	};
 	sortOrder: number;
 	createdAt?: string | null;
 	updatedAt?: string | null;
