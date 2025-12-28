@@ -278,6 +278,8 @@ export interface StationDto {
 	id?: string;
 	stationName: string;
 	sortOrder?: number;
+	location?: Location;
+	items?: Item[];
 	stationActive: boolean;
 }
 
