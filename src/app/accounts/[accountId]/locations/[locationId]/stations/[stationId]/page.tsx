@@ -15,7 +15,7 @@ import {
 } from '@hello-pangea/dnd';
 import { getUserLocationAccess } from '@/app/api/locationApi';
 import { getStationsByLocation } from '@/app/api/stationApi';
-import { AppRole, Item, Locations, OptionEntity, OptionHistory, Station, User } from '@/app/types';
+import { AppRole, Item, Locations, OptionEntity, OptionHistory, Station, StationDto, User } from '@/app/types';
 import LocationNav from '@/components/navBar/LocationNav';
 import Spinner from '@/components/spinner/Spinner';
 import CreateItemDialog from '@/components/tableComponents/CreateItemDialog';
@@ -116,8 +116,30 @@ const StationPage = () => {
 				}
 
 				const stationRes = await getStationsByLocation(locationIdParam);
-				const fetchedStations = stationRes.data ?? [];
+
+				// Explicitly map to your frontend Station type
+				const fetchedStations: Station[] = (stationRes.data ?? []).map(
+					(s: StationDto) => ({
+						id: s.id ?? undefined,
+						stationName: s.stationName,
+						stationActive: s.stationActive,
+						sortOrder: s.sortOrder ?? 0,
+						items: s.items ?? [],
+						location: s.location
+							? { id: s.location.id, locationName: s.location.locationName }
+							: currentLocation
+							? {
+									id: currentLocation.id,
+									locationName: currentLocation.locationName,
+							  }
+							: { id: undefined, locationName: undefined },
+						createdAt: s.createdAt ?? null,
+						updatedAt: s.updatedAt ?? null,
+					})
+				);
+
 				setStations(fetchedStations);
+
 
 				const station = fetchedStations.find(
 					(sta) => sta.id?.toString() === stationIdParam

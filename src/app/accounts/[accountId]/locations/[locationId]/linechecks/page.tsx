@@ -124,8 +124,18 @@ const LocationLineChecksPage = () => {
 
 				const stationRes = await getStationsByLocation(locationIdParam);
 				const sortedStations: Station[] = (stationRes.data ?? [])
-					.map((s) => ({ ...s, sortOrder: Number(s.sortOrder) || 0 }))
+					.map((s) => ({
+						...s,
+						sortOrder: Number(s.sortOrder) || 0,
+						items: [],
+						location: {
+							id: location.id,
+							locationName: location.locationName,
+						},
+					}))
 					.sort((a, b) => a.sortOrder - b.sortOrder);
+						
+				
 
 				setStations(sortedStations);
 				setCurrentLocation(location);

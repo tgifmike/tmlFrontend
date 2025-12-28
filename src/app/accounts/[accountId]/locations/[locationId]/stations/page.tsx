@@ -1,29 +1,23 @@
 'use client';
 
 import {
-	deleteItem,
-	getItemsByStation,
-	toggleItemActive,
-	reorderItems,
-} from '@/app/api/item.Api';
-import {
 	DragDropContext,
 	Droppable,
 	Draggable,
 	DropResult,
 } from '@hello-pangea/dnd';
-import { ReusableTable } from '@/components/tableComponents/ReusableTableProps';
+// import { ReusableTable } from '@/components/tableComponents/ReusableTableProps';
 import { getAccountsForUser } from '@/app/api/accountApi';
 import { getUserLocationAccess } from '@/app/api/locationApi';
 import { deleteStation, getStationsByLocation, reorderStations, toggleStationActive } from '@/app/api/stationApi';
-import { AppRole, Locations, Station, User } from '@/app/types';
+import { AppRole, Locations, StationDto, User } from '@/app/types';
 import LocationNav from '@/components/navBar/LocationNav';
 import Spinner from '@/components/spinner/Spinner';
 import CreateStationDialog from '@/components/tableComponents/CreateStationForm';
 import { UserControls } from '@/components/tableComponents/UserControls';
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { StatusSwitchOrBadge } from '@/components/tableComponents/StatusSwitchOrBadge';
@@ -31,10 +25,22 @@ import { DeleteConfirmButton } from '@/components/tableComponents/DeleteConfirmB
 import { Pagination } from '@/components/tableComponents/Pagination';
 import { EditStationDialog } from '@/components/tableComponents/EditStationDialog';
 import { DataCard } from '@/components/cards/DataCard';
-import router from 'next/router';
+//import router from 'next/router';
 import MobileDrawerNav from '@/components/navBar/MoibileDrawerNav';
 import { Icons } from '@/lib/icon';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import StationHistoryFeed from '@/components/tableComponents/StationHistoryFeed';
+// import StationAuditFeed from '@/components/tableComponents/StationHistoryFeed';
+// import { a } from 'node_modules/framer-motion/dist/types.d-DagZKalS';
+// import { set } from 'zod';
+
+interface CreateStationDialogProps {
+	locationId: string;
+	currentUserId: string;
+	onStationCreated: (station: StationDto) => void;
+}
+
+
 
 
 const LocationStationsPage = () => {
@@ -47,6 +53,7 @@ const LocationStationsPage = () => {
 	const params = useParams<{ accountId: string; locationId: string }>();
 	const accountIdParam = params.accountId;
 	const locationIdParam = params.locationId;
+	const router = useRouter();
 
 	//set state
 	const [loadingAccess, setLoadingAccess] = useState(true);
@@ -54,7 +61,7 @@ const LocationStationsPage = () => {
 	const [accountName, setAccountName] = useState<string | null>(null);
 	const [accountImage, setAccountImage] = useState<string | null>(null);
 	const [locations, setLocations] = useState<Locations[]>([]);
-	const [stations, setStations] = useState<Station[]>([]);
+	const [stations, setStations] = useState<StationDto[]>([]);
 	const [currentLocation, setCurrentLocation] = useState<Locations | null>(
 		null
 	);
@@ -63,8 +70,12 @@ const LocationStationsPage = () => {
 	const [currentPage, setCurrentPage] = useState(1);
 	const [pageSize, setPageSize] = useState(10);
 	const [drawerOpen, setDrawerOpen] = useState(false);
+	const [deletingStationId, setDeletingStationId] = useState<Set<string>>(
+		new Set()
+	);
 
 	const currentUser = session?.user as User | undefined;
+	const currentUserId = session?.user?.id || '';
 	const sessionUserRole = session?.user?.appRole;
 	const canToggle = currentUser?.appRole === AppRole.MANAGER;
 
@@ -91,17 +102,22 @@ const LocationStationsPage = () => {
 					router.push('/accounts');
 					return;
 				}
-
+				
+				
 				// Fetch location access
-				const locationRes = await getUserLocationAccess(session.user.id);
+				const locationRes = await getUserLocationAccess(currentUserId);
 				const fetchedLocations = locationRes.data ?? [];
+
+				
 				setLocations(fetchedLocations);
 
 				const location = fetchedLocations.find(
 					(loc) => loc.id?.toString() === locationIdParam
 				);
 
+				//console.log('Current location:', location);
 				if (!location) {
+					
 					toast.error('You do not have access to this location.');
 					router.push(`/accounts/${accountIdParam}/locations`);
 					return;
@@ -111,6 +127,21 @@ const LocationStationsPage = () => {
 				const stationRes = await getStationsByLocation(locationIdParam);
 				const fetchedStations = stationRes.data ?? [];
 				setStations(fetchedStations);
+
+				// const stationRes = await getStationsByLocation(locationIdParam);
+				// const fetchedStations: StationDto[] = stationRes.data ?? [];
+
+				// // Map DTO → full Station
+				// const mappedStations: Station[] = fetchedStations.map((dto) => ({
+				// 	id: dto.id,
+				// 	stationName: dto.stationName,
+				// 	sortOrder: dto.sortOrder ?? 0,
+				// 	stationActive: dto.stationActive ?? true, // default true
+				// 	locationId: locationIdParam, // attach location
+				// 	description: '', // optional default
+				// }));
+
+				//setStations(mappedStations);
 
 				setHasAccess(true);
 				setAccountName(account.accountName);
@@ -138,7 +169,7 @@ const LocationStationsPage = () => {
 		);
 
 		try {
-			await toggleStationActive(locationIdParam, stationId, checked);
+			await toggleStationActive(stationId, checked, currentUserId);
 		} catch (error: any) {
 			setStations((prev) =>
 				prev.map((station) =>
@@ -189,9 +220,35 @@ const LocationStationsPage = () => {
 		setCurrentPage(1); // reset to first page when pageSize changes
 	}, [pageSize]);
 
-	const handleStationCreated = (newStation: Station) => {
+	const handleStationCreated = (newStation: StationDto) => {
 		setStations((prev) => [...prev, newStation]);
 	};
+
+	//handle station delete
+const hanldeStationDelete = async (stationId: string) => {
+	try {
+		setDeletingStationId((prev) => {
+			const newSet = new Set(prev);
+			newSet.add(stationId);
+			return newSet;
+		});
+
+		await deleteStation(stationId, currentUserId);
+
+		setStations((prev) => prev.filter((station) => station.id !== stationId));
+
+		toast.success('Station deleted successfully.');
+	} catch (error: any) {
+		toast.error(`Failed to delete station: ` + (error?.message || error));
+	} finally {
+		setDeletingStationId((prev) => {
+			const newSet = new Set(prev);
+			newSet.delete(stationId);
+			return newSet;
+		});
+	}
+};
+
 
 	//toggle showing only active users and search
 	const filteredStations = stations.filter((station) => {
@@ -226,13 +283,13 @@ const LocationStationsPage = () => {
 	
 			try {
 				const stationIdsInOrder = updatedStations.map((i) => i.id!) as any;
-				await reorderStations(locationIdParam, stationIdsInOrder);
+				await reorderStations(locationIdParam, stationIdsInOrder, currentUserId);
 			} catch (err) {
 				toast.error('Failed to save new station order.');
 			}
 		};
 
-	if (status === 'loading' || loadingAccess) {
+	if (status === 'loading' || loadingAccess || !currentUserId) {
 		return (
 			<div className="flex justify-center items-center py-40 text-chart-3 text-xl">
 				<Spinner />
@@ -283,8 +340,8 @@ const LocationStationsPage = () => {
 					{/* center */}
 					<div>
 						<p className=" md:text-2xl">
-							Stations for Account {" "}
-							<span className='text-chart-3 italic'> {accountName}</span>:
+							Stations for Account{' '}
+							<span className="text-chart-3 italic"> {accountName}</span>:
 						</p>
 					</div>
 
@@ -293,6 +350,7 @@ const LocationStationsPage = () => {
 						<CreateStationDialog
 							onStationCreated={handleStationCreated}
 							locationId={locationIdParam}
+							currentUserId={currentUserId}
 						/>
 					</div>
 				</header>
@@ -382,8 +440,9 @@ const LocationStationsPage = () => {
 															{sessionUserRole === AppRole.MANAGER && (
 																<>
 																	<EditStationDialog
+																		currentUserId={currentUserId}
 																		station={station}
-																		locationId={locationIdParam}
+																		// locationId={locationIdParam}
 																		stations={stations}
 																		onUpdate={(id, name) =>
 																			setStations((prev) =>
@@ -395,22 +454,16 @@ const LocationStationsPage = () => {
 																			)
 																		}
 																	/>
-																	<DeleteConfirmButton
-																		item={{
-																			id: station.id!,
-																			locationId: locationIdParam,
-																		}}
-																		entityLabel="Location"
-																		onDelete={async (id) => {
-																			await deleteStation(locationIdParam, id);
-																			setStations((prev) =>
-																				prev.filter(
-																					(station) => station.id !== id
-																				)
-																			);
-																		}}
-																		getItemName={() => station.stationName}
-																	/>
+																	{station.id && (
+																		<DeleteConfirmButton
+																			item={{
+																				id: station.id,
+																			}}
+																			entityLabel="Station"
+																			onDelete={hanldeStationDelete}
+																			getItemName={() => station.stationName}
+																		/>
+																	)}{' '}
 																</>
 															)}
 														</div>
@@ -454,8 +507,9 @@ const LocationStationsPage = () => {
 													{sessionUserRole === 'MANAGER' ? (
 														<>
 															<EditStationDialog
+																currentUserId={currentUserId}
 																station={station}
-																locationId={locationIdParam}
+																// locationId={locationIdParam}
 																stations={stations}
 																onUpdate={(id, name) =>
 																	setStations((prev) =>
@@ -471,15 +525,9 @@ const LocationStationsPage = () => {
 																<DeleteConfirmButton
 																	item={{
 																		id: station.id,
-																		locationId: locationIdParam,
 																	}}
-																	entityLabel="Location"
-																	onDelete={async (id) => {
-																		await deleteStation(locationIdParam, id);
-																		setStations((prev) =>
-																			prev.filter((s) => s.id !== id)
-																		);
-																	}}
+																	entityLabel="Station"
+																	onDelete={hanldeStationDelete}
 																	getItemName={() => station.stationName}
 																/>
 															)}
@@ -504,6 +552,13 @@ const LocationStationsPage = () => {
 						pageSize={pageSize}
 						setPageSize={setPageSize}
 						totalItems={locations.length}
+					/>
+				</div>
+
+				<div>
+					<StationHistoryFeed
+						locationId={locationIdParam}
+						currentUser={currentUser}
 					/>
 				</div>
 			</section>

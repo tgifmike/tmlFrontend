@@ -1,7 +1,7 @@
 'use client'
 
 import { createStation } from "@/app/api/stationApi";
-import { Station } from "@/app/types";
+
 import { Icons } from "@/lib/icon";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useSession } from "next-auth/react";
@@ -14,18 +14,20 @@ import { Button } from "../ui/button";
 import { DialogDescription } from "@radix-ui/react-dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel } from "../ui/form";
 import { Input } from "../ui/input";
+import { Station, StationDto, StationEntity } from "@/app/types";
 
 
 
 
 
 type CreateStationDialogProps = {
-    onStationCreated?: (station: Station) => void;
-    existingStations?: Station[];
+    onStationCreated?: (station: StationDto) => void;
+    existingStations?: StationDto[];
     locationId: string
+    currentUserId: string;
 }
 
-const getSchema = (stations: Station[] = []) =>
+const getSchema = (stations: StationDto[] = []) =>
     z.object({
         stationName: z
             .string()
@@ -42,7 +44,8 @@ const getSchema = (stations: Station[] = []) =>
 export default function CreateStationDialog({
     onStationCreated,
     existingStations = [],
-    locationId
+    locationId,
+    currentUserId
 }: CreateStationDialogProps) {
     
     //icons 
@@ -50,10 +53,6 @@ export default function CreateStationDialog({
 
     //set state
     const [open, setOpen] = useState(false);
-
-    //get user id from sessioin
-    const { data: session, status } = useSession();
-    const userId = session?.user.id || "";
 
     //dynamically revaliate stations lists
     const schema = useMemo(() => getSchema(existingStations), [existingStations]);
@@ -67,30 +66,29 @@ export default function CreateStationDialog({
     });
 
     const onSubmit = async (values: FormValues) => {
-        try {
-            const { data, error } = await createStation(locationId, values);
+			try {
+				const station = await createStation(locationId, values, currentUserId);
 
-            if (error || !data) {
-                if (error?.includes('409') || error?.toLowerCase().includes('exists')) {
-                    toast.error('Account name already exists');
-                } else {
-                    toast.error('Failed to create Station')
-                }
-                return;
-            }
+				toast.success(`Station ${station.stationName} created successfully`);
+				form.reset();
+				setOpen(false);
+				onStationCreated?.(station);
+			} catch (error: any) {
+				const message =
+					error?.response?.data?.message ||
+					error?.message ||
+					'Failed to create Station';
 
-            toast.success(`Station ${data.stationName} created successfully`);
-            form.reset();
-            setOpen(false);
-            onStationCreated?.(data);
-        } catch (error: any) {
-            const message =
-                error?.response?.data?.messge ||
-                error?.message ||
-                'Failed to create Station'
-            toast.error(message);
-        }
-    };
+				if (
+					message.includes('409') ||
+					message.toLowerCase().includes('exists')
+				) {
+					toast.error('Station name already exists');
+				} else {
+					toast.error(message);
+				}
+			}
+		};
 
     return (
 			<Dialog open={open} onOpenChange={setOpen}>
