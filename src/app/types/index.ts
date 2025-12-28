@@ -61,7 +61,7 @@ export interface Locations {
 
 export interface Station {
 	id?: string;
-	items: any;
+	items: any[];
 	stationName: string;
 	stationActive: boolean;
 	location: Location;
@@ -259,3 +259,34 @@ export interface LocationHistoryEntity {
 	newValues?: string;
 }
 
+// ---------------- StationEntity ----------------
+export interface StationEntity {
+	id: string; // UUID
+	currentUserId: string;
+	stationName: string;
+	description?: string;
+	sortOrder?: number;
+	stationActive?: boolean;
+	locationId: string; // ID of the parent location
+	createdAt?: string; // ISO timestamp
+	updatedAt?: string; // ISO timestamp
+}
+
+// ---------------- StationDto ----------------
+// DTO used for listing stations (can omit some fields if needed)
+export interface StationDto {
+	id?: string;
+	stationName: string;
+	sortOrder?: number;
+	stationActive: boolean;
+}
+
+export interface StationHistoryEntity {
+	id: string;
+	stationName: string;
+	changeType: 'CREATED' | 'UPDATED' | 'DELETED';
+	changeAt: string;
+	changedBy?: string;
+	changedByName?: string;
+	oldValues?: Record<string, string>;
+}

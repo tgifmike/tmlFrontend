@@ -1,75 +1,132 @@
+import { StationEntity, StationDto, StationHistoryEntity } from '../types';
 import { request } from './axios';
-import { Station } from '../types';
 
 
-//get all stations
-export const getAllStations = async () => {
-    return request<Station[]>({
-        method: 'GET',
-        url: '/stations/getAll'
-    })
-}
-
-export const getStationsByLocation = async (locationId: string) => {
-	return request<Station[]>({
-		method: 'GET',
-		url: `/stations/${locationId}/getStationByLocation`,
-	});
-};
+// ---------------- CREATE ----------------
 
 
-//create station
-export const createStation = async (locationId: string, data: any) => {
-	return request<Station>({
+export const createStation = async (
+	locationId: string,
+	data: Partial<StationDto>,
+	userId: string
+): Promise<StationDto> => {
+	const res = await request<StationDto>({
 		method: 'POST',
-		url: `/stations/${locationId}/createStation`,
+		url: `/stations/location/${locationId}`,
 		data,
+		headers: { 'X-User-Id': userId },
 	});
-};
 
-//toggle station active
-export const toggleStationActive = async (
-	locationId: string,
-	stationId: string,
-	stationActive: boolean
-) => {
-	return request<Station>({
-		method: 'PATCH',
-		url: `/stations/${locationId}/stations/${stationId}/active?active=${stationActive}`,
-	});
-};
-
-//update station
-export const updateStation = async (
-	locationId: string,
-	stationId: string,
-	stationName: string
-) => {
-	return request<Station>({
-		method: 'PATCH',
-		url: `/stations/${locationId}/updateStation/${stationId}`,
-        data: { stationName },
-         
-    });
-   
-};
-
-//delte station
-export const deleteStation = async(
-    locationId: string,
-    stationId: string
-) => {
-    return request<Station>({
-        method: 'DELETE',
-        url: `/stations/${locationId}/deleteStation/${stationId}`
-    })
+	return res.data as StationDto;
 }
 
-//reorder sort stations
-export const reorderStations = async (locationId: string, stations: Station[]) => {
+// ---------------- TOGGLE ACTIVE ----------------
+
+export const toggleStationActive = async (
+	stationId: string,
+	active: boolean,
+	userId: string,
+) => {
 	return request({
-		method: 'PUT',
-		url: `/stations/${locationId}/stations/reorder`,
-		data: stations,
+		method: 'PATCH',
+		url: `/stations/${stationId}/active`,
+		params: { active },
+		headers: { 'X-User-Id': userId },
 	})
 }
+
+
+
+// ---------------- READ ----------------
+
+// Get all stations
+export const getAllStations = async () => {
+	return request<StationEntity[]>({
+		method: 'GET',
+		url: '/stations',
+	});
+};
+
+// Get stations by location
+export const getStationsByLocation = async (locationId: string) => {
+	return request<StationDto[]>({
+		method: 'GET',
+		url: `/stations/by-location/${locationId}`,
+	});
+};
+
+// Get station by name
+export const getStationByName = async (stationName: string) => {
+	return request<StationEntity>({
+		method: 'GET',
+		url: `/stations/by-name/${stationName}`,
+	});
+};
+
+// Get station by ID
+export const getStationById = async (id: string) => {
+	return request<StationEntity>({
+		method: 'GET',
+		url: `/stations/${id}`,
+	});
+};
+
+
+
+
+// ---------------- PARTIAL UPDATE ----------------
+
+// Partial update
+export const updateStation = async (
+	stationId: string,
+	data: Partial<StationEntity>,
+	userId: string,
+): Promise<StationEntity> => {
+	const res = await request<StationEntity>({
+		method: 'PUT',
+		url: `/stations/${stationId}`,
+		data,
+		headers: { 'X-User-Id': userId },
+	});
+
+	return res.data as StationEntity;
+}
+
+
+
+// ---------------- DELETE ----------------
+
+export const deleteStation = async (stationId: string, userId: string) => {
+	return request<void>({
+		method: 'DELETE',
+		url: `/stations/${stationId}`,
+		headers: { 'X-User-Id': userId },
+	});
+};
+
+
+// ---------------- REORDER ----------------
+
+
+export const reorderStations = async (
+    locationId: string,
+    stationIdsInOrder: string[],
+    userId: string
+) => {
+    return request<void>({
+        method: 'PUT',
+        url: `/stations/${locationId}/stations/reorder?userId=${userId}`,
+		data: stationIdsInOrder,
+		headers: { 'X-User-Id': userId },
+    });
+};
+
+export const getStationHistory = async (locationId?: string) => {
+	if (!locationId) return [];
+
+	return request<StationHistoryEntity[]>({
+		method: 'GET',
+		url: `/stations/history?locationId=${locationId}`, // use query param
+	});
+};
+
