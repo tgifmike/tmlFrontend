@@ -65,7 +65,7 @@ const LocationStationsPage = () => {
 	const [currentLocation, setCurrentLocation] = useState<Locations | null>(
 		null
 	);
-	const [showActiveOnly, setShowActiveOnly] = useState(false);
+	const [showActiveOnly, setShowActiveOnly] = useState(true);
 	const [searchTerm, setSearchTerm] = useState('');
 	const [currentPage, setCurrentPage] = useState(1);
 	const [pageSize, setPageSize] = useState(10);

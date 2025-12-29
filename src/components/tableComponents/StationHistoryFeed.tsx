@@ -112,13 +112,13 @@ export default function StationHistoryFeed({ locationId }: Props) {
 		return (
 			<div className="flex justify-center items-center py-20">
 				<Spinner />
-				<span className="ml-4 text-lg">Loading station audit feed…</span>
+				<span className="ml-4 text-lg">Loading Station audit feed…</span>
 			</div>
 		);
 	}
 
 	if (history.length === 0) {
-		return <p className="p-4 text-center">No station audit logs found.</p>;
+		return <p className="p-4 text-center">No Station audit logs found.</p>;
 	}
 
 	const formatHistory = (h: StationHistoryEntity) => {
