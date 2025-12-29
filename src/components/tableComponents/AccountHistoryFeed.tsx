@@ -61,13 +61,7 @@ export default function GlobalAccountHistoryFeed({
 				setBackendHistory(h);
 
 				const userIds = Array.from(new Set(h.map((item) => item.changedBy)));
-				// const usersRes = await getUsersForAccounts(userIds);
-				// const users: User[] = usersRes.data ?? [];
-				// const map: UserMap = {};
-				// users.forEach((u) => {
-				// 	if (u.id) map[u.id] = u.userName ?? u.id;
-				// });
-				// setUsersMap(map);
+			
 			} catch (err) {
 				console.error(err);
 				toast.error('Failed to load account history');
@@ -78,14 +72,49 @@ export default function GlobalAccountHistoryFeed({
 		load();
 	}, []);
 
+	// useEffect(() => {
+	// 	const load = async () => {
+	// 		const res = await getAllAccountHistory();
+
+	// 		const h: AccountHistory[] = Array.isArray(res)
+	// 			? res
+	// 			: Array.isArray(res)
+	// 			? res
+	// 			: [];
+
+	// 		setBackendHistory(h);
+
+	// 		const userIds = Array.from(new Set(h.map((item) => item.changedBy)));
+	// 	};
+
+	// 	load();
+	// }, []);
+
+
 	// Combine backend history and live updates, avoid duplicates
+	// const combinedHistory = useMemo(() => {
+	// 	const map = new Map<string, AccountHistory>();
+	// 	[...updates, ...backendHistory].forEach((h) => {
+	// 		map.set(h.id, h); // latest update wins
+	// 	});
+	// 	return Array.from(map.values());
+	// }, [backendHistory, updates]);
+
 	const combinedHistory = useMemo(() => {
 		const map = new Map<string, AccountHistory>();
-		[...updates, ...backendHistory].forEach((h) => {
-			map.set(h.id, h); // latest update wins
+
+		const safeUpdates = Array.isArray(updates) ? updates : [];
+		const safeBackendHistory = Array.isArray(backendHistory)
+			? backendHistory
+			: [];
+
+		[...safeUpdates, ...safeBackendHistory].forEach((h) => {
+			map.set(h.id, h); // latest wins
 		});
+
 		return Array.from(map.values());
-	}, [backendHistory, updates]);
+	}, [updates, backendHistory]);
+
 
 	// Apply sorting & filtering
 	const filteredHistory = useMemo(() => {

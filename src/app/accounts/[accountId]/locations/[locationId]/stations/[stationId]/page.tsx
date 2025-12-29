@@ -65,7 +65,7 @@ const StationPage = () => {
 	const [currentLocation, setCurrentLocation] = useState<Locations | null>(
 		null
 	);
-	const [showActiveOnly, setShowActiveOnly] = useState(false);
+	const [showActiveOnly, setShowActiveOnly] = useState(true);
 	const [searchTerm, setSearchTerm] = useState('');
 	const [currentPage, setCurrentPage] = useState(1);
 	const [pageSize, setPageSize] = useState(10);
@@ -320,9 +320,9 @@ const StationPage = () => {
 					{/* center */}
 					<div>
 						<p className=" md:text-2xl">
-							Items for Station{' '}
+							Items for Station:{' '}
 							<Link
-								className="text-chart-3 italic"
+								className="text-chart-3 text-3xl font-bold italic"
 								href={`/accounts/${accountIdParam}/locations/${locationIdParam}/stations/${stationIdParam}`} > { stationName }
 								</Link>
 						</p>
@@ -358,7 +358,7 @@ const StationPage = () => {
 							<Droppable droppableId="items">
 								{(provided) => (
 									<div
-										className="hidden md:block bg-accent p-4 rounded-2xl shadow-md w-full md:w-3/4 mx-auto mt-8"
+										className="hidden md:block bg-ring/40 p-4 rounded-2xl shadow-md w-full md:w-3/4 mx-auto mt-8"
 										{...provided.droppableProps}
 										ref={provided.innerRef}
 									>
@@ -381,7 +381,7 @@ const StationPage = () => {
 											>
 												{(provided) => (
 													<div
-														className="flex justify-between items-center p-2 mb-2 bg-background rounded-2xl text-chart-3"
+														className="flex justify-between items-center p-2 mb-2 bg-accent rounded-2xl text-chart-3"
 														ref={provided.innerRef}
 														{...provided.draggableProps}
 														{...provided.dragHandleProps}

@@ -72,7 +72,7 @@ const OptionsPage = () => {
 		null
 	);
 	const [options, setOptions] = useState<OptionEntity[]>([]);
-	const [showActiveOnly, setShowActiveOnly] = useState(false);
+	const [showActiveOnly, setShowActiveOnly] = useState(true);
 	const [searchTerm, setSearchTerm] = useState('');
 	const [expandedTypes, setExpandedTypes] = useState<Set<OptionType>>(
 		new Set()
@@ -275,7 +275,7 @@ const OptionsPage = () => {
 	};
 
 	return (
-		<main className="flex min-h-screen overflow-hidden">
+		<div className="flex min-h-screen overflow-hidden">
 			{/* Sidebar */}
 			<aside className="hidden md:block w-1/6 border-r h-screen bg-ring">
 				<LocationNav
@@ -322,143 +322,145 @@ const OptionsPage = () => {
 						)}
 					</div>
 				</header>
+				<div className="flex flex-col ">
+					{/* Controls */}
+					<div className="flex flex-wrap items-center justify-between gap-4 w-full pt-4 pb-8 px-8 bg-accent">
+						<div className="flex items-center gap-4">
+							<Input
+								type="text"
+								placeholder="Search options..."
+								value={searchTerm}
+								onChange={(e) => setSearchTerm(e.target.value)}
+								className="w-40 md:w-64 bg-background"
+							/>
+							<Button onClick={() => setSearchTerm('')}>Clear</Button>
+						</div>
 
-				{/* Controls */}
-				<div className="flex flex-wrap items-center justify-between gap-4 w-full pt-4 pb-8 px-8">
-					<div className="flex items-center gap-4">
-						<Input
-							type="text"
-							placeholder="Search options..."
-							value={searchTerm}
-							onChange={(e) => setSearchTerm(e.target.value)}
-							className="w-40 md:w-64"
-						/>
-						<Button onClick={() => setSearchTerm('')}>Clear</Button>
+						<div className="flex items-center gap-6">
+							<Switch
+								checked={showActiveOnly}
+								onCheckedChange={(checked) =>
+									setShowActiveOnly(Boolean(checked))
+								}
+							/>
+							<span className="text-sm">Show Active Only</span>
+						</div>
+
+						<div className="flex items-center gap-2">
+							<Button variant="outline" onClick={expandAll}>
+								Expand All
+							</Button>
+							<Button variant="outline" onClick={collapseAll}>
+								Collapse All
+							</Button>
+						</div>
 					</div>
 
-					<div className="flex items-center gap-2">
-						<Switch
-							checked={showActiveOnly}
-							onCheckedChange={(checked) => setShowActiveOnly(Boolean(checked))}
-						/>
-						<span className="text-sm">Show Active Only</span>
-					</div>
+					<Accordion
+						type="multiple"
+						value={[...expandedTypes]}
+						onValueChange={(values) =>
+							setExpandedTypes(new Set(values as OptionType[]))
+						}
+						className="space-y-4"
+					>
+						{optionTypes.map((type) => {
+							const typeOptions = filteredOptions.filter(
+								(o) => o.optionType === type
+							);
+							if (!typeOptions.length) return null;
 
-					<div className="flex items-center gap-2">
-						<Button variant="outline" onClick={expandAll}>
-							Expand All
-						</Button>
-						<Button variant="outline" onClick={collapseAll}>
-							Collapse All
-						</Button>
-					</div>
-				</div>
+							return (
+								<AccordionItem key={type} value={type}>
+									<AccordionTrigger className="text-2xl font-semibold px-7 py-2 [&>svg]:w-8 [&>svg]:h-8">
+										{OptionTypeLabels[type]}
+									</AccordionTrigger>
+									<AccordionContent className="overflow-y-auto bg-accent rounded-2xl px-4 py-6 mb-4">
+										<DragDropContext onDragEnd={handleDragEnd(type)}>
+											<Droppable droppableId={type}>
+												{(provided) => (
+													<div
+														ref={provided.innerRef}
+														{...provided.droppableProps}
+													>
+														<div className="flex justify-between items-center font-bold text-lg px-2 py-1 border-b mb-2 sticky top-0 bg-accent z-10">
+															<span className="flex items-center gap-2 w-1/2">
+																<UpDownIcon className="w-5 h-5" /> Option Name
+															</span>
+															<span className="w-1/4 text-center">Status</span>
+															<span className="w-1/4 text-center">Actions</span>
+														</div>
 
-				<Accordion
-					type="multiple"
-					value={[...expandedTypes]}
-					onValueChange={(values) =>
-						setExpandedTypes(new Set(values as OptionType[]))
-					}
-					className="space-y-4"
-				>
-					{optionTypes.map((type) => {
-						const typeOptions = filteredOptions.filter(
-							(o) => o.optionType === type
-						);
-						if (!typeOptions.length) return null;
-
-						return (
-							<AccordionItem key={type} value={type}>
-								<AccordionTrigger className="text-2xl font-semibold px-7 [&>svg]:w-8 [&>svg]:h-8">
-									{OptionTypeLabels[type]}
-								</AccordionTrigger>
-								<AccordionContent className="max-h-[400px] overflow-y-auto">
-									<DragDropContext onDragEnd={handleDragEnd(type)}>
-										<Droppable droppableId={type}>
-											{(provided) => (
-												<div
-													ref={provided.innerRef}
-													{...provided.droppableProps}
-												>
-													<div className="flex justify-between items-center font-bold text-lg px-2 py-1 border-b mb-2 sticky top-0 bg-accent z-10">
-														<span className="flex items-center gap-2 w-1/2">
-															<UpDownIcon className="w-5 h-5" /> Option Name
-														</span>
-														<span className="w-1/4 text-center">Status</span>
-														<span className="w-1/4 text-center">Actions</span>
+														{typeOptions.map((option, index) => (
+															<Draggable
+																key={option.id}
+																draggableId={option.id}
+																index={index}
+															>
+																{(provided) => (
+																	<div
+																		ref={provided.innerRef}
+																		{...provided.draggableProps}
+																		{...provided.dragHandleProps}
+																		className={clsx(
+																			'flex justify-between items-center p-2 mb-2 bg-ring/40 rounded-2xl transition-opacity',
+																			deletingOptionIds.has(option.id) &&
+																				'opacity-50'
+																		)}
+																	>
+																		<span className="w-1/2 flex items-center gap-2 text-chart-3 text-xl font-medium pl-4">
+																			<UpDownIcon className="w-5 h-5" />
+																			{highlightText(option.optionName)}
+																		</span>
+																		<div className="w-1/4 text-center">
+																			<Switch
+																				checked={option.optionActive}
+																				onCheckedChange={(checked) =>
+																					canToggle
+																						? handleToggleActive(
+																								option.id,
+																								Boolean(checked)
+																						  )
+																						: undefined
+																				}
+																				disabled={
+																					!canToggle ||
+																					deletingOptionIds.has(option.id)
+																				}
+																			/>
+																		</div>
+																		<div className="w-1/4 flex justify-center items-center gap-2">
+																			<EditOptionDialog
+																				option={option}
+																				onOptionUpdated={handleOptionSave}
+																				currentUser={currentUser}
+																			/>
+																			<DeleteConfirmButton
+																				item={{ id: option.id }}
+																				entityLabel="Option"
+																				onDelete={handleOptionDelete}
+																				getItemName={() => option.optionName}
+																				//loading={deletingOptionIds.has(option.id)}
+																			/>
+																		</div>
+																	</div>
+																)}
+															</Draggable>
+														))}
+														{provided.placeholder}
 													</div>
-
-													{typeOptions.map((option, index) => (
-														<Draggable
-															key={option.id}
-															draggableId={option.id}
-															index={index}
-														>
-															{(provided) => (
-																<div
-																	ref={provided.innerRef}
-																	{...provided.draggableProps}
-																	{...provided.dragHandleProps}
-																	className={clsx(
-																		'flex justify-between items-center p-2 mb-2 bg-background rounded-2xl transition-opacity',
-																		deletingOptionIds.has(option.id) &&
-																			'opacity-50'
-																	)}
-																>
-																	<span className="w-1/2 flex items-center gap-2 text-chart-3 text-xl font-medium pl-4">
-																		<UpDownIcon className="w-5 h-5" />
-																		{highlightText(option.optionName)}
-																	</span>
-																	<div className="w-1/4 text-center">
-																		<Switch
-																			checked={option.optionActive}
-																			onCheckedChange={(checked) =>
-																				canToggle
-																					? handleToggleActive(
-																							option.id,
-																							Boolean(checked)
-																					  )
-																					: undefined
-																			}
-																			disabled={
-																				!canToggle ||
-																				deletingOptionIds.has(option.id)
-																			}
-																		/>
-																	</div>
-																	<div className="w-1/4 flex justify-center items-center gap-2">
-																		<EditOptionDialog
-																			option={option}
-																			onOptionUpdated={handleOptionSave}
-																			currentUser={currentUser}
-																		/>
-																		<DeleteConfirmButton
-																			item={{ id: option.id }}
-																			entityLabel="Option"
-																			onDelete={handleOptionDelete}
-																			getItemName={() => option.optionName}
-																			//loading={deletingOptionIds.has(option.id)}
-																		/>
-																	</div>
-																</div>
-															)}
-														</Draggable>
-													))}
-													{provided.placeholder}
-												</div>
-											)}
-										</Droppable>
-									</DragDropContext>
-								</AccordionContent>
-							</AccordionItem>
-						);
-					})}
-				</Accordion>
-
+												)}
+											</Droppable>
+										</DragDropContext>
+									</AccordionContent>
+								</AccordionItem>
+							);
+						})}
+					</Accordion>
+				</div>
 				{/* Audit Table */}
 				{canToggle && (
-					<section className="mt-12 px-4 pb-8">
+					<section className="flex items-start mt-12 px-0 ">
 						{/* <h2 className="text-2xl font-bold mb-4">Option Audit Log</h2> */}
 						{/* <OptionAuditTable accountId={accountIdParam} currentUser={currentUser} /> */}
 						<OptionAuditFeed
@@ -468,7 +470,7 @@ const OptionsPage = () => {
 					</section>
 				)}
 			</section>
-		</main>
+		</div>
 	);
 };
 

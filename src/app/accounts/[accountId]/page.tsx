@@ -150,30 +150,6 @@ const handleUpdateLocation = async (
 };
 
 
-	// // Create location
-	// const handleLocationCreated = async (newLocation: Locations) => {
-	// 	if (!userId) return;
-
-	// 	try {
-	// 		const response = await createLocation(
-	// 			accountIdParam,
-	// 			userId,
-	// 			newLocation
-	// 		);
-	// 		const created = response.data;
-
-	// 		if (!created) {
-	// 			toast.error('Failed to create location.');
-	// 			return;
-	// 		}
-
-	// 		setLocations((prev) => [...prev, created]); // guaranteed to be Locations
-	// 		toast.success(`Location ${created.locationName} created successfully.`);
-	// 	} catch (error: any) {
-	// 		toast.error(error?.message || 'Failed to create location.');
-	// 	}
-	// };
-
 	//handel create
 	const handleLocationCreated = (newLocation: Locations) => {
 		setLocations((prev) => [...prev, newLocation]);
