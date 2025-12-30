@@ -1,3 +1,5 @@
+import { int } from "zod";
+
 export const AppRole = {
 
     MEMBER: 'MEMBER',
@@ -78,19 +80,19 @@ export interface Item {
 	itemName: string;
 	shelfLife: string;
 	panSize: string;
-	toolName: string;
+	toolName?: string | null;
 	isTool: boolean;
-	portionSize: string;
+	portionSize?: string | null;
 	portioned: boolean;
 	temperature: number;
 	itemTemperature: number;
-	tempCategory: string;
-	minTemp: number;
-	maxTemp: number;
+	tempCategory?: string | null;
+	minTemp?: number | null;
+	maxTemp?: number | null;
 	isTempTaken: boolean;
 	ischecked: boolean;
 	isCheckMark: boolean;
-	templateNotes: string;
+	templateNotes?: string | null;
 	observations: string;
 	itemActive: boolean;
 	sortOrder: number;
@@ -104,6 +106,8 @@ export interface Item {
 	completedAt?: string | null;
 	createdAt?: string | null;
 	updatedAt?: string | null;
+	data: any;
+	error: string | null;
 }
 // types/lineCheck.ts
 // export interface Item {
@@ -226,6 +230,35 @@ export interface OptionHistory {
 	changeAt: string;
 	changeType: 'CREATED' | 'UPDATED' | 'DELETED';
 	oldValues: Record<string, any>; // This is key
+}
+
+export interface ItemHistory {
+	id: string;
+	itemId: string;
+	stationId: string;
+	itemName: string;
+	shelfLife: string;
+	panSize: string;
+	toolName: string;
+	isTool: boolean;
+	portionSize: string;
+	portioned: boolean;
+	temperature: number;
+	isTempTaken: boolean;
+	itemActive: boolean;
+	sortOrder: number;
+	isItemChecked: boolean;
+	isCheckMark: boolean;
+	itemTemperature: number;
+	tempCategory: string;
+	templateNotes: string;
+	minTemp: number;
+	maxTemp: number;
+	changedBy: string;
+	changedByName: string;
+	changeAt: string; // ISO string from backend
+	changeType: 'CREATED' | 'UPDATED' | 'DELETED';
+	oldValues?: Record<string, string>;
 }
 
 

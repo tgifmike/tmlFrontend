@@ -53,6 +53,7 @@ type EditItemDialogProps = {
 	portionSizes?: OptionEntity[];
 	shelfLifes?: OptionEntity[];
 	stationId: string;
+	currentUserId: string;
 	onUpdate: (updatedItem: Item) => void;
 };
 
@@ -86,7 +87,7 @@ const getSchema = (items: Item[] = [], currentItemId?: string) =>
 			tempCategory: z.string().optional(),
 
 			isCheckMark: z.boolean().default(false),
-			itemNotes: z.string().optional(),
+			templateNotes: z.string().optional(),
 		})
 		.refine((data) => !data.isTool || !!data.toolName, {
 			message: 'Tool name is required when a tool is needed',
@@ -106,6 +107,7 @@ export function EditItemDialog({
 	item,
 	items,
 	stationId,
+	currentUserId,
 	tools = [],
 	panSizes = [],
 	portionSizes = [],
@@ -132,7 +134,7 @@ export function EditItemDialog({
 			isTempTaken: false,
 			tempCategory: '',
 			isCheckMark: false,
-			itemNotes: '',
+			templateNotes: '',
 			toolName: undefined,
 			portionSize: undefined,
 		},
@@ -155,56 +157,67 @@ export function EditItemDialog({
 			isTempTaken: item.isTempTaken ?? false,
 			tempCategory: item.tempCategory ?? '',
 			isCheckMark: item.isCheckMark ?? false,
-			itemNotes: item.itemNotes ?? '',
+			templateNotes: item.templateNotes ?? '',
 		});
 	}, [open, item]);
 
-	//
+	// submittting edits
 	const onSubmit = async (values: FormValues) => {
 		try {
-			const selectedTemp = values.isTempTaken ? values.tempCategory : null;
+			if (!currentUserId || !item.id)
+				throw new Error('Invalid user ID or item ID');
 
-			const payload = {
-				...values,
+			// Build payload
+			const payload: Partial<Item> = {
+				itemName: values.itemName.trim(),
+				shelfLife: values.shelfLife,
+				panSize: values.panSize,
+				itemActive: true,
+				isTool: values.isTool,
+				toolName: values.isTool ? values.toolName : null,
 				portioned: values.isPortioned,
-				templateNotes: values.itemNotes,
-				tempCategory: selectedTemp,
-				minTemp: selectedTemp ? tempCategoryRanges[selectedTemp]?.min : null,
-				maxTemp: selectedTemp ? tempCategoryRanges[selectedTemp]?.max : null,
+				portionSize: values.isPortioned ? values.portionSize : null,
+				isTempTaken: values.isTempTaken,
+				tempCategory: values.isTempTaken ? values.tempCategory : null,
+				minTemp:
+					values.isTempTaken && values.tempCategory
+						? tempCategoryRanges[values.tempCategory]?.min ?? null
+						: null,
+				maxTemp:
+					values.isTempTaken && values.tempCategory
+						? tempCategoryRanges[values.tempCategory]?.max ?? null
+						: null,
+				isCheckMark: values.isCheckMark,
+				templateNotes: values.templateNotes || null,
 			};
 
-			const { error, data } = await updateItem(stationId, item.id!, payload);
+			// Call API
+			const updatedItem = await updateItem(stationId, item.id, payload, currentUserId);
 
-			if (error) {
-				toast.error(
-					error.includes('exists') ? 'Item name already exists' : error
-				);
+			if (!updatedItem) {
+				toast.error('Failed to update item');
 				return;
 			}
 
-			if (error || !data) {
-				toast.error(error || 'Failed to update item');
-				return;
-			}
-
-			onUpdate(data);
+			onUpdate(updatedItem);
 			toast.success('Item updated successfully');
-			console.log(data);
 			setOpen(false);
 		} catch (err: any) {
 			toast.error(err?.message || 'Failed to update item');
 		}
 	};
 
+
+
 	return (
-		<Dialog open={open} onOpenChange={setOpen}>
+		<Dialog open={open} onOpenChange={setOpen} >
 			<DialogTrigger asChild>
 				<Button variant="ghost" size="icon">
 					<EditIcon className="!w-[28px] !h-[28px]" />
 				</Button>
 			</DialogTrigger>
 
-			<DialogContent>
+			<DialogContent className='bg-accent'>
 				<DialogHeader>
 					<DialogTitle>Edit Item</DialogTitle>
 					<DialogDescription>Update the item details below.</DialogDescription>
@@ -447,7 +460,7 @@ export function EditItemDialog({
 						{/* item Notes */}
 						<FormField
 							control={form.control}
-							name="itemNotes"
+							name="templateNotes"
 							render={({ field }) => (
 								<FormItem>
 									<FormLabel>Notes</FormLabel>

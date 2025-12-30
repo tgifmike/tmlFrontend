@@ -27,7 +27,7 @@ type Props = {
     currentUser?: User;
 };
 
-type UserMap = Record<string, string>;
+// type UserMap = Record<string, string>;
 
 export default function OptionAuditFeed({ accountId }: Props) {
 	const [history, setHistory] = useState<OptionHistory[]>([]);
@@ -46,17 +46,6 @@ export default function OptionAuditFeed({ accountId }: Props) {
 	useEffect(() => {
 		const load = async () => {
 			try {
-				// // Load users
-				// const usersRes = await getUsersForAccount(accountId);
-				// const users: User[] = usersRes.data ?? [];
-
-				// const map: UserMap = {};
-				// users.forEach((u) => {
-				// 	if (u.id) map[u.id] = u.userName ?? u.id;
-				// });
-				// setUsersMap(map);
-
-				// Load history
 				const h = await getOptionHistory(accountId);
 				setHistory(h);
 			} catch (err) {
@@ -97,13 +86,14 @@ export default function OptionAuditFeed({ accountId }: Props) {
 		return (
 			<div className="flex justify-center items-center py-20">
 				<Spinner />
-				<span className="ml-4 text-lg">Loading Option audit feed…</span>
+				<span className="ml-4 text-lg">Loading Option History Feed…</span>
 			</div>
 		);
 	}
 
 	if (!filteredHistory || filteredHistory.length === 0) {
-		return <p className="p-4 text-center">No Option audit logs found.</p>;
+		return <p className="p-4 text-center">No Option History
+		Found.</p>;
 	}
 
 const formatHistory = (h: OptionHistory): React.ReactNode => {

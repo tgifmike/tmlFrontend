@@ -1,13 +1,23 @@
-import { Item } from '../types';
+import { Item, ItemHistory } from '../types';
 import { request } from './axios';
 
 
 //create item
-export const createItem = async (stationId: string, data: any) => {
-    return request<Item>({
+export const createItem = async (stationId: string, data: any, userId: string) => {
+    
+	 if (!userId) throw new Error('User ID is required');
+
+		// Make sure the DTO includes stationId
+		const dto = {
+			stationId,
+			...data,
+		};
+	
+	return request<Item>({
         method: 'POST',
         url: `/items/${stationId}/createItem`,
-        data,
+		data: dto,
+		headers: { 'X-User-Id': userId },
     })
 }
 
@@ -28,35 +38,71 @@ export const getItemsById = async (stationId: string, itemId: string) => {
 };
 
 //update item
-export const updateItem = async (stationId: string, itemId: string, data: any) => {
-    return request<Item>({
-		method: 'PATCH',
-		url: `/items/${stationId}/updateItem/${itemId}`,
+export const updateItem = async (
+	stationId: string,
+	itemId: string,
+	data: Partial<Item>,
+	userId: string
+): Promise<Item> => {
+	const res = await request<Item>({
+		method: 'PUT',
+		url: `/items/${stationId}/updateItem/${itemId}`, 
 		data,
+		headers: { 'X-User-Id': userId },
 	});
-}
+	console.log('updateItem response:', res);
+	return res.data as Item;
+};
+
 
 //toggle active
-export const toggleItemActive = async (stationId: string, itemId: string, itemActive:boolean) =>{
+export const toggleItemActive = async (
+	stationId: string,
+	itemId: string,
+	active: boolean,
+	userId: string
+) => {
     return request<Item>({
 		method: 'PATCH',
-		url: `/items/${stationId}/${itemId}/active?active=${itemActive}`,
+		url: `/items/${stationId}/${itemId}/active`,
+		params: {active},
+		headers: { 'X-User-Id': userId },
 	});
 }
 
-//update item
-export const deleteItem = async (stationId: string, itemId: string) => {
-    return request<void>({
+//delete item
+export const deleteItem = async (itemId: string, userId: string) => {
+	return request<void>({
 		method: 'DELETE',
-		url: `/items/${stationId}/deleteItem/${itemId}`,
-	});
-}
-
-//reooder sort
-export const reorderItems = async (stationId: string, items: Item[]) => {
-	return request({
-		method: 'PUT',
-		url: `/items/${stationId}/items/reorder`,
-		data: items,
+		url: `/items/${itemId}`,
+		headers: { 'X-User-Id': userId },
 	});
 };
+
+
+//reooder sort
+export const reorderItems = async (
+	stationId: string,
+	orderedIds: string[],
+	userId: string
+) => {
+	return request<void>({
+		method: 'PUT',
+		url: `/items/${stationId}/reorder`,
+		data: orderedIds,
+		headers: { 'X-User-Id': userId },
+	});
+};
+
+
+//get item history
+export const getItemHistory = async (stationId: string): Promise<ItemHistory[]> => {
+	const response = await request<ItemHistory[]>({
+		method: 'GET',
+		url: `/items/history`,
+		params: { stationId },
+	});
+	return (response as { data: ItemHistory[] }).data;
+};
+
+

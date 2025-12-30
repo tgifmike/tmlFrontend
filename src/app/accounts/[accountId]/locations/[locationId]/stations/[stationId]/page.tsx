@@ -36,6 +36,7 @@ import { DataCard } from '@/components/cards/DataCard';
 import { getOptions } from '@/app/api/optionsApi';
 import { set } from 'zod';
 import Link from 'next/link';
+import ItemHistoryFeed from '@/components/tableComponents/ItemHistoryFeed';
 
 
 const StationPage = () => {
@@ -75,6 +76,7 @@ const StationPage = () => {
 	const [options, setOptions] = useState<OptionEntity[]>([]);
 
 	const currentUser = session?.user as User | undefined;
+	const currentUserId = session?.user?.id;
 	const sessionUserRole = session?.user?.appRole;
 	const canToggle = currentUser?.appRole === AppRole.MANAGER;
 
@@ -188,7 +190,7 @@ const StationPage = () => {
 		);
 
 		try {
-			await toggleItemActive(stationIdParam, itemId, checked);
+			await toggleItemActive(stationIdParam, itemId, checked, currentUserId!);
 		} catch (error: any) {
 			setItems((prev) =>
 				prev.map((item) =>
@@ -250,7 +252,7 @@ const StationPage = () => {
 
 		try {
 			const itemIdsInOrder = updatedItems.map((i) => i.id!) as any;
-			await reorderItems(stationIdParam, itemIdsInOrder);
+			await reorderItems(stationIdParam, itemIdsInOrder, currentUserId!);
 		} catch (err) {
 			toast.error('Failed to save new item order.');
 		}
@@ -332,6 +334,7 @@ const StationPage = () => {
 					<CreateItemDialog
 						onItemCreated={handleItemCreated}
 						stationId={stationIdParam}
+						currentUserId={currentUserId!}
 						tools={tools}
 						panSizes={panSize}
 						portionSizes={portionSize}
@@ -427,6 +430,7 @@ const StationPage = () => {
 																		portionSizes={portionSize}
 																		shelfLifes={shelfLife}
 																		stationId={stationIdParam}
+																		currentUserId={currentUserId!}
 																		onUpdate={handleItemUpdate}
 																	/>
 
@@ -437,7 +441,7 @@ const StationPage = () => {
 																		}}
 																		entityLabel="Station"
 																		onDelete={async (id) => {
-																			await deleteItem(stationIdParam, id);
+																			await deleteItem( id, currentUserId!);
 																			setItems((prev) =>
 																				prev.filter((it) => it.id !== id)
 																			);
@@ -490,6 +494,7 @@ const StationPage = () => {
 																item={items.find((i) => i.id === item.id)!} // <-- pass the latest item from state
 																items={items}
 																stationId={stationIdParam}
+																currentUserId={currentUserId!} 
 																onUpdate={handleItemUpdate}
 															/>
 
@@ -501,7 +506,7 @@ const StationPage = () => {
 																	}}
 																	entityLabel="Location"
 																	onDelete={async (id) => {
-																		await deleteItem(locationIdParam, id);
+																		await deleteItem(id, currentUserId!);
 																		setStations((prev) =>
 																			prev.filter((s) => s.id !== id)
 																		);
@@ -529,7 +534,9 @@ const StationPage = () => {
 								setPageSize={setPageSize}
 								totalItems={items.length}
 							/>
-						</div>
+							</div>
+							<ItemHistoryFeed stationId={stationIdParam}
+							/>
 					</div>
 				)}
 			</section>
