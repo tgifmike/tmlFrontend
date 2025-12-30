@@ -44,6 +44,7 @@ type CreateItemDialogProps = {
 	onItemCreated?: (item: Item) => void;
 	existingItems?: Item[];
 	stationId: string;
+	currentUserId: string;
 	tools?: OptionEntity[];
 	panSizes?: OptionEntity[];
 	portionSizes?: OptionEntity[];
@@ -101,6 +102,7 @@ export default function CreateItemDialog({
 	onItemCreated,
 	existingItems = [],
 	stationId,
+	currentUserId,
 	tools = [],
 	panSizes = [],
 	portionSizes = [],
@@ -177,7 +179,7 @@ export default function CreateItemDialog({
 			if (!payload.itemNotes) delete payload.itemNotes;
 			if (!payload.templateNotes) delete payload.templateNotes;
 
-			const { data, error } = await createItem(stationId, payload);
+			const { data, error } = await createItem(stationId, payload, currentUserId);
 
 			if (error || !data) {
 				if (error?.includes('409') || error?.toLowerCase().includes('exists')) {
