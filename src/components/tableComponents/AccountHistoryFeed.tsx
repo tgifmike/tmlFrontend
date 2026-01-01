@@ -72,34 +72,6 @@ export default function GlobalAccountHistoryFeed({
 		load();
 	}, []);
 
-	// useEffect(() => {
-	// 	const load = async () => {
-	// 		const res = await getAllAccountHistory();
-
-	// 		const h: AccountHistory[] = Array.isArray(res)
-	// 			? res
-	// 			: Array.isArray(res)
-	// 			? res
-	// 			: [];
-
-	// 		setBackendHistory(h);
-
-	// 		const userIds = Array.from(new Set(h.map((item) => item.changedBy)));
-	// 	};
-
-	// 	load();
-	// }, []);
-
-
-	// Combine backend history and live updates, avoid duplicates
-	// const combinedHistory = useMemo(() => {
-	// 	const map = new Map<string, AccountHistory>();
-	// 	[...updates, ...backendHistory].forEach((h) => {
-	// 		map.set(h.id, h); // latest update wins
-	// 	});
-	// 	return Array.from(map.values());
-	// }, [backendHistory, updates]);
-
 	const combinedHistory = useMemo(() => {
 		const map = new Map<string, AccountHistory>();
 
@@ -157,14 +129,14 @@ export default function GlobalAccountHistoryFeed({
 		switch (h.changeType) {
 			case 'CREATED':
 				return (
-					<span>
+					<span className='text-xl'>
 						{who} created account "<strong>{h.accountName}</strong>" at {when}
 					</span>
 				);
 			case 'UPDATED': {
 				const changes = Object.entries(h.oldValues || {});
 				return (
-					<div className="flex flex-wrap gap-2 items-center">
+					<div className="flex flex-wrap gap-2 items-center text-xl">
 						<span>
 							{who} updated "<strong>{h.accountName}</strong>" at {when}
 						</span>
@@ -192,7 +164,7 @@ export default function GlobalAccountHistoryFeed({
 			}
 			case 'DELETED':
 				return (
-					<span>
+					<span text-xl>
 						{who} deleted account "<strong>{h.accountName}</strong>" at {when}
 					</span>
 				);
@@ -217,7 +189,7 @@ export default function GlobalAccountHistoryFeed({
 							<Card>
 								<CardHeader className="flex flex-col gap-4">
 									<CardTitle className="flex justify-between items-center w-full text-xl md:text-3xl">
-										<div className='text-xl md:text-2xl'>Account History</div>
+										<div className="text-xl md:text-2xl">Account History</div>
 
 										<div className="w-1/4 md:w-1/3">
 											<Input
@@ -244,8 +216,12 @@ export default function GlobalAccountHistoryFeed({
 													</SelectValue>
 												</SelectTrigger>
 												<SelectContent>
-													<SelectItem value="newest">Newest → Oldest</SelectItem>
-													<SelectItem value="oldest">Oldest → Newest</SelectItem>
+													<SelectItem value="newest">
+														Newest → Oldest
+													</SelectItem>
+													<SelectItem value="oldest">
+														Oldest → Newest
+													</SelectItem>
 												</SelectContent>
 											</Select>
 
@@ -286,6 +262,7 @@ export default function GlobalAccountHistoryFeed({
 											<div className="flex justify-between items-start">
 												<span>{formatHistory(h)}</span>
 												<Badge
+													className="p-2 font-bold text-lg"
 													variant={
 														h.changeType === 'CREATED'
 															? 'default'

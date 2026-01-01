@@ -104,7 +104,7 @@ export const EditOptionDialog: React.FC<EditOptionDialogProps> = ({
 				</Button>
 			</DialogTrigger>
 
-			<DialogContent className="sm:max-w-[425px]">
+			<DialogContent className="sm:max-w-[425px] bg-accent">
 				<DialogHeader>
 					<DialogTitle>Edit Option</DialogTitle>
 					<DialogDescription>

@@ -119,7 +119,7 @@ const filteredHistory = useMemo(() => {
 		switch (h.changeType) {
 			case 'CREATED':
 				return (
-					<span>
+					<span className='text-xl'>
 						{who} created location "<strong>{h.locationName}</strong>" at {when}
 					</span>
 				);
@@ -130,7 +130,7 @@ const filteredHistory = useMemo(() => {
 				const changes = Object.keys(oldVals);
 
 				return (
-					<div className="flex flex-wrap gap-2 items-center">
+					<div className="flex flex-wrap gap-2 items-center text-xl">
 						<span>
 							{who} updated "<strong>{h.locationName}</strong>" at {when}
 						</span>
@@ -157,7 +157,7 @@ const filteredHistory = useMemo(() => {
 
 			case 'DELETED':
 				return (
-					<span>
+					<span className='text-xl'>
 						{who} deleted location "<strong>{h.locationName}</strong>" at {when}
 					</span>
 				);
@@ -257,6 +257,7 @@ const filteredHistory = useMemo(() => {
 											<div className="flex justify-between items-start">
 												<span>{formatHistory(h)}</span>
 												<Badge
+													className="p-2 font-bold text-lg"
 													variant={
 														h.changeType === 'CREATED'
 															? 'default'
