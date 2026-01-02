@@ -124,7 +124,7 @@ export default function LineCheckSettingsForm({
 	};
 
 	return (
-		<Card className="w-1/3 ml-4 mt-1">
+		<Card className="w-1/3 ml-4 mt-1 bg-accent">
 			<CardHeader>
 				<CardTitle className="text-2xl">Line Check Settings</CardTitle>
 			</CardHeader>
@@ -147,7 +147,7 @@ export default function LineCheckSettingsForm({
 							}
 							disabled={loading}
 						>
-							<SelectTrigger>
+							<SelectTrigger className="border rounded-md p-2 bg-background">
 								<SelectValue placeholder="Select a day" />
 							</SelectTrigger>
 							<SelectContent>
@@ -177,7 +177,7 @@ export default function LineCheckSettingsForm({
 							{...register('dailyGoal', { valueAsNumber: true })}
 							value={watch('dailyGoal')} // <-- make it controlled
 							placeholder="Enter daily goal"
-							className="flex-1"
+							className="flex-1 bg-background"
 							disabled={loading}
 						/>
 						{errors.dailyGoal && (

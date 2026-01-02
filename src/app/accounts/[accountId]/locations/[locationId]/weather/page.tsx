@@ -100,7 +100,7 @@ const ExtendedForecastPage = () => {
 					location.locationLongitude
 				);
 				setWeather(weatherData.data as WeatherResponse);
-				console.log('Weather Data:', weatherData.data);
+				//console.log('Weather Data:', weatherData.data);
 			} catch (err) {
 				toast.error('Unable to fetch weather data.');
 				router.push('/accounts');

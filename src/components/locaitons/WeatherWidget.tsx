@@ -98,7 +98,8 @@ const WeatherWidget: React.FC<WeatherWidgetProps> = ({
 	};
 
 	return (
-		<Card className={`w-full space-y-4 ${getGradient()}`}>
+		<Card className={`w-full space-y-4 bg-accent`}>
+			{/* <Card className={`w-full space-y-4 ${getGradient()}`}> */}
 			{/* Current Weather */}{' '}
 			<CardHeader>
 				{' '}
