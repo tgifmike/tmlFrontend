@@ -2,11 +2,12 @@
 
 import { getAccountsForUser } from '@/app/api/accountApi';
 import { getUserLocationAccess, toggleLocationActive, updateLocation } from '@/app/api/locationApi';
-import { AppRole, Locations, User } from '@/app/types';
+import { AccessRole, AppRole, Locations, User } from '@/app/types';
 import LineCheckSettingsForm from '@/components/locaitons/LineCheckSettingsForm';
 import LocationNav from '@/components/navBar/LocationNav';
 import MobileDrawerNav from '@/components/navBar/MoibileDrawerNav';
 import Spinner from '@/components/spinner/Spinner';
+import LocationHistoryFeed from '@/components/tableComponents/LocationHistoryFeed';
 import { StatusSwitchOrBadge } from '@/components/tableComponents/StatusSwitchOrBadge';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -50,6 +51,8 @@ const LocationSettingsPage = () => {
 	const { data: session, status } = useSession();
 	const currentUser = session?.user as User | undefined;
 	const sessionUserRole = session?.user?.appRole;
+	const MANAGER = currentUser?.appRole === AppRole.MANAGER;
+	const SRADMIN = currentUser?.accessRole === AccessRole.SRADMIN;
 	const canToggle = currentUser?.appRole === AppRole.MANAGER;
 	const isManager = session?.user?.appRole === AppRole.MANAGER;
 	const params = useParams<{ accountId: string; locationId: string }>();
@@ -173,7 +176,6 @@ const LocationSettingsPage = () => {
 			locationState: '',
 			locationZipCode: '',
 			locationTimeZone: '',
-			
 		},
 	});
 
@@ -236,7 +238,11 @@ const LocationSettingsPage = () => {
 				return;
 			}
 
-			const { data, error } = await updateLocation(currentLocation.id!, session?.user.id, updates);
+			const { data, error } = await updateLocation(
+				currentLocation.id!,
+				session?.user.id,
+				updates
+			);
 
 			if (error) {
 				if (error.toLowerCase().includes('exists')) {
@@ -281,7 +287,6 @@ const LocationSettingsPage = () => {
 		}
 
 		try {
-
 			if (!session?.user.id) {
 				toast.error('You must be logged in to update a location.');
 				return;
@@ -314,7 +319,7 @@ const LocationSettingsPage = () => {
 		);
 
 	return (
-		<main className="flex min-h-screen overflow-hidden bg-accent">
+		<main className="flex min-h-screen overflow-hidden">
 			{/* Desktop Sidebar */}
 			{/* left nav */}
 			<aside className="hidden md:block w-1/6 border-r h-screen bg-ring">
@@ -349,10 +354,10 @@ const LocationSettingsPage = () => {
 						</MobileDrawerNav>
 						<h1 className="text-3xl font-bold mb-4">{locationName}</h1>
 					</div>
-					<p  className="text-3xl font-bold mb-4">Location Settings</p>
+					<p className="text-3xl font-bold mb-4">Location Settings</p>
 				</header>
 				<div className="flex">
-					<Card className="w-2/3 mx-auto m-4">
+					<Card className="w-2/3 mx-auto m-4 bg-accent">
 						<CardHeader>
 							<CardTitle className="text-2xl">Location Information</CardTitle>
 							<CardDescription>You can update fields here</CardDescription>
@@ -384,7 +389,7 @@ const LocationSettingsPage = () => {
 												<FormControl>
 													<Input
 														placeholder="Location Name"
-														className="w-1/2"
+														className="w-1/2 bg-background"
 														disabled={!isManager}
 														{...field}
 													/>
@@ -406,7 +411,7 @@ const LocationSettingsPage = () => {
 													<FormControl>
 														<Input
 															placeholder="Enter street"
-															className="w-1/2"
+															className="w-1/2 bg-background"
 															disabled={!isManager}
 															{...field}
 														/>
@@ -425,7 +430,7 @@ const LocationSettingsPage = () => {
 														<FormControl>
 															<Input
 																placeholder="Enter town"
-																className="w-3/4"
+																className="w-3/4 bg-background"
 																disabled={!isManager}
 																{...field}
 															/>
@@ -448,10 +453,10 @@ const LocationSettingsPage = () => {
 																value={field.value ?? ''}
 																disabled={!isManager}
 															>
-																<SelectTrigger>
+																<SelectTrigger className="bg-background">
 																	<SelectValue placeholder="Select a state" />
 																</SelectTrigger>
-																<SelectContent className="max-h-60 overflow-y-auto">
+																<SelectContent className="max-h-60 overflow-y-auto ">
 																	{US_STATES.map((state) => (
 																		<SelectItem key={state} value={state}>
 																			{state}
@@ -474,7 +479,7 @@ const LocationSettingsPage = () => {
 														<FormControl>
 															<Input
 																placeholder="Enter ZIP code"
-																className="w-1/2"
+																className="w-1/2 bg-background"
 																disabled={!isManager}
 																{...field}
 															/>
@@ -498,7 +503,7 @@ const LocationSettingsPage = () => {
 															value={field.value}
 															disabled={!isManager}
 														>
-															<SelectTrigger className="border rounded-md p-2">
+															<SelectTrigger className="border rounded-md p-2 bg-background">
 																<SelectValue placeholder="Select a time zone" />
 															</SelectTrigger>
 															<SelectContent>
@@ -522,9 +527,11 @@ const LocationSettingsPage = () => {
 
 					<div className="flex flex-col w-1/3">
 						{/* coordinates */}
-						<Card className=" mx-auto m-4">
+						<Card className=" mx-auto m-4 bg-accent">
 							<CardHeader>
-								<CardTitle>Geo Synced Coordinates</CardTitle>
+								<CardTitle className="text-xl">
+									Geo Synced Coordinates
+								</CardTitle>
 								<CardDescription>
 									These coordinates come from your address, if address is not
 									found the zipcode will be used for fallback but is not as
@@ -564,7 +571,7 @@ const LocationSettingsPage = () => {
 						</Card>
 
 						{/* status */}
-						<Card className="mx-auto m-4">
+						<Card className="mx-auto m-4 bg-accent">
 							<CardHeader>
 								<CardTitle>Location Status</CardTitle>
 								<CardDescription>
@@ -590,7 +597,16 @@ const LocationSettingsPage = () => {
 						</Card>
 					</div>
 				</div>
-				<LineCheckSettingsForm locationId={locationIdParam} userId={session?.user.id } />
+				<LineCheckSettingsForm
+					locationId={locationIdParam}
+					userId={session?.user.id}
+				/>
+
+				<div className="flex justify-center items-center">
+					{(SRADMIN || MANAGER) && (
+						<LocationHistoryFeed accountId={accountIdParam} />
+					)}
+				</div>
 			</section>
 		</main>
 	);

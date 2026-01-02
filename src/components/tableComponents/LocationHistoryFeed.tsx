@@ -48,6 +48,8 @@ const LOCATION_FIELD_LABELS: Record<string, string> = {
 	locationTown: 'City',
 	locationState: 'State',
 	locationCountry: 'Country',
+	startOfWeek: 'Start of Week',
+	lineCheckDailyGoal: 'Daily Line Check Goal',
 };
 
 const toBoolean = (val: any): boolean => {
