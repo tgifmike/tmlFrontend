@@ -416,7 +416,7 @@ const LocationLineChecksPage = () => {
 																						{item.tool ? item.toolName : '-'}
 																					</TableCell>
 																					<TableCell>
-																						{item.portioned
+																						{item.isPortioned
 																							? item.portionSize
 																							: '-'}
 																					</TableCell>

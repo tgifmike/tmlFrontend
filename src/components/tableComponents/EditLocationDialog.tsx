@@ -243,7 +243,7 @@ export function EditLocationDialog({
 							name="locationTown"
 							render={({ field }) => (
 								<FormItem>
-									<FormLabel>Town</FormLabel>
+									<FormLabel>City</FormLabel>
 									<FormControl>
 										<Input placeholder="Enter town" {...field} />
 									</FormControl>

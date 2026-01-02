@@ -109,7 +109,7 @@ export default function CreateItemDialog({
 	shelfLifes = [],
 }: CreateItemDialogProps) {
 
-	console.log('tools in CreateItemDialog:', tools);
+	//console.log('tools in CreateItemDialog:', tools);
 
 	//icons 
 	const ItemIcon = Icons.items;

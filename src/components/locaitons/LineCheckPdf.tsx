@@ -249,7 +249,7 @@ const LineCheckPdf: React.FC<Props> = ({
 								<Text
 									style={[styles.cell, styles.centeredCell, styles.portion]}
 								>
-									{item.portioned ? item.portionSize : '-'}
+									{item.isPortioned ? item.portionSize : '-'}
 								</Text>
 								<Text style={[styles.cell, styles.centeredCell, styles.notes]}>
 									{item.templateNotes || '-'}

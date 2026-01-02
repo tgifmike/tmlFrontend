@@ -36,9 +36,39 @@ type Props = {
 	currentUser?: User;
 };
 
-// type UserMap = Record<string, string>;
+const FIELD_LABELS: Record<string, string> = {
+	stationName: 'Name',
+	stationActive: 'Status',
+	sortOrder: 'Display Order',
+};
 
-// const parseJson = (val?: Record<string, string>) => val ?? {};
+const toBoolean = (val: any): boolean => {
+	if (typeof val === 'boolean') return val;
+	if (typeof val === 'string') return val.toLowerCase() === 'true';
+	if (typeof val === 'number') return val === 1;
+	return false;
+};
+
+const formatValue = (key: string, value: any) => {
+	if (value === null || value === undefined) return '—';
+
+	switch (key) {
+		case 'stationActive': {
+			const bool = toBoolean(value);
+			return bool ? 'Active' : 'Inactive';
+		}
+
+		case 'sortOrder':
+			// stored zero-based, display one-based
+			return Number(value) + 1;
+
+		
+
+		default:
+			return String(value);
+	}
+};
+
 
 export default function StationHistoryFeed({ locationId }: Props) {
 	const [history, setHistory] = useState<StationHistoryEntity[]>([]);
@@ -128,13 +158,51 @@ export default function StationHistoryFeed({ locationId }: Props) {
 		switch (h.changeType) {
 			case 'CREATED':
 				return (
-				<div className="text-xl">
-					{who} created station "<strong>{h.stationName}</strong>" at {when}
-				</div>
-			);
+					<div className="text-xl">
+						{who} created station "<strong>{h.stationName}</strong>" at {when}
+					</div>
+				);
 
+			// case 'UPDATED': {
+			// 	const changes = Object.entries(h.oldValues || {});
+
+			// 	return (
+			// 		<div className="flex flex-wrap gap-2 items-center text-xl">
+			// 			<span>
+			// 				{who} updated "<strong>{h.stationName}</strong>" at {when}
+			// 			</span>
+
+			// 			{changes.length > 0 && (
+			// 				<span className="flex flex-wrap gap-2">
+			// 					(
+			// 					{changes.map(([key, oldVal], i) => {
+			// 						const newVal = (h as any)[key];
+			// 						return (
+			// 							<span key={key} className="flex gap-1">
+			// 								<span className="font-medium">
+			// 									{FIELD_LABELS[key] ?? key}:
+			// 								</span>
+			// 								<span className="text-red-600 line-through">
+			// 									{formatValue(key, oldVal)}
+			// 								</span>
+			// 								→
+			// 								<span className="text-green-600">
+			// 									{formatValue(key, newVal)}
+			// 								</span>
+			// 								{i < changes.length - 1 ? ',' : ''}
+			// 							</span>
+			// 						);
+			// 					})}
+			// 					)
+			// 				</span>
+			// 			)}
+			// 		</div>
+			// 	);
+			// }
 			case 'UPDATED': {
-				const changes = Object.entries(h.oldValues || {});
+				const oldVals = h.oldValues ?? {};
+				const newVals = h.newValues ?? {};
+				const keys = Object.keys(oldVals);
 
 				return (
 					<div className="flex flex-wrap gap-2 items-center text-xl">
@@ -142,22 +210,24 @@ export default function StationHistoryFeed({ locationId }: Props) {
 							{who} updated "<strong>{h.stationName}</strong>" at {when}
 						</span>
 
-						{changes.length > 0 && (
+						{keys.length > 0 && (
 							<span className="flex flex-wrap gap-2">
 								(
-								{changes.map(([key, oldVal], i) => {
-									const newVal = (h as any)[key];
-									return (
-										<span key={key} className="flex gap-1">
-											<span className="font-medium">{key}:</span>
-											<span className="text-red-600 line-through">
-												{String(oldVal)}
-											</span>
-											→<span className="text-green-600">{String(newVal)}</span>
-											{i < changes.length - 1 ? ',' : ''}
+								{keys.map((key, i) => (
+									<span key={key} className="flex gap-1">
+										<span className="font-medium">
+											{FIELD_LABELS[key] ?? key}:
 										</span>
-									);
-								})}
+										<span className="text-red-600 line-through">
+											{formatValue(key, oldVals[key])}
+										</span>
+										→
+										<span className="text-green-600">
+											{formatValue(key, newVals[key])}
+										</span>
+										{i < keys.length - 1 ? ',' : ''}
+									</span>
+								))}
 								)
 							</span>
 						)}
@@ -167,7 +237,7 @@ export default function StationHistoryFeed({ locationId }: Props) {
 
 			case 'DELETED':
 				return (
-					<span className='text-xl'>
+					<span className="text-xl">
 						{who} deleted station "<strong>{h.stationName}</strong>" at {when}
 					</span>
 				);

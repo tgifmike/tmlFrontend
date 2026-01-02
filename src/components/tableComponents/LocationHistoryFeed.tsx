@@ -38,6 +38,44 @@ type Props = {
 
 type UserMap = Record<string, string>;
 
+const LOCATION_FIELD_LABELS: Record<string, string> = {
+	locationName: 'Location Name',
+	locationActive: 'Status',
+	sortOrder: 'Display Order',
+	locationTimeZone: 'Time Zone',
+	locationZipCode: 'ZIP Code',
+	locationStreet: 'Street',
+	locationTown: 'City',
+	locationState: 'State',
+	locationCountry: 'Country',
+};
+
+const toBoolean = (val: any): boolean => {
+	if (typeof val === 'boolean') return val;
+	if (typeof val === 'string') return val.toLowerCase() === 'true';
+	if (typeof val === 'number') return val === 1;
+	return false;
+};
+
+const formatLocationValue = (key: string, value: any) => {
+	if (value === null || value === undefined) return '—';
+
+	switch (key) {
+		case 'locationActive': {
+			const bool = toBoolean(value);
+			return bool ? 'Active' : 'Inactive';
+		}
+
+		case 'sortOrder':
+			// zero-based → user-friendly
+			return Number(value) + 1;
+
+		default:
+			return String(value);
+	}
+};
+
+
 const parseJson = (val?: string): Record<string, string> => {
 	if (!val) return {};
 	try {
@@ -119,7 +157,7 @@ const filteredHistory = useMemo(() => {
 		switch (h.changeType) {
 			case 'CREATED':
 				return (
-					<span className='text-xl'>
+					<span className="text-xl">
 						{who} created location "<strong>{h.locationName}</strong>" at {when}
 					</span>
 				);
@@ -140,11 +178,16 @@ const filteredHistory = useMemo(() => {
 								(
 								{changes.map((key, i) => (
 									<span key={key} className="flex gap-1">
-										<span className="font-medium">{key}:</span>
-										<span className="text-red-600 line-through">
-											{oldVals[key]}
+										<span className="font-medium">
+											{LOCATION_FIELD_LABELS[key] ?? key}:
 										</span>
-										→<span className="text-green-600">{newVals[key]}</span>
+										<span className="text-red-600 line-through">
+											{formatLocationValue(key, oldVals[key])}
+										</span>
+										→
+										<span className="text-green-600">
+											{formatLocationValue(key, newVals[key])}
+										</span>
 										{i < changes.length - 1 ? ',' : ''}
 									</span>
 								))}
@@ -157,7 +200,7 @@ const filteredHistory = useMemo(() => {
 
 			case 'DELETED':
 				return (
-					<span className='text-xl'>
+					<span className="text-xl">
 						{who} deleted location "<strong>{h.locationName}</strong>" at {when}
 					</span>
 				);
