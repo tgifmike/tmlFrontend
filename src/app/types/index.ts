@@ -83,7 +83,7 @@ export interface Item {
 	toolName?: string | null;
 	isTool: boolean;
 	portionSize?: string | null;
-	portioned: boolean;
+	isPortioned: boolean;
 	temperature: number;
 	itemTemperature: number;
 	tempCategory?: string | null;
@@ -332,4 +332,5 @@ export interface StationHistoryEntity {
 	changedBy?: string;
 	changedByName?: string;
 	oldValues?: Record<string, string>;
+	newValues?: Record<string, any>;
 }

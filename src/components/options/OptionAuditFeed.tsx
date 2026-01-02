@@ -27,7 +27,44 @@ type Props = {
     currentUser?: User;
 };
 
-// type UserMap = Record<string, string>;
+const FIELD_LABELS: Record<string, string> = {
+	optionName: 'Name',
+	optionActive: 'Status',
+	optionType: 'Type',
+	sortOrder: 'Display Order',
+};
+
+const toBoolean = (val: any): boolean => {
+	if (typeof val === 'boolean') return val;
+	if (typeof val === 'string') return val.toLowerCase() === 'true';
+	if (typeof val === 'number') return val === 1;
+	return false;
+};
+
+const formatValue = (key: string, value: any) => {
+	if (value === null || value === undefined) return '—';
+
+	switch (key) {
+		case 'optionActive': {
+			const bool = toBoolean(value);
+			return bool ? 'Active' : 'Inactive';
+		}
+
+		case 'sortOrder':
+			// stored zero-based, display one-based
+			return Number(value) + 1;
+
+		case 'optionType':
+			return value
+				.replace(/_/g, ' ')
+				.toLowerCase()
+				.replace(/^\w/, (c: string) => c.toUpperCase());
+
+		default:
+			return String(value);
+	}
+};
+
 
 export default function OptionAuditFeed({ accountId }: Props) {
 	const [history, setHistory] = useState<OptionHistory[]>([]);
@@ -124,11 +161,16 @@ const formatHistory = (h: OptionHistory): React.ReactNode => {
 								const newVal = (h as any)[key];
 								return (
 									<span key={key} className="flex gap-1">
-										<span className="font-medium">{key}:</span>
-										<span className="text-red-600 line-through">
-											{String(oldVal)}
+										<span className="font-medium">
+											{FIELD_LABELS[key] ?? key}:
 										</span>
-										→<span className="text-green-600">{String(newVal)}</span>
+										<span className="text-red-600 line-through">
+											{formatValue(key, oldVal)}
+										</span>
+										→
+										<span className="text-green-600">
+											{formatValue(key, newVal)}
+										</span>
 										{i < changes.length - 1 ? ',' : ''}
 									</span>
 								);

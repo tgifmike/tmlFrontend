@@ -140,17 +140,6 @@ export const EditOptionDialog: React.FC<EditOptionDialogProps> = ({
 							</SelectContent>
 						</Select>
 					</div>
-
-					{/* <div className="grid gap-2">
-						<label>Status</label>
-						<select
-							value={optionActive ? 'active' : 'inactive'}
-							onChange={(e) => setOptionActive(e.target.value === 'active')}
-						>
-							<option value="active">Active</option>
-							<option value="inactive">Inactive</option>
-						</select>
-					</div> */}
 					<div className="flex items-center gap-4">
 						<Switch
 							checked={optionActive}

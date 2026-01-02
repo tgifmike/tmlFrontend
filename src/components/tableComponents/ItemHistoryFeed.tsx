@@ -11,12 +11,54 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "..
 import { Input } from "../ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 import { getItemHistory } from "@/app/api/item.Api";
+import { tempCategories } from "@/lib/constants/usConstants";
 
 
 
 type Props = {
     stationId: string;
     
+};
+
+const FIELD_LABELS: Record<string, string> = {
+	itemName: 'Name',
+	itemActive: 'Status',
+	shelfLife: 'Shelf Life',
+	panSize: 'Pan Size',
+	isTool: 'Item has a tool',
+	toolName: 'Tool Name',
+	isTempTaken: 'Temperature Taken',
+	tempCategory: 'Temperature Category',
+	isCheckMark: 'Item Checked Off',
+	portionSize: 'Portion Size',
+	isPortioned: 'Is Item Portioned',
+	templateNotes: 'Item Notes',
+	sortOrder: 'Display Order',
+};
+
+const toBoolean = (val: any): boolean => {
+	if (typeof val === 'boolean') return val;
+	if (typeof val === 'string') return val.toLowerCase() === 'true';
+	if (typeof val === 'number') return val === 1;
+	return false;
+};
+
+const formatValue = (key: string, value: any) => {
+	if (value === null || value === undefined) return '—';
+
+	switch (key) {
+		case 'stationActive': {
+			const bool = toBoolean(value);
+			return bool ? 'Active' : 'Inactive';
+		}
+
+		case 'sortOrder':
+			// stored zero-based, display one-based
+			return Number(value) + 1;
+
+		default:
+			return String(value);
+	}
 };
 
 export default function ItemHistoryFeed({ stationId }: Props) {
@@ -103,26 +145,33 @@ export default function ItemHistoryFeed({ stationId }: Props) {
 								{who} updated "<strong>{h.itemName}</strong>" at {when}
 							</span>
 
-							{changes.length > 0 && (
+							{/* {changes.length > 0 && (
 								<span className="flex flex-wrap gap-2">
-									(
-									{changes.map(([key, oldVal], i) => {
-										const newVal = (h as any)[key];
-										return (
-											<span key={key} className="flex gap-1">
-												<span className="font-medium">{key}:</span>
-												<span className="text-red-600 line-through">
-													{String(oldVal)}
-												</span>
-												→
-												<span className="text-green-600">{String(newVal)}</span>
-												{i < changes.length - 1 ? ',' : ''}
+									( */}
+						{changes.length > 0 && (
+							<span className="flex flex-wrap gap-2">
+								(
+								{changes.map(([key, oldVal], i) => {
+									const newVal = (h as any)[key];
+									return (
+										<span key={key} className="flex gap-1">
+											<span className="font-medium">
+												{FIELD_LABELS[key] ?? key}:
 											</span>
-										);
-									})}
-									)
-								</span>
-							)}
+											<span className="text-red-600 line-through">
+												{formatValue(key, oldVal)}
+											</span>
+											→
+											<span className="text-green-600">
+												{formatValue(key, newVal)}
+											</span>
+											{i < changes.length - 1 ? ',' : ''}
+										</span>
+									);
+								})}
+								)
+							</span>
+						)}
 						</div>
 					);
 				}

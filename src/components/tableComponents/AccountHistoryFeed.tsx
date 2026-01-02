@@ -1,4 +1,4 @@
-// 'use client';
+'use client';
 
 import { useEffect, useState, useMemo } from 'react';
 import { toast } from 'sonner';
@@ -33,6 +33,38 @@ import {
 } from '../ui/select';
 
 type UserMap = Record<string, string>;
+
+const ACCOUNT_FIELD_LABELS: Record<string, string> = {
+	accountName: 'Account Name',
+	accountActive: 'Status',
+	
+};
+
+const toBoolean = (val: any): boolean => {
+	if (typeof val === 'boolean') return val;
+	if (typeof val === 'string') return val.toLowerCase() === 'true';
+	if (typeof val === 'number') return val === 1;
+	return false;
+};
+
+const formatAccountValue = (key: string, value: any) => {
+	if (value === null || value === undefined) return '—';
+
+	switch (key) {
+		case 'accountActive': {
+			const bool = toBoolean(value);
+			return bool ? 'Active' : 'Inactive';
+		}
+
+		case 'sortOrder':
+			// zero-based → human-friendly
+			return Number(value) + 1;
+
+		default:
+			return String(value);
+	}
+};
+
 
 export default function GlobalAccountHistoryFeed({
 	currentUser,
@@ -129,29 +161,37 @@ export default function GlobalAccountHistoryFeed({
 		switch (h.changeType) {
 			case 'CREATED':
 				return (
-					<span className='text-xl'>
+					<span className="text-xl">
 						{who} created account "<strong>{h.accountName}</strong>" at {when}
 					</span>
 				);
 			case 'UPDATED': {
 				const changes = Object.entries(h.oldValues || {});
+
 				return (
 					<div className="flex flex-wrap gap-2 items-center text-xl">
 						<span>
 							{who} updated "<strong>{h.accountName}</strong>" at {when}
 						</span>
+
 						{changes.length > 0 && (
 							<span className="flex flex-wrap gap-2">
 								(
 								{changes.map(([key, oldVal], i) => {
 									const newVal = (h as any)[key];
+
 									return (
 										<span key={key} className="flex gap-1">
-											<span className="font-medium">{key}:</span>
-											<span className="text-red-600 line-through">
-												{String(oldVal)}
+											<span className="font-medium">
+												{ACCOUNT_FIELD_LABELS[key] ?? key}:
 											</span>
-											→<span className="text-green-600">{String(newVal)}</span>
+											<span className="text-red-600 line-through">
+												{formatAccountValue(key, oldVal)}
+											</span>
+											→
+											<span className="text-green-600">
+												{formatAccountValue(key, newVal)}
+											</span>
 											{i < changes.length - 1 ? ',' : ''}
 										</span>
 									);
@@ -162,9 +202,10 @@ export default function GlobalAccountHistoryFeed({
 					</div>
 				);
 			}
+
 			case 'DELETED':
 				return (
-					<span text-xl>
+					<span className='text-xl'>
 						{who} deleted account "<strong>{h.accountName}</strong>" at {when}
 					</span>
 				);
