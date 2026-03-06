@@ -366,15 +366,11 @@ const LocationLineChecksPage = () => {
 														<div className="flex gap-4">
 															<span>
 																Started:{' '}
-																{new Date(
-																	lc.checkTime 
-																).toLocaleTimeString()}
+																{new Date(lc.checkTime).toLocaleTimeString()}
 															</span>
 															<span>
 																Completed:{' '}
-																{new Date(
-																	lc.completedAt 
-																).toLocaleTimeString()}
+																{new Date(lc.completedAt).toLocaleTimeString()}
 															</span>
 														</div>
 													</div>
@@ -424,7 +420,12 @@ const LocationLineChecksPage = () => {
 																						{item.templateNotes || '-'}
 																					</TableCell>
 																					<TableCell>
-																						{item.tempTaken ? (
+																						{item.isMissing ? (
+																							// Highlight missing items
+																							<span className="text-xl font-bold text-red-700">
+																								Item Missing!
+																							</span>
+																						) : item.tempTaken ? (
 																							<div className="flex flex-col">
 																								<span
 																									className={`font-medium text-lg ${

@@ -103,6 +103,7 @@ export interface Item {
 	itemChecked?: boolean;
 	tool?: boolean;
 	tempTaken?: boolean;
+	isMissing?: boolean;
 	completedAt?: string | null;
 	createdAt?: string | null;
 	updatedAt?: string | null;
