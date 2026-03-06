@@ -422,7 +422,7 @@ const LocationLineChecksPage = () => {
 																					<TableCell>
 																						{item.isMissing ? (
 																							// Highlight missing items
-																							<span className="text-xl font-bold text-red-700">
+																							<span className="text-lg font-bold text-red-700">
 																								Item Missing!
 																							</span>
 																						) : item.tempTaken ? (
