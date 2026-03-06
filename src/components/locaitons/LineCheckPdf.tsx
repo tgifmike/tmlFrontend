@@ -18,8 +18,6 @@ Font.register({
 	src: 'https://cdn.jsdelivr.net/npm/dejavu-fonts-ttf@2.37.1/ttf/DejaVuSans.ttf',
 });
 
-
-
 interface Props {
 	lineCheck: LineCheck;
 	accountName?: string;
@@ -29,30 +27,22 @@ interface Props {
 
 const styles = StyleSheet.create({
 	page: {
-  fontSize: 8,
-  paddingTop: 45,
-  paddingBottom: 15,
-  paddingLeft: 15,
-  paddingRight: 65, // optimal
-  flexDirection: 'column',
-  fontFamily: 'DejaVuSans',
-  margin: 0,
-},
-
-
-	/* Header */
+		fontSize: 8,
+		paddingTop: 45,
+		paddingBottom: 15,
+		paddingLeft: 15,
+		paddingRight: 65,
+		flexDirection: 'column',
+		fontFamily: 'DejaVuSans',
+		margin: 0,
+	},
 	headerContainer: {
 		flexDirection: 'row',
 		justifyContent: 'space-between',
 		alignItems: 'flex-start',
-		height: 40,
-		marginBottom: 2,
+		marginBottom: 6,
 	},
-	headerText: {
-		fontSize: 12,
-		fontWeight: 'bold',
-		lineHeight: 1,
-	},
+	headerText: { fontSize: 12, fontWeight: 'bold', lineHeight: 1 },
 	accountImage: {
 		width: 50,
 		height: 50,
@@ -61,53 +51,34 @@ const styles = StyleSheet.create({
 		overflow: 'hidden',
 		marginRight: 0,
 	},
-	/* Station Section */
 	stationSection: {
 		marginTop: 2,
 		padding: 8,
 		borderWidth: 1,
 		borderColor: '#000',
 		borderRadius: 6,
-		//overflow: 'hidden',
 	},
-	stationHeader: {
-		fontSize: 10,
-		fontWeight: 'bold',
-		marginBottom: 5,
-	},
-
-	/* Table */
+	stationHeader: { fontSize: 10, fontWeight: 'bold', marginBottom: 5 },
 	tableHeader: {
 		flexDirection: 'row',
 		borderBottomColor: '#000',
 		borderBottomWidth: 1,
 		paddingBottom: 4,
 		marginBottom: 2,
-		// unshaded
 	},
-	tableRow: {
-		flexDirection: 'row',
-		paddingVertical: 2,
-	},
+	tableRow: { flexDirection: 'row', paddingVertical: 2 },
 	shadedRow: {
 		flexDirection: 'row',
 		backgroundColor: '#f2f2f2',
 		paddingVertical: 4,
 		paddingHorizontal: 3,
 	},
-
-	/* Cell styling */
-	cell: {
-		// borderRightWidth: 1,
-		// borderRightColor: '#ccc',
-		paddingHorizontal: 3,
-	},
+	cell: { paddingHorizontal: 3 },
 	centeredCell: {
 		textAlign: 'center',
 		justifyContent: 'center',
 		alignItems: 'center',
 	},
-
 	itemName: { flex: 1 },
 	shelfLife: { flex: 1 },
 	container: { flex: 1 },
@@ -119,7 +90,7 @@ const styles = StyleSheet.create({
 	observations: { flex: 1.5 },
 });
 
-// Table Header Component
+// Table Header
 const TableHeader = () => (
 	<View style={styles.tableHeader} fixed>
 		<Text style={[styles.cell, styles.itemName]}>Item</Text>
@@ -135,7 +106,7 @@ const TableHeader = () => (
 		</Text>
 		<Text style={[styles.cell, styles.centeredCell, styles.notes]}>Notes</Text>
 		<Text style={[styles.cell, styles.centeredCell, styles.temp]}>
-			Temp/Checked
+			Temp / Checked
 		</Text>
 		<Text style={[styles.cell, styles.observations]}>Observations</Text>
 	</View>
@@ -149,21 +120,12 @@ const LineCheckPdf: React.FC<Props> = ({
 }) => (
 	<Document>
 		<Page size="A4" orientation="landscape" style={styles.page}>
-			{/* HEADER */}
-			<View
-				style={{
-					flexDirection: 'row',
-					justifyContent: 'space-between',
-					alignItems: 'flex-start',
-					marginBottom: 6, // very small clean spacing
-				}}
-			>
-				{/* Left column: title + info */}
+			{/* Header */}
+			<View style={styles.headerContainer}>
 				<View style={{ flexDirection: 'column', gap: 2 }}>
 					<Text style={{ fontSize: 12, fontWeight: 'bold' }}>Line Check</Text>
-
-					<Text>Account Name: {accountName}</Text>
-					<Text>Location Name: {locationName}</Text>
+					<Text>Account Name: {accountName || '-'}</Text>
+					<Text>Location Name: {locationName || '-'}</Text>
 					<Text>Performed by: {lineCheck.username || '-'}</Text>
 					<Text>
 						Line Check Start Time:{' '}
@@ -179,7 +141,6 @@ const LineCheckPdf: React.FC<Props> = ({
 					</Text>
 				</View>
 
-				{/* Right column: logo */}
 				{accountImage ? (
 					<Image
 						style={{
@@ -199,23 +160,15 @@ const LineCheckPdf: React.FC<Props> = ({
 					<Text>No Logo added</Text>
 				)}
 			</View>
-			{/* STATIONS */}
-			{lineCheck.stations?.map((station) => (
-				<View
-					key={station.id}
-					style={styles.stationSection}>
-					wrap={true}
-					break={station.items.length > 10}
-					{/* wrap={false}> */}
 
+			{/* Stations */}
+			{lineCheck.stations?.map((station) => (
+				<View key={station.id} style={styles.stationSection}>
 					<Text style={styles.stationHeader}>
 						Station: {station.stationName}
 					</Text>
-
-					{/* Table Header */}
 					<TableHeader />
 
-					{/* ROWS */}
 					{station.items?.map((item, index) => {
 						const shaded = index % 2 === 1;
 						const rowStyles = [styles.tableRow];
@@ -255,8 +208,19 @@ const LineCheckPdf: React.FC<Props> = ({
 									{item.templateNotes || '-'}
 								</Text>
 
-								{/* TEMP or CHECKMARK */}
-								{item.tempTaken ? (
+								{/* TEMP / CHECK / MISSING */}
+								{item.isMissing ? (
+									<Text
+										style={[
+											styles.cell,
+											styles.temp,
+											styles.centeredCell,
+											{ color: 'red', fontWeight: 'bold' },
+										]}
+									>
+										Item Missing!
+									</Text>
+								) : item.tempTaken ? (
 									<View
 										style={[
 											styles.cell,
