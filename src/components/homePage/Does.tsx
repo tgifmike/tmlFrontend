@@ -1,8 +1,15 @@
-import React from 'react';
+'use client';
+import React, { useState } from 'react';
 import Image from 'next/image';
 import { CircleCheck } from 'lucide-react';
+import Lightbox from 'yet-another-react-lightbox';
+import 'yet-another-react-lightbox/styles.css';
 
 export default function Does() {
+	const screenshots = ['/lineCheck1.png', '/lineCheck2.png', '/linecheck3.png'];
+	const [open, setOpen] = useState(false);
+	const [index, setIndex] = useState(0);
+
 	return (
 		<section className="py-24 bg-white">
 			<div className="max-w-6xl mx-auto px-6">
@@ -44,35 +51,19 @@ export default function Does() {
 						<h3 className="text-2xl font-semibold mb-6">Key Features</h3>
 
 						<ul className="space-y-4 text-lg text-gray-700">
-							<li className="flex gap-3 items-start">
-								<CircleCheck className="text-red-600 w-5 h-5 mt-1" />
-								Guided line check checklists
-							</li>
-
-							<li className="flex gap-3 items-start">
-								<CircleCheck className="text-red-600 w-5 h-5 mt-1" />
-								Temperature logging for every station
-							</li>
-
-							<li className="flex gap-3 items-start">
-								<CircleCheck className="text-red-600 w-5 h-5 mt-1" />
-								Expiration and freshness verification
-							</li>
-
-							<li className="flex gap-3 items-start">
-								<CircleCheck className="text-red-600 w-5 h-5 mt-1" />
-								Real-time alerts for unsafe temperatures
-							</li>
-
-							<li className="flex gap-3 items-start">
-								<CircleCheck className="text-red-600 w-5 h-5 mt-1" />
-								Digital records ready for inspections
-							</li>
-
-							<li className="flex gap-3 items-start">
-								<CircleCheck className="text-red-600 w-5 h-5 mt-1" />
-								Manager dashboards and reports
-							</li>
+							{[
+								'Guided line check checklists',
+								'Temperature logging for every station',
+								'Expiration and freshness verification',
+								'Real-time alerts for unsafe temperatures',
+								'Digital records ready for inspections',
+								'Manager dashboards and reports',
+							].map((feature, i) => (
+								<li key={i} className="flex gap-3 items-start">
+									<CircleCheck className="text-red-600 w-5 h-5 mt-1" />
+									{feature}
+								</li>
+							))}
 						</ul>
 
 						<p className="mt-8 text-lg text-gray-600">
@@ -84,35 +75,44 @@ export default function Does() {
 
 				{/* Line Check Screens */}
 				<div className="mt-24">
-					<h3 className="text-2xl font-semibold text-center ">
+					<h3 className="text-2xl font-semibold text-center mb-8">
 						Line Check in Action
 					</h3>
 
-					<div className="relative flex justify-center items-center h-[520px]">
-						<Image
-							src="/lineCheck1.png"
-							alt="Line check screen"
-							width={260}
-							height={500}
-							className="absolute left-0 rotate-[-6deg] rounded-xl shadow-xl"
-						/>
+					<div className="relative flex justify-center items-center h-[520px] cursor-pointer">
+						{screenshots.map((src, i) => {
+							const rotations = ['-6deg', '0deg', '6deg'];
+							const sizes = [260, 300, 260];
+							const positions = ['left-0', 'relative z-10', 'right-0'];
 
-						<Image
-							src="/lineCheck2.png"
-							alt="Line check screen"
-							width={300}
-							height={520}
-							className="relative z-10 rounded-xl shadow-2xl"
-						/>
-
-						<Image
-							src="/lineCheck3.png"
-							alt="Line check screen"
-							width={260}
-							height={500}
-							className="absolute right-0 rotate-[6deg] rounded-xl shadow-xl"
-						/>
+							return (
+								<div
+									key={i}
+									className={`absolute ${positions[i]} transform rotate-[${rotations[i]}] transition-transform duration-300 hover:scale-105`}
+									onClick={() => {
+										setIndex(i);
+										setOpen(true);
+									}}
+								>
+									<Image
+										src={src}
+										width={sizes[i]}
+										height={i === 1 ? 520 : 500}
+										className="rounded-xl shadow-2xl"
+										alt={`Line check ${i + 1}`}
+									/>
+								</div>
+							);
+						})}
 					</div>
+
+					{/* Lightbox */}
+					<Lightbox
+						open={open}
+						index={index}
+						close={() => setOpen(false)}
+						slides={screenshots.map((src) => ({ src }))}
+					/>
 				</div>
 			</div>
 		</section>
