@@ -81,14 +81,16 @@ export default function Does() {
 
 					<div className="relative flex justify-center items-center h-[520px] cursor-pointer">
 						{screenshots.map((src, i) => {
-							const rotations = ['-6deg', '0deg', '6deg'];
-							const sizes = [260, 300, 260];
+							const rotations = ['-10deg', '0deg', '10deg'];
+							const sizes = [320, 400, 320];
 							const positions = ['left-0', 'relative z-10', 'right-0'];
 
 							return (
 								<div
 									key={i}
-									className={`absolute ${positions[i]} transform rotate-[${rotations[i]}] transition-transform duration-300 hover:scale-105`}
+									className={`absolute ${positions[i]} transform transition-transform duration-300 hover:scale-105 ${
+										i === 0 ? '-rotate-6' : i === 1 ? 'rotate-0' : 'rotate-6'
+									}`}
 									onClick={() => {
 										setIndex(i);
 										setOpen(true);
