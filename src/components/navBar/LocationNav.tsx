@@ -49,12 +49,12 @@ const LocationNav = ({ accountName, accountImage, accountId, sessionUserRole, lo
 			</div>
 			<div>
 				{image || accountImage ? (
-					<div className="relative mx-auto mt-4 w-24 h-24 sm:w-36 sm:h-36 md:w-44 md:h-44 rounded-full overflow-hidden">
+					<div className="relative mx-auto mt-4 w-24 h-24 sm:w-36 sm:h-36 md:w-44 md:h-44  overflow-hidden">
 						<Image
 							src={`data:image/png;base64,${image ?? accountImage}`}
 							alt="Account Logo"
 							fill
-							className="object-cover rounded-full"
+							className="object-cover "
 						/>
 					</div>
 				) : (
