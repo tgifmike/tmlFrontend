@@ -36,12 +36,13 @@ const LeftNav = ({ accountName, accountImage, accountId, sessionUserRole }: Left
 			</div>
 			<div>
 				{image || accountImage ? (
-					<div className="relative mx-auto mt-4 w-24 h-24 sm:w-36 sm:h-36 md:w-44 md:h-44 rounded-full overflow-hidden">
+					// <div className="relative mx-auto mt-4 w-24 h-24 sm:w-36 sm:h-36 md:w-44 md:h-44 rounded-full overflow-hidden">
+					<div className="relative mx-auto mt-4 w-32 h-32 sm:w-40 sm:h-40 md:w-44 md:h-44 lg:w-48 lg:h-48  overflow-hidden">
 						<Image
 							src={`data:image/png;base64,${image ?? accountImage}`}
 							alt="Account Logo"
 							fill
-							className="object-cover rounded-full"
+							className="object-contain"
 						/>
 					</div>
 				) : (
