@@ -49,12 +49,18 @@ const [targetLocationId, setTargetLocationId] = useState<string | undefined>(
 	const [overwrite, setOverwrite] = useState(false);
 	const [loading, setLoading] = useState(false);
 
-const filteredLocations = locations.filter(
-	(loc) =>
-		loc.id &&
-		loc.id !== currentLocationId &&
-		loc.accountId === currentAccountId,
-);
+// const filteredLocations = locations.filter(
+// 	(loc) =>
+// 		loc.id &&
+// 		loc.id !== currentLocationId &&
+// 		loc.accountId === currentAccountId,
+	// );
+	const filteredLocations = locations.filter(
+		(loc): loc is Locations & { id: string } =>
+			!!loc.id &&
+			loc.id !== currentLocationId &&
+			loc.accountId === currentAccountId,
+	);
 
 	// Set default target location when locations change
 useEffect(() => {
@@ -72,12 +78,12 @@ useEffect(() => {
 
 		setLoading(true);
 		try {
-			console.log({
-				stationId,
-				targetLocationId,
-				userId,
-				overwrite,
-			});
+			// console.log({
+			// 	stationId,
+			// 	targetLocationId,
+			// 	userId,
+			// 	overwrite,
+			// });
 			// call API with overwrite flag
 			await cloneStation(stationId, targetLocationId, userId, overwrite);
 			toast.success('Station cloned successfully!');
@@ -124,7 +130,7 @@ useEffect(() => {
 							<SelectContent>
 								{filteredLocations.length > 0 ? (
 									filteredLocations.map((loc) => (
-										<SelectItem key={loc.id} value={loc.id}>
+										<SelectItem key={loc.id!} value={loc.id!}>
 											{loc.locationName}
 										</SelectItem>
 									))
