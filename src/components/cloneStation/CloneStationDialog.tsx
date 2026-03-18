@@ -43,17 +43,17 @@ export const CloneStationDialog: React.FC<CloneStationDialogProps> = ({
 	onCloneSuccess,
 }) => {
 	const [open, setOpen] = useState(false);
-const [targetLocationId, setTargetLocationId] = useState<string | undefined>(
-	undefined,
-);
+	const [targetLocationId, setTargetLocationId] = useState<string | undefined>(
+		undefined,
+	);
 	const [overwrite, setOverwrite] = useState(false);
 	const [loading, setLoading] = useState(false);
 
-// const filteredLocations = locations.filter(
-// 	(loc) =>
-// 		loc.id &&
-// 		loc.id !== currentLocationId &&
-// 		loc.accountId === currentAccountId,
+	// const filteredLocations = locations.filter(
+	// 	(loc) =>
+	// 		loc.id &&
+	// 		loc.id !== currentLocationId &&
+	// 		loc.accountId === currentAccountId,
 	// );
 	const filteredLocations = locations.filter(
 		(loc): loc is Locations & { id: string } =>
@@ -63,12 +63,19 @@ const [targetLocationId, setTargetLocationId] = useState<string | undefined>(
 	);
 
 	// Set default target location when locations change
-useEffect(() => {
-	const defaultLocation = filteredLocations[0];
-	setTargetLocationId(defaultLocation?.id);
-}, [filteredLocations]);
-
-	
+	// Only set default target location once on mount
+	useEffect(() => {
+		if (!targetLocationId) {
+			const defaultLocation = locations.find(
+				(loc) =>
+					loc.id &&
+					loc.id !== currentLocationId &&
+					loc.accountId === currentAccountId,
+			);
+			setTargetLocationId(defaultLocation?.id);
+		}
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, []);
 
 	const handleClone = async () => {
 		if (!targetLocationId) {
@@ -165,4 +172,4 @@ useEffect(() => {
 			</DialogContent>
 		</Dialog>
 	);
-};
+};;
