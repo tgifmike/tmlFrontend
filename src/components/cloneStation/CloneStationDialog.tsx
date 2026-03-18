@@ -43,27 +43,30 @@ export const CloneStationDialog: React.FC<CloneStationDialogProps> = ({
 	onCloneSuccess,
 }) => {
 	const [open, setOpen] = useState(false);
-	const [targetLocationId, setTargetLocationId] = useState<string>(''); // always string
+const [targetLocationId, setTargetLocationId] = useState<string | undefined>(
+	undefined,
+);
 	const [overwrite, setOverwrite] = useState(false);
 	const [loading, setLoading] = useState(false);
 
-const filteredLocations = locations.filter(
-	(loc) =>
-		loc.id &&
-		loc.id !== currentLocationId &&
-		loc.accountId === currentAccountId,
-);
+// const filteredLocations = locations.filter(
+// 	(loc) =>
+// 		loc.id &&
+// 		loc.id !== currentLocationId &&
+// 		loc.accountId === currentAccountId,
+	// );
+	const filteredLocations = locations.filter(
+		(loc): loc is Locations & { id: string } =>
+			!!loc.id &&
+			loc.id !== currentLocationId &&
+			loc.accountId === currentAccountId,
+	);
 
 	// Set default target location when locations change
-	useEffect(() => {
-		if (filteredLocations.length === 1) {
-			// auto-select only if there's exactly ONE option
-			setTargetLocationId(filteredLocations[0].id!);
-		} else {
-			// otherwise force placeholder
-			setTargetLocationId('');
-		}
-	}, [filteredLocations]);
+useEffect(() => {
+	const defaultLocation = filteredLocations[0];
+	setTargetLocationId(defaultLocation?.id);
+}, [filteredLocations]);
 
 	
 
@@ -75,12 +78,12 @@ const filteredLocations = locations.filter(
 
 		setLoading(true);
 		try {
-			console.log({
-				stationId,
-				targetLocationId,
-				userId,
-				overwrite,
-			});
+			// console.log({
+			// 	stationId,
+			// 	targetLocationId,
+			// 	userId,
+			// 	overwrite,
+			// });
 			// call API with overwrite flag
 			await cloneStation(stationId, targetLocationId, userId, overwrite);
 			toast.success('Station cloned successfully!');
@@ -118,17 +121,16 @@ const filteredLocations = locations.filter(
 					<div>
 						<Label htmlFor="targetLocation">Target Location</Label>
 						<Select
-							value={targetLocationId || undefined}
+							value={targetLocationId}
 							onValueChange={(val) => setTargetLocationId(val)}
 						>
 							<SelectTrigger id="targetLocation">
 								<SelectValue placeholder="Select Location" />
 							</SelectTrigger>
-
 							<SelectContent>
 								{filteredLocations.length > 0 ? (
 									filteredLocations.map((loc) => (
-										<SelectItem key={loc.id} value={loc.id!}>
+										<SelectItem key={loc.id!} value={loc.id!}>
 											{loc.locationName}
 										</SelectItem>
 									))
