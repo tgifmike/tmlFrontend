@@ -7,6 +7,7 @@ import { SessionProviderLib } from "@/lib/auth/SessionProviderLib";
 import NavBar from "@/components/navBar/NavBar";
 import { Analytics } from '@vercel/analytics/next';
 import Footer from "@/components/navBar/Footer";
+import { TooltipProvider } from '@/components/ui/tooltip';
 
 
 const geistSans = Geist({
@@ -56,11 +57,13 @@ export default function RootLayout({
 						enableSystem
 						disableTransitionOnChange
 					>
-						<NavBar />
-						<main className="flex-1 w-full ">{children}</main>
-						<Footer />
-						<Analytics />
-						<Toaster />
+						<TooltipProvider>
+							<NavBar />
+							<main className="flex-1 w-full ">{children}</main>
+							<Footer />
+							<Analytics />
+							<Toaster />
+						</TooltipProvider>
 					</ThemeProvider>
 				</SessionProviderLib>
 			</body>

@@ -24,6 +24,8 @@ import { toast } from 'sonner';
 import { Icons } from '@/lib/icon';
 import { Switch } from '../ui/switch';
 
+import { Tooltip, TooltipContent, TooltipTrigger } from '../ui/tooltip';
+
 interface EditOptionDialogProps {
 	option: OptionEntity;
 	currentUser?: User;
@@ -98,11 +100,21 @@ export const EditOptionDialog: React.FC<EditOptionDialogProps> = ({
 
 	return (
 		<Dialog open={open} onOpenChange={setOpen}>
-			<DialogTrigger asChild>
-				<Button variant="ghost" size="icon" className="text-chart-3">
-					<EditIcon className="!w-[30px] !h-[30px]" />
-				</Button>
-			</DialogTrigger>
+			<Tooltip>
+				<TooltipTrigger asChild>
+					<Button
+						variant="ghost"
+						size="icon"
+						className="text-chart-3"
+						onClick={() => setOpen(true)} // ✅ manual control
+					>
+						<EditIcon className="!w-[30px] !h-[30px]" />
+					</Button>
+				</TooltipTrigger>
+				<TooltipContent side="top" className="z-50">
+					Edit Option
+				</TooltipContent>
+			</Tooltip>
 
 			<DialogContent className="sm:max-w-[425px] bg-accent">
 				<DialogHeader>
