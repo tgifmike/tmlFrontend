@@ -1,14 +1,12 @@
 import { StationEntity, StationDto, StationHistoryEntity } from '../types';
 import { request } from './axios';
 
-
 // ---------------- CREATE ----------------
-
 
 export const createStation = async (
 	locationId: string,
 	data: Partial<StationDto>,
-	userId: string
+	userId: string,
 ): Promise<StationDto> => {
 	const res = await request<StationDto>({
 		method: 'POST',
@@ -18,7 +16,7 @@ export const createStation = async (
 	});
 
 	return res.data as StationDto;
-}
+};
 
 // ---------------- TOGGLE ACTIVE ----------------
 
@@ -32,10 +30,8 @@ export const toggleStationActive = async (
 		url: `/stations/${stationId}/active`,
 		params: { active },
 		headers: { 'X-User-Id': userId },
-	})
-}
-
-
+	});
+};
 
 // ---------------- READ ----------------
 
@@ -71,9 +67,6 @@ export const getStationById = async (id: string) => {
 	});
 };
 
-
-
-
 // ---------------- PARTIAL UPDATE ----------------
 
 // Partial update
@@ -90,9 +83,7 @@ export const updateStation = async (
 	});
 
 	return res.data as StationEntity;
-}
-
-
+};
 
 // ---------------- DELETE ----------------
 
@@ -104,21 +95,19 @@ export const deleteStation = async (stationId: string, userId: string) => {
 	});
 };
 
-
 // ---------------- REORDER ----------------
 
-
 export const reorderStations = async (
-    locationId: string,
-    stationIdsInOrder: string[],
-    userId: string
+	locationId: string,
+	stationIdsInOrder: string[],
+	userId: string,
 ) => {
-    return request<void>({
-        method: 'PUT',
-        url: `/stations/${locationId}/stations/reorder?userId=${userId}`,
+	return request<void>({
+		method: 'PUT',
+		url: `/stations/${locationId}/stations/reorder?userId=${userId}`,
 		data: stationIdsInOrder,
 		headers: { 'X-User-Id': userId },
-    });
+	});
 };
 
 export const getStationHistory = async (locationId?: string) => {
@@ -130,3 +119,21 @@ export const getStationHistory = async (locationId?: string) => {
 	});
 };
 
+//-------station clone
+
+export const cloneStation = async (
+	stationId: string,
+	targetLocationId: string,
+	userId: string,
+	overwrite: boolean,
+) => {
+	return request<void>({
+		method: 'POST',
+		url: `/stations/${stationId}/clone`,
+		params: {
+			targetLocationId,
+			userId, // ✅ pass userId here as query param
+			overwrite, // optional if backend supports it
+		},
+	});
+};

@@ -30,6 +30,7 @@ import MobileDrawerNav from '@/components/navBar/MoibileDrawerNav';
 import { Icons } from '@/lib/icon';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import StationHistoryFeed from '@/components/tableComponents/StationHistoryFeed';
+import { CloneStationDialog } from '@/components/cloneStation/CloneStationDialog';
 // import StationAuditFeed from '@/components/tableComponents/StationHistoryFeed';
 // import { a } from 'node_modules/framer-motion/dist/types.d-DagZKalS';
 // import { set } from 'zod';
@@ -449,11 +450,34 @@ const hanldeStationDelete = async (stationId: string) => {
 																				prev.map((station) =>
 																					station.id === id
 																						? { ...station, stationName: name }
-																						: station
-																				)
+																						: station,
+																				),
 																			)
 																		}
 																	/>
+																	{/* ✅ ADD THIS */}
+																	{station.id && (
+																		<CloneStationDialog
+																			stationId={station.id}
+																			currentLocationId={locationIdParam}
+																			currentAccountId={ accountIdParam}
+																			userId={currentUserId}
+																			locations={locations}
+																			onCloneSuccess={async () => {
+																				try {
+																					const res =
+																						await getStationsByLocation(
+																							locationIdParam,
+																						);
+																					setStations(res.data ?? []);
+																				} catch {
+																					toast.error(
+																						'Failed to refresh stations after clone.',
+																					);
+																				}
+																			}}
+																		/>
+																	)}
 																	{station.id && (
 																		<DeleteConfirmButton
 																			item={{
@@ -516,11 +540,37 @@ const hanldeStationDelete = async (stationId: string) => {
 																		prev.map((s) =>
 																			s.id === id
 																				? { ...s, stationName: name }
-																				: s
-																		)
+																				: s,
+																		),
 																	)
 																}
 															/>
+
+															{/* ✅ CLONE BUTTON */}
+															{station.id && (
+																<CloneStationDialog
+																	stationId={station.id}
+																	currentLocationId={locationIdParam}
+																	currentAccountId={accountIdParam}
+																	userId={currentUserId}
+																	locations={locations}
+																	onCloneSuccess={async () => {
+																		// 🔥 IMPORTANT: refetch stations after clone
+																		try {
+																			const res =
+																				await getStationsByLocation(
+																					locationIdParam,
+																				);
+																			setStations(res.data ?? []);
+																		} catch {
+																			toast.error(
+																				'Failed to refresh stations after clone.',
+																			);
+																		}
+																	}}
+																/>
+															)}
+
 															{station.id && (
 																<DeleteConfirmButton
 																	item={{
