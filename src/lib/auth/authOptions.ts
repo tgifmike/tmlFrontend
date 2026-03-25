@@ -24,64 +24,85 @@ export const authOptions: NextAuthOptions = {
 	session: { strategy: 'jwt' },
 	pages: { signIn: '/login' },
 	callbacks: {
-		async jwt({ token, user, account }) {
+		async signIn({ user, account }) {
 			try {
-				if (user && account) {
-					const dbUser = await createUserServer({
-						userName: user.name ?? '',
-						userEmail: user.email ?? `${account.providerAccountId}@apple.local`,
-						userImage: user.image ?? undefined,
-						googleId:
-							account.provider === 'google'
-								? account.providerAccountId
-								: undefined,
-						appleId:
-							account.provider === 'apple'
-								? account.providerAccountId
-								: undefined,
-						// provider: account.provider,
-						// providerAccountId: account.providerAccountId,
-						userAppRole: user.appRole ?? undefined,
-						userAccessRole: user.accessRole ?? undefined,
-					});
-					if (dbUser) {
-						token.id = dbUser.id as string;
-						token.name = dbUser.userName ?? '';
-						token.email = dbUser.userEmail ?? '';
-						token.picture = dbUser.userImage ?? '';
-						token.googleId = dbUser.googleId ?? '';
-						token.appRole = dbUser.appRole ?? 'MEMBER';
-						token.accessRole = dbUser.accessRole ?? 'USER';
-					}
+				if (!account) return false;
+
+				const dbUser = await createUserServer({
+					userName: user?.name ?? '',
+					userEmail: user?.email ?? `${account.providerAccountId}@apple.local`,
+					userImage: user?.image ?? undefined,
+
+					googleId:
+						account.provider === 'google'
+							? account.providerAccountId
+							: undefined,
+
+					appleId:
+						account.provider === 'apple'
+							? account.providerAccountId
+							: undefined,
+
+					userAppRole: (user as any)?.appRole ?? undefined,
+					userAccessRole: (user as any)?.accessRole ?? undefined,
+				});
+
+				if (!dbUser) {
+					console.error('User creation failed');
+					return false;
 				}
-			} catch (error: unknown) {
-				if (error instanceof Error) {
-					// Standard JS Error object
-					console.error('JWT callback failed:', error.message);
-				} else if (
-					typeof error === 'object' &&
-					error !== null &&
-					'response' in error
-				) {
-					// Axios-like error with response
-					// @ts-ignore
-					console.error('Response error:', await error.response?.text?.());
-				} else {
-					console.error('Unknown error in JWT callback:', error);
-				}
+
+				// Attach DB values back onto user object for jwt()
+				(user as any).id = dbUser.id;
+				(user as any).appRole = dbUser.appRole ?? 'MEMBER';
+				(user as any).accessRole = dbUser.accessRole ?? 'USER';
+				(user as any).googleId = dbUser.googleId ?? '';
+				(user as any).appleId = dbUser.appleId ?? '';
+
+				return true;
+			} catch (error) {
+				console.error('signIn callback failed:', error);
+				return false;
 			}
-			//console.log(token)
+		},
+
+		async jwt({ token, user }) {
+			try {
+				// Runs only immediately after sign-in
+				if (user) {
+					token.id = (user as any).id;
+					token.name = user.name ?? '';
+					token.email = user.email ?? '';
+					token.picture = user.image ?? '';
+
+					token.appRole = (user as any).appRole ?? 'MEMBER';
+
+					token.accessRole = (user as any).accessRole ?? 'USER';
+
+					token.googleId = (user as any).googleId ?? '';
+
+					token.appleId = (user as any).appleId ?? '';
+				}
+			} catch (error) {
+				console.error('JWT callback failed:', error);
+			}
+
 			return token;
 		},
+
 		async session({ session, token }) {
 			if (session.user) {
 				session.user.id = token.id as string;
+
 				session.user.name = token.name;
 				session.user.email = token.email;
 				session.user.image = token.picture;
+
 				session.user.appRole = token.appRole as string;
+
 				session.user.accessRole = token.accessRole as string;
 			}
+
 			return session;
 		},
 	},

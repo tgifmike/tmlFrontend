@@ -28,6 +28,7 @@ export interface User {
 	appRole?: string | null;
 	firstLogin?: boolean | null;
 	googleId?: string | null;
+	appleId?: string | null;
 	createdAt?: string | null;
 	updatedAt?: string | null;
 }
