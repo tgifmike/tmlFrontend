@@ -23,7 +23,7 @@ export const authOptions: NextAuthOptions = {
 				if (user && account) {
 					const dbUser = await createUserServer({
 						userName: user.name ?? '',
-						userEmail: user.email,
+						userEmail: user.email ?? `${account.providerAccountId}@apple.local`,
 						userImage: user.image ?? undefined,
 						provider: account.provider,
 						providerAccountId: account.providerAccountId,
