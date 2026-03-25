@@ -25,8 +25,16 @@ export const authOptions: NextAuthOptions = {
 						userName: user.name ?? '',
 						userEmail: user.email ?? `${account.providerAccountId}@apple.local`,
 						userImage: user.image ?? undefined,
-						provider: account.provider,
-						providerAccountId: account.providerAccountId,
+						googleId:
+							account.provider === 'google'
+								? account.providerAccountId
+								: undefined,
+						appleId:
+							account.provider === 'apple'
+								? account.providerAccountId
+								: undefined,
+						// provider: account.provider,
+						// providerAccountId: account.providerAccountId,
 						userAppRole: user.appRole ?? undefined,
 						userAccessRole: user.accessRole ?? undefined,
 					});

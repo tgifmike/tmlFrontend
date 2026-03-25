@@ -76,6 +76,8 @@ type CreateUserPayload = {
 	userName: string;
 	userEmail: string;
 	userImage?: string;
+	googleId?: string;
+	appleId?: string;
 	provider?: string;
 	providerAccountId?: string;
 	userAppRole?: string;
