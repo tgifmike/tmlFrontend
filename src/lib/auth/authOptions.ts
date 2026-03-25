@@ -11,12 +11,12 @@ export const authOptions: NextAuthOptions = {
 			clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
 		}),
 		AppleProvider({
-			clientId: process.env.APPLE_ID!,
+			clientId: process.env.APPLE_WEB_ID!, // e.g., com.themanagerlife.web
 			clientSecret: process.env.APPLE_CLIENT_SECRET!,
 			authorization: {
 				params: {
 					scope: 'name email',
-					response_mode: 'form_post', // works with PKCE if cookies are correct
+					response_mode: 'form_post', // works with PKCE
 				},
 			},
 		}),
@@ -27,11 +27,21 @@ export const authOptions: NextAuthOptions = {
 	cookies: {
 		pkceCodeVerifier: {
 			name: '__Host-next-auth.pkce.code_verifier',
-			options: { httpOnly: true, sameSite: 'lax', path: '/', secure: true },
+			options: {
+				httpOnly: true,
+				sameSite: 'lax', // MUST be lax for Apple
+				path: '/',
+				secure: process.env.NODE_ENV === 'production',
+			},
 		},
 		sessionToken: {
 			name: '__Secure-next-auth.session-token',
-			options: { httpOnly: true, sameSite: 'lax', path: '/', secure: true },
+			options: {
+				httpOnly: true,
+				sameSite: 'lax',
+				path: '/',
+				secure: process.env.NODE_ENV === 'production',
+			},
 		},
 	},
 
