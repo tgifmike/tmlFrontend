@@ -12,6 +12,12 @@ export const authOptions: NextAuthOptions = {
 		AppleProvider({
 			clientId: process.env.APPLE_ID!,
 			clientSecret: process.env.APPLE_CLIENT_SECRET!,
+			authorization: {
+				params: {
+					scope: 'name email',
+					response_mode: 'form_post',
+				},
+			},
 		}),
 	],
 	secret: process.env.NEXTAUTH_SECRET as string,
