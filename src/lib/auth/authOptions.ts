@@ -1,4 +1,4 @@
-import { createUser, createUserServer } from '@/app/api/userApI';
+import { createUserServer } from '@/app/api/userApI';
 import type { NextAuthOptions } from 'next-auth';
 import GoogleProvider from 'next-auth/providers/google';
 import AppleProvider from 'next-auth/providers/apple';
@@ -16,7 +16,7 @@ export const authOptions: NextAuthOptions = {
 			authorization: {
 				params: {
 					scope: 'name email',
-					response_mode: 'form_post',
+					response_mode: 'form_post', // works with PKCE if cookies are correct
 				},
 			},
 		}),
@@ -24,26 +24,36 @@ export const authOptions: NextAuthOptions = {
 	secret: process.env.NEXTAUTH_SECRET as string,
 	session: { strategy: 'jwt' },
 	pages: { signIn: '/login' },
+	cookies: {
+		sessionToken: {
+			name: `__Secure-next-auth.session-token`,
+			options: {
+				httpOnly: true,
+				sameSite: 'lax', // REQUIRED for Apple PKCE
+				path: '/',
+				secure: process.env.NODE_ENV === 'production',
+			},
+		},
+	},
+
 	callbacks: {
 		async signIn({ user, account }) {
 			try {
 				if (!account) return false;
 
+				// Create or update user in your backend
 				const dbUser = await createUserServer({
 					userName: user?.name ?? '',
 					userEmail: user?.email ?? `${account.providerAccountId}@apple.local`,
 					userImage: user?.image ?? undefined,
-
 					googleId:
 						account.provider === 'google'
 							? account.providerAccountId
 							: undefined,
-
 					appleId:
 						account.provider === 'apple'
 							? account.providerAccountId
 							: undefined,
-
 					userAppRole: (user as any)?.appRole ?? undefined,
 					userAccessRole: (user as any)?.accessRole ?? undefined,
 				});
@@ -53,7 +63,7 @@ export const authOptions: NextAuthOptions = {
 					return false;
 				}
 
-				// Attach DB values back onto user object for jwt()
+				// Attach DB info to user for jwt callback
 				(user as any).id = dbUser.id;
 				(user as any).appRole = dbUser.appRole ?? 'MEMBER';
 				(user as any).accessRole = dbUser.accessRole ?? 'USER';
@@ -68,42 +78,29 @@ export const authOptions: NextAuthOptions = {
 		},
 
 		async jwt({ token, user }) {
-			try {
-				// Runs only immediately after sign-in
-				if (user) {
-					token.id = (user as any).id;
-					token.name = user.name ?? '';
-					token.email = user.email ?? '';
-					token.picture = user.image ?? '';
-
-					token.appRole = (user as any).appRole ?? 'MEMBER';
-
-					token.accessRole = (user as any).accessRole ?? 'USER';
-
-					token.googleId = (user as any).googleId ?? '';
-
-					token.appleId = (user as any).appleId ?? '';
-				}
-			} catch (error) {
-				console.error('JWT callback failed:', error);
+			// Only runs on first sign-in
+			if (user) {
+				token.id = (user as any).id;
+				token.name = user.name ?? '';
+				token.email = user.email ?? '';
+				token.picture = user.image ?? '';
+				token.appRole = (user as any).appRole ?? 'MEMBER';
+				token.accessRole = (user as any).accessRole ?? 'USER';
+				token.googleId = (user as any).googleId ?? '';
+				token.appleId = (user as any).appleId ?? '';
 			}
-
 			return token;
 		},
 
 		async session({ session, token }) {
 			if (session.user) {
 				session.user.id = token.id as string;
-
 				session.user.name = token.name;
 				session.user.email = token.email;
 				session.user.image = token.picture;
-
 				session.user.appRole = token.appRole as string;
-
 				session.user.accessRole = token.accessRole as string;
 			}
-
 			return session;
 		},
 	},
