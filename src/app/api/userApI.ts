@@ -76,9 +76,10 @@ type CreateUserPayload = {
 	userName: string;
 	userEmail: string;
 	userImage?: string;
+	provider: string;
+	providerAccountId: string;
 	userAppRole?: string;
 	userAccessRole?: string;
-	googleId?: string;
 };
 
 export const createUser = async (
@@ -113,7 +114,7 @@ export const createUserServer = async (
 ): Promise<User | null> => {
 	try {
 		const response = await api.post<User>(
-			`${process.env.NEXT_PUBLIC_BACKEND_URL}/users/create/google`,
+			`${process.env.NEXT_PUBLIC_BACKEND_URL}/users/create/oauth`, // full URL for server-side
 			data,
 			{
 				headers: { 'Content-Type': 'application/json' },

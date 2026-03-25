@@ -1,6 +1,7 @@
 import { createUser, createUserServer } from '@/app/api/userApI';
 import type { NextAuthOptions } from 'next-auth';
 import GoogleProvider from 'next-auth/providers/google';
+import AppleProvider from 'next-auth/providers/apple';
 
 export const authOptions: NextAuthOptions = {
 	providers: [
@@ -8,19 +9,24 @@ export const authOptions: NextAuthOptions = {
 			clientId: process.env.GOOGLE_CLIENT_ID as string,
 			clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
 		}),
+		AppleProvider({
+			clientId: process.env.APPLE_ID!,
+			clientSecret: process.env.APPLE_CLIENT_SECRET!,
+		}),
 	],
 	secret: process.env.NEXTAUTH_SECRET as string,
 	session: { strategy: 'jwt' },
 	pages: { signIn: '/login' },
 	callbacks: {
-		async jwt({ token, user }) {
+		async jwt({ token, user, account }) {
 			try {
-				if (user && user.email) {
+				if (user && account) {
 					const dbUser = await createUserServer({
 						userName: user.name ?? '',
 						userEmail: user.email,
 						userImage: user.image ?? undefined,
-						googleId: user.id,
+						provider: account.provider,
+						providerAccountId: account.providerAccountId,
 						userAppRole: user.appRole ?? undefined,
 						userAccessRole: user.accessRole ?? undefined,
 					});
@@ -50,7 +56,7 @@ export const authOptions: NextAuthOptions = {
 					console.error('Unknown error in JWT callback:', error);
 				}
 			}
-             //console.log(token)
+			//console.log(token)
 			return token;
 		},
 		async session({ session, token }) {
@@ -58,8 +64,8 @@ export const authOptions: NextAuthOptions = {
 				session.user.id = token.id as string;
 				session.user.name = token.name;
 				session.user.email = token.email;
-                session.user.image = token.picture;
-                session.user.appRole = token.appRole as string;
+				session.user.image = token.picture;
+				session.user.appRole = token.appRole as string;
 				session.user.accessRole = token.accessRole as string;
 			}
 			return session;
