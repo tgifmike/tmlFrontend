@@ -16,7 +16,7 @@ export const authOptions: NextAuthOptions = {
 			authorization: {
 				params: {
 					scope: 'name email',
-					response_mode: 'query', // works with PKCE
+					response_mode: 'form_post', // works with PKCE
 				},
 			},
 		}),
@@ -24,26 +24,17 @@ export const authOptions: NextAuthOptions = {
 	secret: process.env.NEXTAUTH_SECRET as string,
 	session: { strategy: 'jwt' },
 	pages: { signIn: '/login' },
-	// cookies: {
-	// 	pkceCodeVerifier: {
-	// 		name: '__Host-next-auth.pkce.code_verifier',
-	// 		options: {
-	// 			httpOnly: true,
-	// 			sameSite: 'lax', // MUST be lax for Apple
-	// 			path: '/',
-	// 			secure: process.env.NODE_ENV === 'production',
-	// 		},
-	// 	},
-	// 	sessionToken: {
-	// 		name: '__Secure-next-auth.session-token',
-	// 		options: {
-	// 			httpOnly: true,
-	// 			sameSite: 'lax',
-	// 			path: '/',
-	// 			secure: process.env.NODE_ENV === 'production',
-	// 		},
-	// 	},
-	// },
+	cookies: {
+		pkceCodeVerifier: {
+			name: '__Secure-next-auth.pkce.code_verifier',
+			options: {
+				httpOnly: true,
+				sameSite: 'none',
+				secure: true,
+				path: '/',
+			},
+		},
+	},
 
 	callbacks: {
 		async signIn({ user, account }) {
