@@ -16,7 +16,7 @@ export const authOptions: NextAuthOptions = {
 			authorization: {
 				params: {
 					scope: 'name email',
-					response_mode: 'form_post', // works with PKCE
+					response_mode: 'query', // works with PKCE
 				},
 			},
 		}),
