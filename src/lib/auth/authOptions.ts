@@ -47,6 +47,7 @@ export const authOptions: NextAuthOptions = {
 
 	callbacks: {
 		async signIn({ user, account }) {
+			console.log('SIGNIN CALLBACK HIT', account?.provider);
 			try {
 				if (!account) return false;
 
