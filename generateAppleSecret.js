@@ -9,7 +9,7 @@ dotenv.config({ path: path.resolve('./.env.local') });
 
 // 2️⃣ Read env variables
 const TEAM_ID = process.env.APPLE_TEAM_ID;
-const CLIENT_ID = process.env.APPLE_ID;
+const CLIENT_ID = process.env.APPLE_WEB_ID;
 const KEY_ID = process.env.APPLE_KEY_ID;
 const PRIVATE_KEY_PATH = path.resolve('./AuthKey.p8'); // path to your .p8 file
 
