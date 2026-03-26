@@ -11,15 +11,15 @@ export default function Does() {
 	const [index, setIndex] = useState(0);
 
 	return (
-		<section className="py-24 bg-white">
+		<section className="py-24 ">
 			<div className="max-w-6xl mx-auto px-6">
 				{/* Header */}
 				<div className="text-center mb-16">
-					<h2 className="text-4xl md:text-5xl font-bold text-gray-900">
+					<h2 className="text-4xl md:text-5xl font-bold text-destructive">
 						What Our App Does
 					</h2>
 
-					<p className="mt-4 text-lg md:text-xl text-gray-600 max-w-2xl mx-auto">
+					<p className="mt-4 text-lg md:text-xl text-ring max-w-2xl mx-auto">
 						Our app makes line checks simple, fast, and consistent across every
 						shift.
 					</p>
@@ -28,7 +28,7 @@ export default function Does() {
 				{/* Main Content */}
 				<div className="grid md:grid-cols-2 gap-16 items-center">
 					{/* Device Mockup */}
-					<div className="relative flex justify-center">
+					<div className="relative flex justify-center bg-accent rounded-2xl shadow-xl p-6">
 						<Image
 							src="/iPad1.png"
 							alt="iPad dashboard"
@@ -50,7 +50,7 @@ export default function Does() {
 					<div>
 						<h3 className="text-2xl font-semibold mb-6">Key Features</h3>
 
-						<ul className="space-y-4 text-lg text-gray-700">
+						<ul className="space-y-4 text-lg text-primary">
 							{[
 								'Guided line check checklists',
 								'Temperature logging for every station',
@@ -66,7 +66,7 @@ export default function Does() {
 							))}
 						</ul>
 
-						<p className="mt-8 text-lg text-gray-600">
+						<p className="mt-8 text-lg text-primary italic">
 							Complete a full kitchen line check in minutes — directly from a
 							phone or tablet.
 						</p>
@@ -75,7 +75,7 @@ export default function Does() {
 
 				{/* Line Check Screens */}
 				<div className="mt-24">
-					<h3 className="text-2xl font-semibold text-center mb-8">
+					<h3 className="text-2xl font-semibold text-center mb-0">
 						Line Check in Action
 					</h3>
 

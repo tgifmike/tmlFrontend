@@ -4,28 +4,28 @@ import { CircleCheck } from 'lucide-react';
 
 const Headlines = () => {
 	return (
-		<section className="py-2 bg-gray-50">
+		<section className="py-2 bg-ring">
 			<div className="max-w-6xl mx-auto px-6 space-y-24">
 				{/* Built for Busy Kitchens */}
 				<div className="grid md:grid-cols-2 gap-12 items-center">
 					<div>
-						<h2 className="text-4xl font-bold text-gray-900 mb-6">
+						<h2 className="text-4xl font-bold text-background mb-6">
 							Built for Busy Kitchens
 						</h2>
 
-						<ul className="space-y-4 text-lg text-gray-700">
+						<ul className="space-y-4 text-lg text-primary">
 							<li className="flex gap-3 items-center">
-								<CircleCheck className="text-red-600 w-5 h-5" />
+								<CircleCheck className="text-destructive w-5 h-5" />
 								No paperwork
 							</li>
 
 							<li className="flex gap-3 items-center">
-								<CircleCheck className="text-red-600 w-5 h-5" />
+								<CircleCheck className="text-destructive w-5 h-5" />
 								No guessing if food is safe
 							</li>
 
 							<li className="flex gap-3 items-center">
-								<CircleCheck className="text-red-600 w-5 h-5" />
+								<CircleCheck className="text-destructive w-5 h-5" />
 								No forgotten checks
 							</li>
 						</ul>
@@ -42,11 +42,11 @@ const Headlines = () => {
 
 				{/* Why Line Checks Matter */}
 				<div className="text-center max-w-3xl mx-auto">
-					<h2 className="text-4xl font-bold text-gray-900 mb-6">
+					<h2 className="text-4xl font-bold text-background mb-6">
 						Why Line Checks Matter
 					</h2>
 
-					<p className="text-lg text-gray-600">
+					<p className="text-lg text-primary mb-4">
 						Consistent line checks are one of the simplest ways to improve food
 						safety, maintain quality, and protect your restaurant’s reputation.
 					</p>
@@ -63,42 +63,42 @@ const Headlines = () => {
 					/>
 
 					<div>
-						<h2 className="text-4xl font-bold text-gray-900 mb-8">
+						<h2 className="text-4xl font-bold text-background mb-8">
 							Benefits for Restaurant Owners
 						</h2>
 
-						<div className="space-y-6 text-gray-700">
+						<div className="space-y-6 text-destructive">
 							<div>
 								<h4 className="font-semibold text-lg">Safer food</h4>
-								<p className="text-gray-600">
+								<p className="text-primary">
 									Reduce risks of foodborne contamination.
 								</p>
 							</div>
 
 							<div>
 								<h4 className="font-semibold text-lg">Better inspections</h4>
-								<p className="text-gray-600">
+								<p className="text-primary">
 									Stay prepared with documented food safety logs.
 								</p>
 							</div>
 
 							<div>
 								<h4 className="font-semibold text-lg">Higher food quality</h4>
-								<p className="text-gray-600">
+								<p className="text-primary">
 									Serve consistent, fresh food every shift.
 								</p>
 							</div>
 
 							<div>
 								<h4 className="font-semibold text-lg">Less waste</h4>
-								<p className="text-gray-600">
+								<p className="text-primary">
 									Catch problems before ingredients spoil.
 								</p>
 							</div>
 
 							<div>
 								<h4 className="font-semibold text-lg">More profit</h4>
-								<p className="text-gray-600">
+								<p className="text-primary">
 									Better systems mean fewer losses and smoother operations.
 								</p>
 							</div>
@@ -108,16 +108,16 @@ const Headlines = () => {
 
 				{/* Final CTA Section */}
 				<div className="text-center max-w-3xl mx-auto">
-					<h2 className="text-4xl font-bold text-gray-900 mb-6">
+					<h2 className="text-4xl font-bold text-background mb-6">
 						Simple. Fast. Reliable.
 					</h2>
 
-					<p className="text-lg text-gray-600 mb-4">
+					<p className="text-lg text-primary mb-4">
 						Your kitchen already performs line checks. Our app simply makes them
 						easier, faster, and impossible to forget.
 					</p>
 
-					<p className="text-lg text-gray-600">
+					<p className="text-lg text-primary">
 						Start improving food safety, quality, and consistency today.
 					</p>
 				</div>
