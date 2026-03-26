@@ -1,25 +1,54 @@
+'use client';
 
 import Hero from '@/components/homePage/Hero';
 import Why from '@/components/homePage/Why';
-import { ModeToggle } from '@/components/theme/ModeToggle';
-import Link from 'next/link';
 import Does from '@/components/homePage/Does';
-import Head from 'next/head';
 import Headlines from '@/components/homePage/Headlines';
+import { motion } from 'framer-motion';
 
 export default function Home() {
-	
-	return (
-		<div className='w-full mx-auto max-w-7xl'>
-			<div>
-				{/* <h1 className="text-4xl p-4">Welcome to the Manager Life!</h1> */}
-				<Hero />
-				<Why />
-				<Does />
-				<Headlines />
-			</div>
+	// Variants for section animation
+	const sectionVariant = {
+		hidden: { opacity: 0, y: 50 },
+		visible: { opacity: 1, y: 0, transition: { duration: 0.6 } },
+	};
 
-			
+	return (
+		<div className="w-full mx-auto max-w-7xl">
+			{/* Hero */}
+			<motion.div variants={sectionVariant} initial="hidden" animate="visible">
+				<Hero />
+			</motion.div>
+
+			{/* Why Section */}
+			<motion.div
+				variants={sectionVariant}
+				initial="hidden"
+				whileInView="visible"
+				viewport={{ once: true, amount: 0.2 }}
+			>
+				<Why />
+			</motion.div>
+
+			{/* Does Section */}
+			<motion.div
+				variants={sectionVariant}
+				initial="hidden"
+				whileInView="visible"
+				viewport={{ once: true, amount: 0.2 }}
+			>
+				<Does />
+			</motion.div>
+
+			{/* Headlines */}
+			<motion.div
+				variants={sectionVariant}
+				initial="hidden"
+				whileInView="visible"
+				viewport={{ once: true, amount: 0.2 }}
+			>
+				<Headlines />
+			</motion.div>
 		</div>
 	);
 }
