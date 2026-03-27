@@ -202,6 +202,7 @@ const LoginPage = () => {
 								width={100}
 								height={100}
 								className="w-24 h-auto rounded-full"
+								unoptimized
 							/>
 						</div>
 
