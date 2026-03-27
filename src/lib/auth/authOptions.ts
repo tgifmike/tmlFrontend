@@ -1,4 +1,78 @@
-import { createUserServer } from '@/app/api/userApI';
+// import type { NextAuthOptions } from 'next-auth';
+// import GoogleProvider from 'next-auth/providers/google';
+// import AppleProvider from 'next-auth/providers/apple';
+
+// export const authOptions: NextAuthOptions = {
+// 	debug: true,
+// 	providers: [
+// 		GoogleProvider({
+// 			clientId: process.env.GOOGLE_CLIENT_ID!,
+// 			clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+// 		}),
+// 		AppleProvider({
+// 			clientId: process.env.APPLE_WEB_ID!,
+// 			clientSecret: process.env.APPLE_CLIENT_SECRET!,
+// 			authorization: {
+// 				params: {
+// 					scope: 'name email',
+// 					response_mode: 'form_post',
+// 				},
+// 			},
+// 		}),
+// 	],
+// 	secret: process.env.NEXTAUTH_SECRET!,
+// 	session: { strategy: 'jwt' },
+// 	pages: { signIn: '/login', error: '/login' },
+// 	callbacks: {
+// 		async signIn({ user, account }) {
+// 			try {
+// 				if (!account) return false;
+
+// 				const payload = {
+// 					userEmail: user.email ?? null,
+// 					googleId:
+// 						account.provider === 'google' ? account.providerAccountId : null,
+// 					appleId:
+// 						account.provider === 'apple' ? account.providerAccountId : null,
+// 					userName: user.name ?? null,
+// 					userImage: user.image ?? null,
+// 				};
+
+// 				console.log('Sending OAuth login payload:', payload);
+
+// 				const res = await fetch(
+// 					`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/users/oauth-login`,
+// 					{
+// 						method: 'POST',
+// 						headers: {
+// 							'Content-Type': 'application/json',
+// 						},
+// 						body: JSON.stringify(payload),
+// 					},
+// 				);
+
+// 				if (!res.ok) {
+// 					console.log('Backend rejected login');
+// 					return '/login?error=AccessDenied';
+// 				}
+
+// 				const dbUser = await res.json();
+
+// 				// attach DB values for jwt callback
+// 				(user as any).id = dbUser.id;
+// 				(user as any).appRole = dbUser.appRole ?? 'MEMBER';
+// 				(user as any).accessRole = dbUser.accessRole ?? 'USER';
+// 				(user as any).googleId = dbUser.googleId ?? '';
+// 				(user as any).appleId = dbUser.appleId ?? '';
+
+// 				return true;
+// 			} catch (err) {
+// 				console.error('OAuth login error:', err);
+// 				return '/login?error=AccessDenied';
+// 			}
+// 		},
+// 	},
+// };
 import type { NextAuthOptions } from 'next-auth';
 import GoogleProvider from 'next-auth/providers/google';
 import AppleProvider from 'next-auth/providers/apple';
@@ -7,102 +81,69 @@ export const authOptions: NextAuthOptions = {
 	debug: true,
 	providers: [
 		GoogleProvider({
-			clientId: process.env.GOOGLE_CLIENT_ID as string,
-			clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
+			clientId: process.env.GOOGLE_CLIENT_ID!,
+			clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
 		}),
 		AppleProvider({
-			clientId: process.env.APPLE_WEB_ID!, // e.g., com.themanagerlife.web
+			clientId: process.env.APPLE_WEB_ID!,
 			clientSecret: process.env.APPLE_CLIENT_SECRET!,
 			authorization: {
 				params: {
 					scope: 'name email',
-					response_mode: 'form_post', // works with PKCE
+					response_mode: 'form_post',
 				},
 			},
 		}),
 	],
-	secret: process.env.NEXTAUTH_SECRET as string,
+	secret: process.env.NEXTAUTH_SECRET!,
 	session: { strategy: 'jwt' },
-	pages: { signIn: '/login' },
-	cookies: {
-		pkceCodeVerifier: {
-			name: '__Secure-next-auth.pkce.code_verifier',
-			options: {
-				httpOnly: true,
-				sameSite: 'none',
-				secure: true,
-				path: '/',
-			},
-		},
-	},
-
+	pages: { signIn: '/login', error: '/login' },
 	callbacks: {
 		async signIn({ user, account }) {
-			console.log('SIGNIN CALLBACK HIT', account?.provider);
+			if (!account) return false;
+
 			try {
-				if (!account) return false;
+				const provider = account.provider; // 'google' or 'apple'
+				const idToken = account.id_token ?? account.oauthToken ?? null;
 
-				// Create or update user in your backend
-				const dbUser = await createUserServer({
-					userName: user?.name ?? '',
-					userEmail: user?.email ?? `${account.providerAccountId}@apple.local`,
-					userImage: user?.image ?? undefined,
-					googleId:
-						account.provider === 'google'
-							? account.providerAccountId
-							: undefined,
-					appleId:
-						account.provider === 'apple'
-							? account.providerAccountId
-							: undefined,
-					userAppRole: (user as any)?.appRole ?? undefined,
-					userAccessRole: (user as any)?.accessRole ?? undefined,
-				});
-
-				if (!dbUser) {
-					console.error('User creation failed');
-					return false;
+				if (!idToken) {
+					console.error('Missing idToken from provider');
+					return '/login?error=AccessDenied';
 				}
 
-				// Attach DB info to user for jwt callback
-				(user as any).id = dbUser.id;
-				(user as any).appRole = dbUser.appRole ?? 'MEMBER';
-				(user as any).accessRole = dbUser.accessRole ?? 'USER';
-				(user as any).googleId = dbUser.googleId ?? '';
-				(user as any).appleId = dbUser.appleId ?? '';
+				const payload = {
+					provider,
+					idToken,
+				};
+
+				const res = await fetch(
+					`${process.env.NEXT_PUBLIC_BACKEND_URL}/users/oauth-login`,
+					{
+						method: 'POST',
+						headers: { 'Content-Type': 'application/json' },
+						body: JSON.stringify(payload),
+					},
+				);
+
+				if (!res.ok) {
+					console.error('Backend rejected login', await res.text());
+					return '/login?error=AccessDenied';
+				}
+
+				const dbUser = await res.json();
+
+				// Attach DB user info for jwt callback
+				(user as any).id = dbUser.user.id;
+				(user as any).appRole = dbUser.user.appRole ?? 'MEMBER';
+				(user as any).accessRole = dbUser.user.accessRole ?? 'USER';
+				(user as any).googleId = dbUser.user.googleId ?? '';
+				(user as any).appleId = dbUser.user.appleId ?? '';
 
 				return true;
-			} catch (error) {
-				console.error('signIn callback failed:', error);
-				return false;
+			} catch (err) {
+				console.error('OAuth login error:', err);
+				return '/login?error=AccessDenied';
 			}
-		},
-
-		async jwt({ token, user }) {
-			// Only runs on first sign-in
-			if (user) {
-				token.id = (user as any).id;
-				token.name = user.name ?? '';
-				token.email = user.email ?? '';
-				token.picture = user.image ?? '';
-				token.appRole = (user as any).appRole ?? 'MEMBER';
-				token.accessRole = (user as any).accessRole ?? 'USER';
-				token.googleId = (user as any).googleId ?? '';
-				token.appleId = (user as any).appleId ?? '';
-			}
-			return token;
-		},
-
-		async session({ session, token }) {
-			if (session.user) {
-				session.user.id = token.id as string;
-				session.user.name = token.name;
-				session.user.email = token.email;
-				session.user.image = token.picture;
-				session.user.appRole = token.appRole as string;
-				session.user.accessRole = token.accessRole as string;
-			}
-			return session;
 		},
 	},
 };
