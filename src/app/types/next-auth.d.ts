@@ -9,6 +9,9 @@ declare module 'next-auth' {
 			picture?: string;
 			appRole: string;
 			accessRole: string;
+			googleId?: string;
+			appleId?: string;
+			jwt: string;
 		} & DefaultSession['user'];
 	}
 
