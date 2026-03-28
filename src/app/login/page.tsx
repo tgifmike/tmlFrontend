@@ -124,10 +124,11 @@
 // };
 
 // export default LoginPage;
-
 'use client';
 
+export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
+
 
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
