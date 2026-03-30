@@ -158,6 +158,12 @@ export const authOptions: NextAuthOptions = {
 		GoogleProvider({
 			clientId: process.env.GOOGLE_CLIENT_ID!,
 			clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+			authorization: {
+				params: {
+					scope: 'openid email profile',
+				},
+			},
+			idToken: true,
 		}),
 		AppleProvider({
 			clientId: process.env.APPLE_WEB_ID!,
@@ -181,10 +187,14 @@ export const authOptions: NextAuthOptions = {
 
 			try {
 				const provider = account.provider; // 'google' or 'apple'
-				const idToken = account.id_token ?? account.oauthToken ?? null;
+				const idToken =
+					account.id_token ??
+					account.access_token ??
+					account.oauth_token ??
+					null;
 
 				if (!idToken) {
-					console.error('Missing idToken from provider');
+					console.error('Missing idToken from provider', account);
 					return '/login?error=AccessDenied';
 				}
 
@@ -198,11 +208,13 @@ export const authOptions: NextAuthOptions = {
 				);
 
 				if (!res.ok) {
-					console.error('Backend rejected login', await res.text());
-					return '/login?error=AccessDenied';
+					const msg = await res.text();
+					console.error('Backend rejected login:', msg);
+					return `/login?error=${encodeURIComponent(msg)}`;
 				}
 
 				const dbUser = await res.json();
+				console.log('DB USER RETURNED:', dbUser);
 
 				// Attach DB user info to token
 				(user as any).id = dbUser.user.id;

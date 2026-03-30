@@ -4,6 +4,7 @@ import { getAccountsForUser } from '@/app/api/accountApi';
 import { deleteUser, getUsersForAccount, toggleUserActive, updateUser, updateUserAccessRole, updateUserAppRole } from '@/app/api/userApI';
 import { AccessRole, AppRole, User } from '@/app/types';
 import { DataCard } from '@/components/cards/DataCard';
+import { InviteUserDialog } from '@/components/invite/InviteUserDialog';
 import LeftNav from '@/components/navBar/LeftNav';
 import MobileDrawerNav from '@/components/navBar/MoibileDrawerNav';
 import Spinner from '@/components/spinner/Spinner';
@@ -254,7 +255,7 @@ const AccountUsersPage = () => {
 				{/* Header */}
 				<header className="flex justify-between items-center px-4 py-3 border-b bg-background/70 backdrop-blur-md sticky top-0 z-20">
 					{/* Left */}
-					<div className="flex gap-8">
+					<div className="flex">
 						{/* Mobile Drawer */}
 						<MobileDrawerNav
 							open={drawerOpen}
@@ -271,10 +272,16 @@ const AccountUsersPage = () => {
 
 						<h1 className="text-2xl font-semibold">Account Users Page</h1>
 					</div>
+					<InviteUserDialog
+						accountId={accountIdParam}
+						onUserCreated={(user: User) => {
+							setUsers((prev) => [...prev, user]);
+						}}
+					/>
 				</header>
 
 				{/* Controls */}
-				<div className="w-full md:w-3/4 mx-auto flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mt-2">
+				<div className="w-full mx-auto flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 px-4 mt-4">
 					<UserControls
 						showActiveOnly={showActiveOnly}
 						setShowActiveOnly={setShowActiveOnly}
@@ -282,234 +289,229 @@ const AccountUsersPage = () => {
 						setSearchTerm={setSearchTerm}
 					/>
 				</div>
-					{/* Desktop Table */}
-					<div className="hidden md:block mt-8 bg-accent p-4 rounded-2xl text-chart-3 w-3/4 mx-auto">
-						<ReusableTable
-							data={paginatedUsers}
-							rowKey={(u) => u.id!}
-							columns={[
-								{
-									header: '',
-									render: (u) => (
-										<Avatar>
-											<AvatarImage src={u.userImage ?? undefined} />
-											<AvatarFallback>
-												<UserIcon className="h-6 w-6" />
-											</AvatarFallback>
-										</Avatar>
-									),
-								},
-								{ header: 'User Name', render: (u) => u.userName },
-								{ header: 'Email', render: (u) => u.userEmail },
-								{
-									header: 'Status',
-									className: 'text-center ',
-									render: (u) => (
-										<StatusSwitchOrBadge
-											entity={{
-												id: u.id!,
-												active: u.userActive!,
-											}}
-											getLabel={() => `User: ${u.userName}`}
-											onToggle={handleToggleActive}
-											canToggle={canToggle}
-											
-										/>
-									),
-								},
-								{
-									header: 'Access Role',
-									className: 'text-center',
-									render: (u) => (
-										<AccessRoleSelectOrBadge
-											user={u}
-											onRoleChange={(id, role) =>
-												setUsers((prev) =>
-													prev.map((user) =>
-														user.id === id
-															? { ...user, accessRole: role }
-															: user
-													)
-												)
-											}
-										/>
-									),
-								},
-								{
-									header: 'App Role',
-									render: (u) => (
-										<AppRoleSelect
-											user={u}
-											onRoleChange={(id, role) =>
-												setUsers((prev) =>
-													prev.map((user) =>
-														user.id === id ? { ...user, appRole: role } : user
-													)
-												)
-											}
-										/>
-									),
-								},
-								{
-									header: 'Actions',
-									className: 'text-center',
-									render: (u) =>
-										sessionUserRole === 'MANAGER' ? (
-											<div className="flex justify-center gap-4 items-center">
-												<EditUserDialog
-													users={users}
-													user={u}
-													onUpdate={(id, name, email) =>
-														setUsers((prev) =>
-															prev.map((user) =>
-																user.id === id
-																	? {
-																			...user,
-																			userName: name,
-																			userEmail: email,
-																	  }
-																	: user
-															)
-														)
-													}
-												/>
-												{u.id && (
-													<DeleteConfirmButton
-														item={{ id: u.id }}
-														entityLabel="user"
-														onDelete={async (id) => {
-															await deleteUser(id);
-															setUsers((prev) =>
-																prev.filter((user) => user.id !== id)
-															);
-														}}
-														getItemName={() => u.userName ?? 'Unknown'} // guarantee a string
-													/>
-												)}
-											</div>
-										) : (
-											<span className="text-ring">No Actions</span>
-										),
-								},
-							]}
-						/>
-					</div>
-
-					{/* Mobile Cards */}
-					<div className="block md:hidden mt-6 space-y-4 p-2">
-						{paginatedUsers.map((user) => (
-							<DataCard
-								key={user.id}
-								title={user.userName ?? 'No Name'}
-								description={user.userEmail ?? undefined}
-								avatar={
+				{/* Desktop Table */}
+				<div className="hidden md:block mt-8 bg-accent p-4 rounded-2xl text-chart-3  mx-auto">
+					<ReusableTable
+						data={paginatedUsers}
+						rowKey={(u) => u.id!}
+						columns={[
+							{
+								header: '',
+								render: (u) => (
 									<Avatar>
-										<AvatarImage src={user.userImage ?? undefined} />
+										<AvatarImage src={u.userImage ?? undefined} />
 										<AvatarFallback>
-											<UserIcon className="h-5 w-5 text-chart-3" />
+											<UserIcon className="h-6 w-6" />
 										</AvatarFallback>
 									</Avatar>
-								}
-								fields={[
-									{
-										label: 'Status',
-										value: (
-											<UserStatusSwitchOrBadge
-												user={user}
-												onStatusChange={(id, checked) =>
-													setUsers((prev) =>
-														prev.map((user) =>
-															user.id === id
-																? { ...user, userActive: checked }
-																: user
-														)
-													)
-												}
-											/>
-										),
-									},
-									{
-										label: 'Access Role',
-										value: (
-											<AccessRoleSelectOrBadge
-												user={user}
-												onRoleChange={(id, role) =>
-													setUsers((prev) =>
-														prev.map((u) =>
-															u.id === id ? { ...u, accessRole: role } : u
-														)
-													)
-												}
-											/>
-										),
-									},
-									{
-										label: 'App Role',
-										value: (
-											<AppRoleSelect
-												user={user}
-												onRoleChange={(id, role) =>
-													setUsers((prev) =>
-														prev.map((u) =>
-															u.id === id ? { ...u, appRole: role } : u
-														)
-													)
-												}
-											/>
-										),
-									},
-								]}
-								actions={[
-									{
-										element: (
-											// <EditUserDialog user={user} onUpdate={handleUpdateUser} />
+								),
+							},
+							{ header: 'User Name', render: (u) => u.userName },
+							{ header: 'Email', render: (u) => u.userEmail },
+							{
+								header: 'Status',
+								className: 'text-center ',
+								render: (u) => (
+									<StatusSwitchOrBadge
+										entity={{
+											id: u.id!,
+											active: u.userActive!,
+										}}
+										getLabel={() => `User: ${u.userName}`}
+										onToggle={handleToggleActive}
+										canToggle={canToggle}
+									/>
+								),
+							},
+							{
+								header: 'Access Role',
+								className: 'text-center',
+								render: (u) => (
+									<AccessRoleSelectOrBadge
+										user={u}
+										onRoleChange={(id, role) =>
+											setUsers((prev) =>
+												prev.map((user) =>
+													user.id === id ? { ...user, accessRole: role } : user,
+												),
+											)
+										}
+									/>
+								),
+							},
+							{
+								header: 'App Role',
+								render: (u) => (
+									<AppRoleSelect
+										user={u}
+										onRoleChange={(id, role) =>
+											setUsers((prev) =>
+												prev.map((user) =>
+													user.id === id ? { ...user, appRole: role } : user,
+												),
+											)
+										}
+									/>
+								),
+							},
+							{
+								header: 'Actions',
+								className: 'text-center',
+								render: (u) =>
+									sessionUserRole === 'MANAGER' ? (
+										<div className="flex justify-center gap-4 items-center">
 											<EditUserDialog
 												users={users}
-												user={user}
+												user={u}
 												onUpdate={(id, name, email) =>
 													setUsers((prev) =>
 														prev.map((user) =>
 															user.id === id
-																? { ...user, userName: name, userEmail: email }
-																: user
-														)
+																? {
+																		...user,
+																		userName: name,
+																		userEmail: email,
+																	}
+																: user,
+														),
 													)
 												}
 											/>
-										),
-									},
-									{
-										element: user.id ? (
-											<DeleteConfirmButton
-												item={{ id: user.id }}
-												entityLabel="user"
-												onDelete={async (id) => {
-													await deleteUser(id);
-													setUsers((prev) => prev.filter((u) => u.id !== id));
-												}}
-												getItemName={() => user.userName ?? 'Unknown'} // always returns string
-											/>
-										) : null,
-									},
-								]}
-							/>
-						))}
-					</div>
+											{u.id && (
+												<DeleteConfirmButton
+													item={{ id: u.id }}
+													entityLabel="user"
+													onDelete={async (id) => {
+														await deleteUser(id);
+														setUsers((prev) =>
+															prev.filter((user) => user.id !== id),
+														);
+													}}
+													getItemName={() => u.userName ?? 'Unknown'} // guarantee a string
+												/>
+											)}
+										</div>
+									) : (
+										<span className="text-ring">No Actions</span>
+									),
+							},
+						]}
+					/>
+				</div>
 
-					{/* pagination page size selector */}
-					<div className="w-full md:w-3/4 mx-auto flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 px-4 mt-4">
-						<Pagination
-							currentPage={currentPage}
-							setCurrentPage={setCurrentPage}
-							pageSize={pageSize}
-							setPageSize={setPageSize}
-							totalItems={filteredUsers.length}
+				{/* Mobile Cards */}
+				<div className="block md:hidden mt-6 space-y-4 p-2">
+					{paginatedUsers.map((user) => (
+						<DataCard
+							key={user.id}
+							title={user.userName ?? 'No Name'}
+							description={user.userEmail ?? undefined}
+							avatar={
+								<Avatar>
+									<AvatarImage src={user.userImage ?? undefined} />
+									<AvatarFallback>
+										<UserIcon className="h-5 w-5 text-chart-3" />
+									</AvatarFallback>
+								</Avatar>
+							}
+							fields={[
+								{
+									label: 'Status',
+									value: (
+										<UserStatusSwitchOrBadge
+											user={user}
+											onStatusChange={(id, checked) =>
+												setUsers((prev) =>
+													prev.map((user) =>
+														user.id === id
+															? { ...user, userActive: checked }
+															: user,
+													),
+												)
+											}
+										/>
+									),
+								},
+								{
+									label: 'Access Role',
+									value: (
+										<AccessRoleSelectOrBadge
+											user={user}
+											onRoleChange={(id, role) =>
+												setUsers((prev) =>
+													prev.map((u) =>
+														u.id === id ? { ...u, accessRole: role } : u,
+													),
+												)
+											}
+										/>
+									),
+								},
+								{
+									label: 'App Role',
+									value: (
+										<AppRoleSelect
+											user={user}
+											onRoleChange={(id, role) =>
+												setUsers((prev) =>
+													prev.map((u) =>
+														u.id === id ? { ...u, appRole: role } : u,
+													),
+												)
+											}
+										/>
+									),
+								},
+							]}
+							actions={[
+								{
+									element: (
+										// <EditUserDialog user={user} onUpdate={handleUpdateUser} />
+										<EditUserDialog
+											users={users}
+											user={user}
+											onUpdate={(id, name, email) =>
+												setUsers((prev) =>
+													prev.map((user) =>
+														user.id === id
+															? { ...user, userName: name, userEmail: email }
+															: user,
+													),
+												)
+											}
+										/>
+									),
+								},
+								{
+									element: user.id ? (
+										<DeleteConfirmButton
+											item={{ id: user.id }}
+											entityLabel="user"
+											onDelete={async (id) => {
+												await deleteUser(id);
+												setUsers((prev) => prev.filter((u) => u.id !== id));
+											}}
+											getItemName={() => user.userName ?? 'Unknown'} // always returns string
+										/>
+									) : null,
+								},
+							]}
 						/>
-					</div>
-			
-		
+					))}
+				</div>
+
+				{/* pagination page size selector */}
+				<div className="w-full mx-auto flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 px-4 mt-4">
+					<Pagination
+						currentPage={currentPage}
+						setCurrentPage={setCurrentPage}
+						pageSize={pageSize}
+						setPageSize={setPageSize}
+						totalItems={filteredUsers.length}
+					/>
+				</div>
 			</section>
-		
+
 			{/* {users.map((user) => (
 				<div>{user.userName}</div>
 			))} */}
