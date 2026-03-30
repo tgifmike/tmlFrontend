@@ -274,7 +274,7 @@ const AccountUsersPage = () => {
 					</div>
 					<InviteUserDialog
 						accountId={accountIdParam}
-						onUserCreated={(user) => {
+						onUserCreated={(user: User) => {
 							setUsers((prev) => [...prev, user]);
 						}}
 					/>
