@@ -333,16 +333,17 @@ const hanldeStationDelete = async (stationId: string) => {
 							/>
 						</MobileDrawerNav>
 
-						<h1 className="text-2xl font-semibold">
+						{/* <h1 className="text-2xl font-semibold">
 							{currentLocation?.locationName}
-						</h1>
+						</h1> */}
 					</div>
 
 					{/* center */}
 					<div>
 						<p className=" md:text-2xl">
-							Stations for Account{' '}
-							<span className="text-chart-3 italic"> {accountName}</span>:
+							Stations for Location{' '}:
+							{/* <span className="text-chart-3 italic"> {accountName}</span>: */}
+							<span className="text-chart-3 italic"> {currentLocation?.locationName}</span>
 						</p>
 					</div>
 
