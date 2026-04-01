@@ -217,7 +217,7 @@ export default function CreateItemDialog({
 				</Button>
 			</DialogTrigger>
 
-			<DialogContent>
+			<DialogContent className="bg-accent">
 				<DialogHeader>
 					<DialogTitle>Create New Item</DialogTitle>
 					<DialogDescription>

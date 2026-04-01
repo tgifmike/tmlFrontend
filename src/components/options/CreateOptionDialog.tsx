@@ -86,7 +86,7 @@ export const CreateOptionDialog: React.FC<CreateOptionDialogProps> = ({
 			<DialogTrigger asChild>
 				<Button>Create Option</Button>
 			</DialogTrigger>
-			<DialogContent className="sm:max-w-[425px]">
+			<DialogContent className="sm:max-w-[425px] bg-accent">
 				<DialogHeader>
 					<DialogTitle>Create Option</DialogTitle>
 					<DialogDescription>
