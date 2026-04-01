@@ -1,54 +1,13 @@
-'use client';
 
-import Hero from '@/components/homePage/Hero';
-import Why from '@/components/homePage/Why';
-import Does from '@/components/homePage/Does';
-import Headlines from '@/components/homePage/Headlines';
-import { motion } from 'framer-motion';
+import HomeClient from '@/components/homePage/HomeClient';
+import type { Metadata } from 'next';
 
-export default function Home() {
-	// Variants for section animation
-	const sectionVariant = {
-		hidden: { opacity: 0, y: 50 },
-		visible: { opacity: 1, y: 0, transition: { duration: 0.6 } },
-	};
+export const metadata: Metadata = {
+	title: 'Restaurant Line Check App for iPad Kitchens',
+	description:
+		'Build stations, assign food safety checks, and run digital restaurant line checks from iPad. Improve health inspection readiness and kitchen execution across locations.',
+};
 
-	return (
-		<div className="w-full mx-auto max-w-7xl">
-			{/* Hero */}
-			<motion.div variants={sectionVariant} initial="hidden" animate="visible">
-				<Hero />
-			</motion.div>
-
-			{/* Why Section */}
-			<motion.div
-				variants={sectionVariant}
-				initial="hidden"
-				whileInView="visible"
-				viewport={{ once: true, amount: 0.2 }}
-			>
-				<Why />
-			</motion.div>
-
-			{/* Does Section */}
-			<motion.div
-				variants={sectionVariant}
-				initial="hidden"
-				whileInView="visible"
-				viewport={{ once: true, amount: 0.2 }}
-			>
-				<Does />
-			</motion.div>
-
-			{/* Headlines */}
-			<motion.div
-				variants={sectionVariant}
-				initial="hidden"
-				whileInView="visible"
-				viewport={{ once: true, amount: 0.2 }}
-			>
-				<Headlines />
-			</motion.div>
-		</div>
-	);
+export default function Page() {
+	return <HomeClient />;
 }
