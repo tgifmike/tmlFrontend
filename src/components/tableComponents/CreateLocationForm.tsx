@@ -113,131 +113,149 @@ export default function CreateLocationDialog({
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button variant="outline" className="flex items-center gap-2">
-          <AddLocationIcon className="w-5 h-5" />
-          <span>Create Location</span>
-        </Button>
-      </DialogTrigger>
+		<Dialog open={open} onOpenChange={setOpen}>
+			<DialogTrigger asChild>
+				<Button
+					variant="outline"
+					className="text-chart-3 font-bold text-sm md:text-lg px-3 py-1 md:px-4 md:py-2 flex items-center gap-2"
+				>
+					<AddLocationIcon className="!w-[25px] !h-[25px]" />
+					<span className="hidden md:inline">Create Location</span>
+				</Button>
+			</DialogTrigger>
 
-      <DialogContent>
-        <DialogHeader>
-				  <DialogTitle>Create New Location</DialogTitle>
-				  <DialogDescription>Fill out the form below to create a new location.</DialogDescription>
-        </DialogHeader>
+			<DialogContent>
+				<DialogHeader>
+					<DialogTitle>Create New Location</DialogTitle>
+					<DialogDescription>
+						Fill out the form below to create a new location.
+					</DialogDescription>
+				</DialogHeader>
 
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <FormField
-              control={form.control}
-              name="locationName"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Location Name</FormLabel>
-                  <FormControl>
-                    <Input {...field} placeholder="Enter location name" />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="street"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Street</FormLabel>
-                  <FormControl>
-                    <Input {...field} placeholder="Street" />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="town"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Town</FormLabel>
-                  <FormControl>
-                    <Input {...field} placeholder="Town" />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="state"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>State</FormLabel>
-                  <FormControl>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select a state" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {US_STATES.map((state) => (
-                          <SelectItem key={state} value={state}>
-                            {state}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="zipCode"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>ZIP Code</FormLabel>
-                  <FormControl>
-                    <Input {...field} placeholder="ZIP code" />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="timeZone"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Time Zone</FormLabel>
-                  <FormControl>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select a time zone" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {US_TIME_ZONES.map((tz) => (
-                          <SelectItem key={tz} value={tz}>
-                            {tz}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+				<Form {...form}>
+					<form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+						<FormField
+							control={form.control}
+							name="locationName"
+							render={({ field }) => (
+								<FormItem>
+									<FormLabel>Location Name</FormLabel>
+									<FormControl>
+										<Input {...field} placeholder="Enter location name" />
+									</FormControl>
+									<FormMessage />
+								</FormItem>
+							)}
+						/>
+						<FormField
+							control={form.control}
+							name="street"
+							render={({ field }) => (
+								<FormItem>
+									<FormLabel>Street</FormLabel>
+									<FormControl>
+										<Input {...field} placeholder="Street" />
+									</FormControl>
+									<FormMessage />
+								</FormItem>
+							)}
+						/>
+						<FormField
+							control={form.control}
+							name="town"
+							render={({ field }) => (
+								<FormItem>
+									<FormLabel>Town</FormLabel>
+									<FormControl>
+										<Input {...field} placeholder="Town" />
+									</FormControl>
+									<FormMessage />
+								</FormItem>
+							)}
+						/>
+						<FormField
+							control={form.control}
+							name="state"
+							render={({ field }) => (
+								<FormItem>
+									<FormLabel>State</FormLabel>
+									<FormControl>
+										<Select
+											onValueChange={field.onChange}
+											defaultValue={field.value}
+										>
+											<SelectTrigger>
+												<SelectValue placeholder="Select a state" />
+											</SelectTrigger>
+											<SelectContent>
+												{US_STATES.map((state) => (
+													<SelectItem key={state} value={state}>
+														{state}
+													</SelectItem>
+												))}
+											</SelectContent>
+										</Select>
+									</FormControl>
+									<FormMessage />
+								</FormItem>
+							)}
+						/>
+						<FormField
+							control={form.control}
+							name="zipCode"
+							render={({ field }) => (
+								<FormItem>
+									<FormLabel>ZIP Code</FormLabel>
+									<FormControl>
+										<Input {...field} placeholder="ZIP code" />
+									</FormControl>
+									<FormMessage />
+								</FormItem>
+							)}
+						/>
+						<FormField
+							control={form.control}
+							name="timeZone"
+							render={({ field }) => (
+								<FormItem>
+									<FormLabel>Time Zone</FormLabel>
+									<FormControl>
+										<Select
+											onValueChange={field.onChange}
+											defaultValue={field.value}
+										>
+											<SelectTrigger>
+												<SelectValue placeholder="Select a time zone" />
+											</SelectTrigger>
+											<SelectContent>
+												{US_TIME_ZONES.map((tz) => (
+													<SelectItem key={tz} value={tz}>
+														{tz}
+													</SelectItem>
+												))}
+											</SelectContent>
+										</Select>
+									</FormControl>
+									<FormMessage />
+								</FormItem>
+							)}
+						/>
 
-            <DialogFooter>
-              <Button type="submit" disabled={!form.formState.isValid || form.formState.isSubmitting}>
-                {form.formState.isSubmitting ? 'Creating...' : 'Create Location'}
-              </Button>
-            </DialogFooter>
-          </form>
-        </Form>
-      </DialogContent>
-    </Dialog>
-  );
+						<DialogFooter>
+							<Button
+								type="submit"
+								disabled={
+									!form.formState.isValid || form.formState.isSubmitting
+								}
+							>
+								{form.formState.isSubmitting
+									? 'Creating...'
+									: 'Create Location'}
+							</Button>
+						</DialogFooter>
+					</form>
+				</Form>
+			</DialogContent>
+		</Dialog>
+	);
 }

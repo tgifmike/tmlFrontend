@@ -11,8 +11,15 @@ import {
 	DialogTitle,
 	DialogTrigger,
 } from '@/components/ui/dialog';
+import { Icons } from '@/lib/icon';
+
 
 export const InviteUserDialog = ({ accountId, onUserCreated }: any) => {
+	
+	//icons
+	const Add_User = Icons.addUser;
+	
+	//set state
 	const [email, setEmail] = useState('');
 	const [loading, setLoading] = useState(false);
 
@@ -61,7 +68,14 @@ export const InviteUserDialog = ({ accountId, onUserCreated }: any) => {
 	return (
 		<Dialog>
 			<DialogTrigger asChild>
-				<Button>Invite User</Button>
+				<Button
+					variant="outline"
+					disabled={loading}
+					className="text-chart-3 font-bold text-sm md:text-lg px-3 py-1 md:px-4 md:py-2 flex items-center gap-2"
+				>
+					<Add_User className="!w-[25px] !h-[25px]" />
+					<span className="hidden md:inline">Invite User</span>
+				</Button>
 			</DialogTrigger>
 
 			<DialogContent>

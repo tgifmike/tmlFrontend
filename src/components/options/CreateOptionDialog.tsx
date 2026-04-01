@@ -22,6 +22,7 @@ import {
 } from '@/components/ui/select';
 import { toast } from 'sonner';
 import { Switch } from '../ui/switch';
+import { Icons } from '@/lib/icon';
 
 interface CreateOptionDialogProps {
 	accountId: string;
@@ -42,7 +43,11 @@ export const CreateOptionDialog: React.FC<CreateOptionDialogProps> = ({
 	);
 
 //	const [optionType, setOptionType] = useState<OptionType>(OptionType.TOOL);
+	//state for loading status during option creation
 	const [loading, setLoading] = useState(false);
+
+	//icon
+	const ToolboxIcon = Icons.toolbox;
 
 	const handleCreate = async () => {
 		if (!currentUser?.id) {
@@ -84,7 +89,13 @@ export const CreateOptionDialog: React.FC<CreateOptionDialogProps> = ({
 	return (
 		<Dialog open={open} onOpenChange={setOpen}>
 			<DialogTrigger asChild>
-				<Button>Create Option</Button>
+				<Button
+					variant="outline"
+					className="text-chart-3 font-bold text-sm md:text-lg px-3 py-1 md:px-4 md:py-2 flex items-center gap-2"
+				>
+					<ToolboxIcon className="!w-[25px] !h-[25px]" />
+					<span className="hidden md:inline">Create Option</span>
+				</Button>
 			</DialogTrigger>
 			<DialogContent className="sm:max-w-[425px] bg-accent">
 				<DialogHeader>
