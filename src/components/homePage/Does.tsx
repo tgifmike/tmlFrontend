@@ -4,7 +4,8 @@ import Image from 'next/image';
 import { CircleCheck } from 'lucide-react';
 import Lightbox from 'yet-another-react-lightbox';
 import 'yet-another-react-lightbox/styles.css';
-import { motion } from 'framer-motion';
+import { motion, useInView } from 'framer-motion';
+import { useRef } from 'react';
 
 export default function Does() {
 	// List of screenshots for the carousel and lightbox
@@ -24,6 +25,9 @@ export default function Does() {
 		'/iPhoneLineCheckTempCheckScreenShot.png',
 		'/Dashboard.png',
 	];
+
+	const carouselRef = useRef(null);
+	const isCarouselVisible = useInView(carouselRef, { margin: '-120px' });
 
 	//set state
 	const [open, setOpen] = useState(false);
@@ -55,13 +59,15 @@ export default function Does() {
 	];
 
 	//useeffect to auto-cycle through carousel screenshots every 3.5 seconds
-	useEffect(() => {
-		const interval = setInterval(() => {
-			setCarouselIndex((prev) => (prev + 1) % carouselScreenshots.length);
-		}, 3500);
+useEffect(() => {
+	if (!isCarouselVisible) return;
 
-		return () => clearInterval(interval);
-	}, []);
+	const interval = setInterval(() => {
+		setCarouselIndex((prev) => (prev + 1) % carouselScreenshots.length);
+	}, 3500);
+
+	return () => clearInterval(interval);
+}, [isCarouselVisible]);
 
 	return (
 		<section className="py-24">
@@ -228,6 +234,7 @@ export default function Does() {
 					</motion.div>
 
 					<motion.div
+						ref={carouselRef}
 						className="relative flex justify-center items-center"
 						initial={{ opacity: 0 }}
 						whileInView={{ opacity: 1 }}
