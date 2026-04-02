@@ -1,182 +1,150 @@
 'use client';
 
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
-import { useEffect, useState } from "react";
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
+import { useEffect, useState } from 'react';
+import { useSession } from 'next-auth/react';
 
-import { Button } from "@/components/ui/button";
+import { Button } from '@/components/ui/button';
 import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage
-} from "@/components/ui/form";
+	Form,
+	FormControl,
+	FormField,
+	FormItem,
+	FormLabel,
+	FormMessage,
+} from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Card, CardContent, CardTitle } from '@/components/ui/card';
 
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { useSession } from "next-auth/react";
-
+// Zod schema
 const formSchema = z.object({
-  name: z.string().min(2, "Name required"),
-  email: z.string().email("Invalid email"),
-  message: z.string().min(10, "Message must be at least 10 characters")
+	name: z.string().min(2, 'Name required'),
+	email: z.string().email('Invalid email'),
+	message: z.string().min(10, 'Message must be at least 10 characters'),
 });
 
+type FormValues = z.infer<typeof formSchema>;
+
 export default function ContactForm() {
+	const { data: session } = useSession();
+	const [loading, setLoading] = useState(false);
+	const [success, setSuccess] = useState(false);
 
-  const [loading, setLoading] = useState(false);
-    const [success, setSuccess] = useState(false);
-    
-    const { data: session } = useSession();
-    
-    useEffect(() => {
-			if (session?.user) {
-				form.setValue('name', session.user.name || '');
-				form.setValue('email', session.user.email || '');
-			}
-		}, [session]);
+	const form = useForm<FormValues>({
+		resolver: zodResolver(formSchema),
+		defaultValues: {
+			name: session?.user?.name || '',
+			email: session?.user?.email || '',
+			message: '',
+		},
+	});
 
-  const form = useForm({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      name: session?.user?.name || "",
-      email: session?.user?.email || "",
-      message: ""
-    }
-  });
+	// Prefill if session exists
+	useEffect(() => {
+		if (session?.user) {
+			form.setValue('name', session.user.name || '');
+			form.setValue('email', session.user.email || '');
+		}
+	}, [session, form]);
 
-  async function onSubmit(values: any) {
+	async function onSubmit(values: FormValues) {
+		setLoading(true);
 
-    setLoading(true);
+		try {
+			await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/email/contact`, {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify(values), // matches backend DTO: { name, email, message }
+			});
 
-    try {
+			setSuccess(true);
+			form.reset();
+		} catch (err) {
+			console.error(err);
+		}
 
-      await fetch("http://localhost:8080/api/email/send", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          to: "admin@themanagerlife.com",
-          subject: `Contact Form: ${values.name}`,
-          message: `
-Name: ${values.name}
-Email: ${values.email}
+		setLoading(false);
+	}
 
+	return (
+		<div className="max-w-xl mx-auto">
+			<Card className="shadow-xl rounded-2xl">
+				<CardTitle className="text-2xl font-semibold text-center">
+					Send us a message
+				</CardTitle>
+				<CardContent className="p-8">
+					{success && (
+						<p className="text-green-600 mb-6">
+							Thanks! We'll get back to you shortly.
+						</p>
+					)}
 
-Message:
-${values.message}
-`
-        })
-      });
+					<Form {...form}>
+						<form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+							<FormField
+								control={form.control}
+								name="name"
+								render={({ field }) => (
+									<FormItem>
+										<FormLabel>Name</FormLabel>
+										<FormControl>
+											<Input placeholder="Your name" {...field} />
+										</FormControl>
+										<FormMessage />
+									</FormItem>
+								)}
+							/>
 
-      setSuccess(true);
-      form.reset();
+							<FormField
+								control={form.control}
+								name="email"
+								render={({ field }) => (
+									<FormItem>
+										<FormLabel>Email</FormLabel>
+										<FormControl>
+											<Input
+												type="email"
+												placeholder="you@email.com"
+												{...field}
+											/>
+										</FormControl>
+										<FormMessage />
+									</FormItem>
+								)}
+							/>
 
-    } catch (error) {
-      console.error(error);
-    }
+							<FormField
+								control={form.control}
+								name="message"
+								render={({ field }) => (
+									<FormItem>
+										<FormLabel>Message</FormLabel>
+										<FormControl>
+											<Textarea
+												rows={5}
+												placeholder="Your message..."
+												{...field}
+											/>
+										</FormControl>
+										<FormMessage />
+									</FormItem>
+								)}
+							/>
 
-    setLoading(false);
-  }
-
-  return (
-    <div className="max-w-xl mx-auto">
-
-      {success && (
-        <p className="text-green-600 mb-6">
-          Message sent successfully.
-        </p>
-      )}
-
-      <Form {...form}>
-        <form
-          onSubmit={form.handleSubmit(onSubmit)}
-          className="space-y-6"
-        >
-
-          {/* Name */}
-
-          <FormField
-            control={form.control}
-            name="name"
-            render={({ field }) => (
-              <FormItem>
-
-                <FormLabel>Name</FormLabel>
-
-                <FormControl>
-                  <Input placeholder="Your name" {...field} />
-                </FormControl>
-
-                <FormMessage />
-
-              </FormItem>
-            )}
-          />
-
-          {/* Email */}
-
-          <FormField
-            control={form.control}
-            name="email"
-            render={({ field }) => (
-              <FormItem>
-
-                <FormLabel>Email</FormLabel>
-
-                <FormControl>
-                  <Input
-                    type="email"
-                    placeholder="you@email.com"
-                    {...field}
-                  />
-                </FormControl>
-
-                <FormMessage />
-
-              </FormItem>
-            )}
-          />
-
-          {/* Message */}
-
-          <FormField
-            control={form.control}
-            name="message"
-            render={({ field }) => (
-              <FormItem>
-
-                <FormLabel>Message</FormLabel>
-
-                <FormControl>
-                  <Textarea
-                    rows={5}
-                    placeholder="Your message..."
-                    {...field}
-                  />
-                </FormControl>
-
-                <FormMessage />
-
-              </FormItem>
-            )}
-          />
-
-          <Button
-            type="submit"
-            className="w-full"
-            disabled={loading}
-          >
-            {loading ? "Sending..." : "Send Message"}
-          </Button>
-
-        </form>
-      </Form>
-
-    </div>
-  );
+							<Button
+								type="submit"
+								className="w-full"
+								disabled={loading || !form.formState.isValid}
+							>
+								{loading ? 'Sending...' : 'Send Message'}
+							</Button>
+						</form>
+					</Form>
+				</CardContent>
+			</Card>
+		</div>
+	);
 }
