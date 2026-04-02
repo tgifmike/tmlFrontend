@@ -130,7 +130,8 @@ const plans = [
 									href={
 										plan.name === 'Enterprise'
 											? '/contact-sales?plan=enterprise'
-											: '/auth/signup?plan=pro'
+                                            : '/free-trial?plan=' +
+												plan.name.toLowerCase().replace(' ', '-')
 									}
 								>
 									{plan.cta}
