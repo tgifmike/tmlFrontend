@@ -7,6 +7,7 @@ import { Card, CardHeader, CardContent, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { toast } from 'sonner';
+import ItemListPreview from './ItemListPreview';
 
 interface Props {
 	locationId: string;
@@ -126,6 +127,7 @@ const RobustLineCheckDashboard: React.FC<Props> = ({
 			<div className="space-y-4">
 				<h2 className="text-xl font-semibold">Line Check Details</h2>
 				{lineChecks.length === 0 && <div>No line checks available</div>}
+
 				{lineChecks.map((lc) => (
 					<Card key={lc.lineCheckId}>
 						<CardHeader>
@@ -135,34 +137,25 @@ const RobustLineCheckDashboard: React.FC<Props> = ({
 						</CardHeader>
 						<CardContent className="space-y-2">
 							<div>
-								Missing Items ({lc.missingCount}):
-								<ul className="list-disc ml-4">
-									{lc.missingItems.map((item, idx) => (
-										<li key={idx}>{item}</li>
-									))}
-								</ul>
+								Missing Items ({lc.missingItems.length}):
+								<ItemListPreview items={lc.missingItems} />
 							</div>
+
 							<div>
-								Out of Temp Items ({lc.outOfTempCount}):
-								<ul className="list-disc ml-4">
-									{lc.outOfTempItems.map((item, idx) => (
-										<li key={idx}>{item}</li>
-									))}
-								</ul>
+								Out of Temp Items ({lc.outOfTempItems.length}):
+								<ItemListPreview items={lc.outOfTempItems} />
 							</div>
+
 							<div>
-								Incorrect Prep Items ({lc.incorrectPrepCount}):
-								<ul className="list-disc ml-4">
-									{lc.incorrectPrepItems.map((item, idx) => (
-										<li key={idx}>{item}</li>
-									))}
-								</ul>
+								Incorrect Prep Items ({lc.incorrectPrepItems.length}):
+								<ItemListPreview items={lc.incorrectPrepItems} />
 							</div>
 						</CardContent>
 					</Card>
 				))}
 			</div>
 		</div>
+		// </div>
 	);
 };
 
