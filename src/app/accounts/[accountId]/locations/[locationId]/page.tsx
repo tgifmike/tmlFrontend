@@ -191,7 +191,7 @@ const LocationPage = () => {
 						<TimeOfDayGreeting name={session?.user?.name} />
 					</div> */}
 
-					<div className="w-3/5">
+					{/* <div className="w-3/5">
 						<LineCheckDashboard
 							lineChecks={lineChecks}
 							locationId={locationIdParam!}
@@ -202,7 +202,7 @@ const LocationPage = () => {
 							// lineChecks={lineChecks}
 							locationId={locationIdParam!}
 						/>
-					</div>
+					</div> */}
 					{/* <div className="w-2/5">
 						{currentLocation && (
 							<WeatherWidget
