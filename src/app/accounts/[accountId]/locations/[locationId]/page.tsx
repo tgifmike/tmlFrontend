@@ -4,6 +4,7 @@ import { getAccountsForUser } from '@/app/api/accountApi';
 import { getCompletedLineChecksByLocationApi } from '@/app/api/linecheckApi';
 import { getUserLocationAccess, getWeather } from '@/app/api/locationApi';
 import { AppRole, LineCheck, Locations, User } from '@/app/types';
+import FreshLineCheckDashboard from '@/components/locaitons/FreshLineCheckDashbord';
 import LineCheckDashboard from '@/components/locaitons/LineCheckDashboard';
 import WeatherWidget from '@/components/locaitons/WeatherWidget';
 import TimeOfDayGreeting from '@/components/login/TimeOfDayGreeting';
@@ -182,9 +183,15 @@ const LocationPage = () => {
 						<TimeOfDayGreeting name={session?.user?.name} />
 					</div> */}
 
-					<div className="w-3/5">
+					{/* <div className="w-3/5">
 						<LineCheckDashboard
 							lineChecks={lineChecks}
+							locationId={locationIdParam!}
+						/>
+					</div> */}
+					<div>
+						<FreshLineCheckDashboard
+							// lineChecks={lineChecks}
 							locationId={locationIdParam!}
 						/>
 					</div>
