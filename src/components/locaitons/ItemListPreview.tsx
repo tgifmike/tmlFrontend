@@ -35,3 +35,4 @@ const ItemListPreview: React.FC<ItemListPreviewProps> = ({
 		</div>
 	);
 };
+export default ItemListPreview;
