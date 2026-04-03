@@ -35,14 +35,21 @@ const RobustLineCheckDashboard: React.FC<Props> = ({
 					missingItemsToday: data.missingItemsToday ?? 0,
 					outOfTempItemsToday: data.outOfTempItemsToday ?? 0,
 					incorrectPrepItemsToday: data.incorrectPrepItemsToday ?? 0,
+
+					missingItemNamesToday: Array.isArray(data.missingItemNamesToday)
+						? data.missingItemNamesToday
+						: [],
+
 					incorrectPrepItemNamesToday: Array.isArray(
 						data.incorrectPrepItemNamesToday,
 					)
 						? data.incorrectPrepItemNamesToday
 						: [],
+
 					outOfTempItemNamesToday: Array.isArray(data.outOfTempItemNamesToday)
 						? data.outOfTempItemNamesToday
 						: [],
+
 					durationSeconds: data.durationSeconds ?? 0,
 				});
 			} catch (err) {
@@ -92,7 +99,7 @@ const RobustLineCheckDashboard: React.FC<Props> = ({
 				</CardHeader>
 				<CardContent>
 					{metrics.missingItemsToday > 0
-						? metrics.incorrectPrepItemNamesToday.join(', ')
+						? metrics.missingItemNamesToday.join(', ')
 						: 'None'}
 				</CardContent>
 			</Card>

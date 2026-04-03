@@ -344,12 +344,13 @@ export interface StationHistoryEntity {
 
 // types/dashboard.ts
 export interface DashboardMetrics {
-    totalChecksToday: number;
-    totalChecksWeekToDate: number;
-    missingItemsToday: number;
-    outOfTempItemsToday: number;
-    outOfTempItemNamesToday: string[];
-    incorrectPrepItemsToday: number;
-    incorrectPrepItemNamesToday: string[];
-    durationSeconds: number | null;
+	totalChecksToday: number;
+	totalChecksWeekToDate: number;
+	missingItemsToday: number;
+	outOfTempItemsToday: number;
+	outOfTempItemNamesToday: string[];
+	incorrectPrepItemsToday: number;
+	incorrectPrepItemNamesToday: string[];
+	durationSeconds: number | null;
+	missingItemNamesToday: string[];
 }
