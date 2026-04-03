@@ -17,44 +17,53 @@ const RobustLineCheckDashboard: React.FC<Props> = ({
 	locationId,
 	dailyGoal,
 }) => {
-	const [metrics, setMetrics] = useState<DashboardMetrics | null>(null);
+	const [metrics, setMetrics] = useState<DashboardMetrics>({
+		totalChecksToday: 0,
+		totalChecksWeekToDate: 0,
+		missingItemsToday: 0,
+		outOfTempItemsToday: 0,
+		incorrectPrepItemsToday: 0,
+		missingItemNamesToday: [],
+		incorrectPrepItemNamesToday: [],
+		outOfTempItemNamesToday: [],
+		durationSeconds: 0,
+	});
 	const [loading, setLoading] = useState(true);
 
 	useEffect(() => {
 		if (!locationId) return;
 
 		const fetchMetrics = async () => {
+			setLoading(true);
 			try {
 				const res = await getDashboardMetrics(locationId);
-				const data = res.data ?? {} as DashboardMetrics;
+				const data = (res.data as Partial<DashboardMetrics>) ?? {};
 
-				// Ensure all array fields exist to prevent runtime errors
-				setMetrics({
-					totalChecksToday: data.totalChecksToday ?? 0,
-					totalChecksWeekToDate: data.totalChecksWeekToDate ?? 0,
-					missingItemsToday: data.missingItemsToday ?? 0,
-					outOfTempItemsToday: data.outOfTempItemsToday ?? 0,
-					incorrectPrepItemsToday: data.incorrectPrepItemsToday ?? 0,
-
+				setMetrics((prev) => ({
+					...prev,
+					totalChecksToday: data.totalChecksToday ?? prev.totalChecksToday,
+					totalChecksWeekToDate:
+						data.totalChecksWeekToDate ?? prev.totalChecksWeekToDate,
+					missingItemsToday: data.missingItemsToday ?? prev.missingItemsToday,
+					outOfTempItemsToday:
+						data.outOfTempItemsToday ?? prev.outOfTempItemsToday,
+					incorrectPrepItemsToday:
+						data.incorrectPrepItemsToday ?? prev.incorrectPrepItemsToday,
 					missingItemNamesToday: Array.isArray(data.missingItemNamesToday)
 						? data.missingItemNamesToday
 						: [],
-
 					incorrectPrepItemNamesToday: Array.isArray(
 						data.incorrectPrepItemNamesToday,
 					)
 						? data.incorrectPrepItemNamesToday
 						: [],
-
 					outOfTempItemNamesToday: Array.isArray(data.outOfTempItemNamesToday)
 						? data.outOfTempItemNamesToday
 						: [],
-
-					durationSeconds: data.durationSeconds ?? 0,
-				});
+					durationSeconds: data.durationSeconds ?? prev.durationSeconds,
+				}));
 			} catch (err) {
 				toast.error('Failed to load dashboard metrics');
-				setMetrics(null);
 			} finally {
 				setLoading(false);
 			}
@@ -66,13 +75,9 @@ const RobustLineCheckDashboard: React.FC<Props> = ({
 	if (loading)
 		return <div className="p-4 text-center">Loading Dashboard Metrics…</div>;
 
-	if (!metrics)
-		return (
-			<div className="p-4 text-center text-red-500">No metrics available</div>
-		);
-
 	return (
 		<div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+			{/* Total Checks Today */}
 			<Card>
 				<CardHeader>
 					<CardTitle>
@@ -82,6 +87,7 @@ const RobustLineCheckDashboard: React.FC<Props> = ({
 				<CardContent>All line checks completed today</CardContent>
 			</Card>
 
+			{/* Week-to-Date */}
 			<Card>
 				<CardHeader>
 					<CardTitle>
@@ -91,6 +97,7 @@ const RobustLineCheckDashboard: React.FC<Props> = ({
 				<CardContent>Line checks completed since start of week</CardContent>
 			</Card>
 
+			{/* Missing Items Today */}
 			<Card>
 				<CardHeader>
 					<CardTitle>
@@ -98,12 +105,13 @@ const RobustLineCheckDashboard: React.FC<Props> = ({
 					</CardTitle>
 				</CardHeader>
 				<CardContent>
-					{metrics.missingItemsToday > 0
+					{metrics.missingItemNamesToday.length > 0
 						? metrics.missingItemNamesToday.join(', ')
 						: 'None'}
 				</CardContent>
 			</Card>
 
+			{/* Out of Temp Items */}
 			<Card>
 				<CardHeader>
 					<CardTitle>
@@ -111,12 +119,13 @@ const RobustLineCheckDashboard: React.FC<Props> = ({
 					</CardTitle>
 				</CardHeader>
 				<CardContent>
-					{metrics.outOfTempItemsToday > 0
+					{metrics.outOfTempItemNamesToday.length > 0
 						? metrics.outOfTempItemNamesToday.join(', ')
 						: 'None'}
 				</CardContent>
 			</Card>
 
+			{/* Incorrect Prep Items */}
 			<Card>
 				<CardHeader>
 					<CardTitle>
@@ -125,12 +134,13 @@ const RobustLineCheckDashboard: React.FC<Props> = ({
 					</CardTitle>
 				</CardHeader>
 				<CardContent>
-					{metrics.incorrectPrepItemsToday > 0
+					{metrics.incorrectPrepItemNamesToday.length > 0
 						? metrics.incorrectPrepItemNamesToday.join(', ')
 						: 'None'}
 				</CardContent>
 			</Card>
 
+			{/* Daily Goal Progress */}
 			<Card>
 				<CardHeader>
 					<CardTitle>
@@ -153,13 +163,14 @@ const RobustLineCheckDashboard: React.FC<Props> = ({
 				</CardContent>
 			</Card>
 
+			{/* Avg Time per Line Check */}
 			<Card>
 				<CardHeader>
 					<CardTitle>Avg Time per Line Check</CardTitle>
 				</CardHeader>
 				<CardContent>
-					{metrics.durationSeconds
-						? `${Math.round(metrics.durationSeconds / 60)} min`
+					{(metrics.durationSeconds ?? 0) > 0
+						? `${Math.round((metrics.durationSeconds ?? 0) / 60)} min`
 						: 'N/A'}
 				</CardContent>
 			</Card>
