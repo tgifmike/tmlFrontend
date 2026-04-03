@@ -1,13 +1,12 @@
-import { int } from "zod";
+import { int } from 'zod';
 
 export const AppRole = {
+	MEMBER: 'MEMBER',
+	MANAGER: 'MANAGER',
+	CONTRIBUTOR: 'CONTRIBUTOR',
+} as const;
 
-    MEMBER: 'MEMBER',
-    MANAGER: 'MANAGER',
-    CONTRIBUTOR: 'CONTRIBUTOR',
-} as const ;
-
-export type AppRole = (typeof AppRole)[keyof typeof AppRole];   
+export type AppRole = (typeof AppRole)[keyof typeof AppRole];
 
 export const AccessRole = {
 	ADMIN: 'ADMIN',
@@ -38,7 +37,7 @@ export interface Account {
 	accountName: string;
 	accountActive: boolean;
 	accountImage: string;
-	imageBase64?: string | null;	
+	imageBase64?: string | null;
 	createdAt?: string | null;
 	updatedAt?: string | null;
 }
@@ -174,9 +173,7 @@ export enum OptionType {
 	SHELF_LIFE = 'SHELF_LIFE',
 	PAN_SIZE = 'PAN_SIZE',
 	PORTION_SIZE = 'PORTION_SIZE',
-};
-
-
+}
 
 export interface OptionEntity {
 	id: string;
@@ -268,7 +265,6 @@ export interface ItemHistory {
 	oldValues?: Record<string, string>;
 }
 
-
 // export type Option = {
 // 	id: string;
 // 	optionName: string;
@@ -351,6 +347,18 @@ export interface DashboardMetrics {
 	outOfTempItemNamesToday: string[];
 	incorrectPrepItemsToday: number;
 	incorrectPrepItemNamesToday: string[];
-	durationSeconds: number | null;
 	missingItemNamesToday: string[];
+	durationSeconds: number | null;
+	lineChecks: LineCheckItemIssuesDto[]; // <-- this is important
+}
+
+export interface LineCheckItemIssuesDto {
+	lineCheckId: string; // or UUID
+	checkTime: string; // ISO string
+	missingCount: number;
+	missingItems: string[];
+	outOfTempCount: number;
+	outOfTempItems: string[];
+	incorrectPrepCount: number;
+	incorrectPrepItems: string[];
 }
