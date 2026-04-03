@@ -48,11 +48,12 @@ export const getCompletedLineChecksByLocationApi = async (
 };
 
 //get linecheck that complted and by user
+// get linecheck metrics by location
 export const getDashboardMetrics = async (locationId: string) => {
-	return request<DashboardMetrics>({
-		method: 'GET',
-		url: `/line-checks/dashboard-metrics/${locationId}`,
-	});
+  return request<DashboardMetrics>({
+    method: 'GET',
+    url: `/line-checks/dashboard/${locationId}`, // ✅ updated path
+  });
 };
 
 
