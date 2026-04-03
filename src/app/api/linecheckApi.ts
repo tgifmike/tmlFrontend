@@ -1,4 +1,4 @@
-import { LineCheck } from "../types";
+import { DashboardMetrics, LineCheck } from "../types";
 import { request } from './axios';
 
 //create linecheck
@@ -44,6 +44,14 @@ export const getCompletedLineChecksByLocationApi = async (
 	return request<LineCheck[]>({
 		method: 'GET',
 		url: `/line-checks/completed/by-location/${locationId}`,
+	});
+};
+
+//get linecheck that complted and by user
+export const getDashboardMetrics = async (locationId: string) => {
+	return request<DashboardMetrics>({
+		method: 'GET',
+		url: `/line-checks/dashboard-metrics/${locationId}`,
 	});
 };
 

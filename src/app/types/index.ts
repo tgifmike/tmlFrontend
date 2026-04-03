@@ -341,3 +341,15 @@ export interface StationHistoryEntity {
 	oldValues?: Record<string, string>;
 	newValues?: Record<string, any>;
 }
+
+// types/dashboard.ts
+export interface DashboardMetrics {
+    totalChecksToday: number;
+    totalChecksWeekToDate: number;
+    missingItemsToday: number;
+    outOfTempItemsToday: number;
+    outOfTempItemNamesToday: string[];
+    incorrectPrepItemsToday: number;
+    incorrectPrepItemNamesToday: string[];
+    durationSeconds: number | null;
+}

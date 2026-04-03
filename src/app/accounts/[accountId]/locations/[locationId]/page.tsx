@@ -2,10 +2,11 @@
 
 import { getAccountsForUser } from '@/app/api/accountApi';
 import { getCompletedLineChecksByLocationApi } from '@/app/api/linecheckApi';
-import { getUserLocationAccess, getWeather } from '@/app/api/locationApi';
+import { getLineCheckSettings, getUserLocationAccess, getWeather } from '@/app/api/locationApi';
 import { AppRole, LineCheck, Locations, User } from '@/app/types';
 import FreshLineCheckDashboard from '@/components/locaitons/FreshLineCheckDashbord';
 import LineCheckDashboard from '@/components/locaitons/LineCheckDashboard';
+import RobustLineCheckDashboard from '@/components/locaitons/RobustLineCheckDashboard';
 import WeatherWidget from '@/components/locaitons/WeatherWidget';
 import TimeOfDayGreeting from '@/components/login/TimeOfDayGreeting';
 import LocationNav from '@/components/navBar/LocationNav';
@@ -47,6 +48,9 @@ const LocationPage = () => {
 	const [currentLocation, setCurrentLocation] = useState<any>();
 	const [weather, setWeather] = useState<WeatherResponse | null>(null);
 	const [lineChecks, setLineChecks] = useState<LineCheck[]>([]);
+	const [lineCheckSettings, setLineCheckSettings] = useState<{ dailyGoal: number }>({ dailyGoal: 5 });
+
+
 
 	useEffect(() => {
 		if (
@@ -90,6 +94,10 @@ const LocationPage = () => {
 				setAccountImage(account.imageBase64 || null);
 				setLocationName(location.locationName);
 				setCurrentLocation(location)
+
+				const settingsRes = await getLineCheckSettings(locationIdParam);
+				setLineCheckSettings({ dailyGoal: settingsRes.data?.dailyGoal ?? 5 });
+
 
 				const weatherData = await getWeather(
 					location.locationLatitude,
@@ -178,24 +186,24 @@ const LocationPage = () => {
 					</div>
 					<TimeOfDayGreeting name={session?.user?.name} />
 				</header>
-				<div className="flex justify-between p-2 gap-3">
+				<div className="flex flex-col justify-between p-2 gap-3">
 					{/* <div className="p-4">
 						<TimeOfDayGreeting name={session?.user?.name} />
 					</div> */}
 
-					{/* <div className="w-3/5">
+					<div className="w-3/5">
 						<LineCheckDashboard
 							lineChecks={lineChecks}
 							locationId={locationIdParam!}
 						/>
-					</div> */}
+					</div>
 					<div>
 						<FreshLineCheckDashboard
 							// lineChecks={lineChecks}
 							locationId={locationIdParam!}
 						/>
 					</div>
-					<div className="w-2/5">
+					{/* <div className="w-2/5">
 						{currentLocation && (
 							<WeatherWidget
 								lat={currentLocation.locationLatitude}
@@ -203,6 +211,12 @@ const LocationPage = () => {
 								fetchWeather={getWeather}
 							/>
 						)}
+					</div> */}
+					<div>
+						<RobustLineCheckDashboard
+							locationId={locationIdParam!}
+							dailyGoal={lineCheckSettings.dailyGoal}
+						/>
 					</div>
 				</div>
 			</section>
