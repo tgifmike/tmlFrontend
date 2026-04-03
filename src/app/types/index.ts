@@ -133,6 +133,7 @@ export interface LineCheck {
 	completedAt: string;
 	stations: LineCheckStation[];
 	username?: string;
+	items: LineCheckItem[];
 }
 
 interface LineCheckItem {
@@ -150,7 +151,11 @@ interface LineCheckItem {
 	maxTemp: number; // user input
 	checked?: boolean; // user input
 	observations?: string;
-	 // user input per item
+	isItemChecked: boolean; // prep correctness
+	isChecked: boolean;
+	stationId: string;
+	checkTime: string; // ISO string
+	// user input per item
 }
 
 export interface LineCheckSettings {
