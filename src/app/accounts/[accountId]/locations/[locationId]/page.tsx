@@ -96,7 +96,7 @@ const LocationPage = () => {
 				setCurrentLocation(location)
 
 				const settingsRes = await getLineCheckSettings(locationIdParam);
-				setLineCheckSettings({ dailyGoal: settingsRes.data.dailyGoal ?? 5 });
+				setLineCheckSettings({ dailyGoal: settingsRes.data?.dailyGoal ?? 5 });
 
 
 				const weatherData = await getWeather(

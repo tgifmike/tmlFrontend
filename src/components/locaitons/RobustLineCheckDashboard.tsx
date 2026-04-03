@@ -25,7 +25,7 @@ const RobustLineCheckDashboard: React.FC<Props> = ({
 		const fetchMetrics = async () => {
 			try {
 				const res = await getDashboardMetrics(locationId);
-				setMetrics(res.data);
+				setMetrics(res.data ?? null);
 			} catch (err) {
 				toast.error('Failed to load dashboard metrics');
 				setMetrics(null);
