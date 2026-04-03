@@ -13,36 +13,6 @@ interface Props {
 	dailyGoal: number;
 }
 
-// Component to show item list with preview and expand/collapse
-const ItemListPreview: React.FC<{ items: string[]; previewCount?: number }> = ({
-	items,
-	previewCount = 5,
-}) => {
-	const [expanded, setExpanded] = useState(false);
-
-	if (!items || items.length === 0) return <span>None</span>;
-
-	const previewItems = expanded ? items : items.slice(0, previewCount);
-
-	return (
-		<div>
-			<ul className="list-disc ml-4 max-h-40 overflow-y-auto">
-				{previewItems.map((item, idx) => (
-					<li key={idx}>{item}</li>
-				))}
-			</ul>
-			{items.length > previewCount && (
-				<button
-					className="text-blue-600 underline mt-1"
-					onClick={() => setExpanded(!expanded)}
-				>
-					{expanded ? 'Show Less' : `Show ${items.length - previewCount} More`}
-				</button>
-			)}
-		</div>
-	);
-};
-
 const RobustLineCheckDashboard: React.FC<Props> = ({
 	locationId,
 	dailyGoal,
@@ -51,11 +21,11 @@ const RobustLineCheckDashboard: React.FC<Props> = ({
 		totalChecksToday: 0,
 		totalChecksWeekToDate: 0,
 		missingItemsToday: 0,
-		outOfTempItemsToday: 0,
-		incorrectPrepItemsToday: 0,
 		missingItemNamesToday: [],
-		incorrectPrepItemNamesToday: [],
+		outOfTempItemsToday: 0,
 		outOfTempItemNamesToday: [],
+		incorrectPrepItemsToday: 0,
+		incorrectPrepItemNamesToday: [],
 		durationSeconds: 0,
 		lineChecks: [],
 	});
@@ -78,22 +48,6 @@ const RobustLineCheckDashboard: React.FC<Props> = ({
 					totalChecksToday: data.totalChecksToday ?? prev.totalChecksToday,
 					totalChecksWeekToDate:
 						data.totalChecksWeekToDate ?? prev.totalChecksWeekToDate,
-					missingItemsToday: data.missingItemsToday ?? prev.missingItemsToday,
-					outOfTempItemsToday:
-						data.outOfTempItemsToday ?? prev.outOfTempItemsToday,
-					incorrectPrepItemsToday:
-						data.incorrectPrepItemsToday ?? prev.incorrectPrepItemsToday,
-					missingItemNamesToday: Array.isArray(data.missingItemNamesToday)
-						? data.missingItemNamesToday
-						: [],
-					incorrectPrepItemNamesToday: Array.isArray(
-						data.incorrectPrepItemNamesToday,
-					)
-						? data.incorrectPrepItemNamesToday
-						: [],
-					outOfTempItemNamesToday: Array.isArray(data.outOfTempItemNamesToday)
-						? data.outOfTempItemNamesToday
-						: [],
 					durationSeconds: data.durationSeconds ?? prev.durationSeconds,
 				}));
 			} catch (err) {
@@ -129,46 +83,6 @@ const RobustLineCheckDashboard: React.FC<Props> = ({
 						</CardTitle>
 					</CardHeader>
 					<CardContent>Line checks completed since start of week</CardContent>
-				</Card>
-
-				<Card>
-					<CardHeader>
-						<CardTitle>
-							Missing Items Today <Badge>{metrics.missingItemsToday}</Badge>
-						</CardTitle>
-					</CardHeader>
-					<CardContent>
-						{metrics.missingItemNamesToday.length > 0
-							? metrics.missingItemNamesToday.join(', ')
-							: 'None'}
-					</CardContent>
-				</Card>
-
-				<Card>
-					<CardHeader>
-						<CardTitle>
-							Out of Temp Items <Badge>{metrics.outOfTempItemsToday}</Badge>
-						</CardTitle>
-					</CardHeader>
-					<CardContent>
-						{metrics.outOfTempItemNamesToday.length > 0
-							? metrics.outOfTempItemNamesToday.join(', ')
-							: 'None'}
-					</CardContent>
-				</Card>
-
-				<Card>
-					<CardHeader>
-						<CardTitle>
-							Incorrect Prep Items{' '}
-							<Badge>{metrics.incorrectPrepItemsToday}</Badge>
-						</CardTitle>
-					</CardHeader>
-					<CardContent>
-						{metrics.incorrectPrepItemNamesToday.length > 0
-							? metrics.incorrectPrepItemNamesToday.join(', ')
-							: 'None'}
-					</CardContent>
 				</Card>
 
 				<Card>
@@ -221,16 +135,28 @@ const RobustLineCheckDashboard: React.FC<Props> = ({
 						</CardHeader>
 						<CardContent className="space-y-2">
 							<div>
-								Missing Items ({lc.missingCount}):{' '}
-								<ItemListPreview items={lc.missingItems} />
+								Missing Items ({lc.missingCount}):
+								<ul className="list-disc ml-4">
+									{lc.missingItems.map((item, idx) => (
+										<li key={idx}>{item}</li>
+									))}
+								</ul>
 							</div>
 							<div>
-								Out of Temp Items ({lc.outOfTempCount}):{' '}
-								<ItemListPreview items={lc.outOfTempItems} />
+								Out of Temp Items ({lc.outOfTempCount}):
+								<ul className="list-disc ml-4">
+									{lc.outOfTempItems.map((item, idx) => (
+										<li key={idx}>{item}</li>
+									))}
+								</ul>
 							</div>
 							<div>
-								Incorrect Prep Items ({lc.incorrectPrepCount}):{' '}
-								<ItemListPreview items={lc.incorrectPrepItems} />
+								Incorrect Prep Items ({lc.incorrectPrepCount}):
+								<ul className="list-disc ml-4">
+									{lc.incorrectPrepItems.map((item, idx) => (
+										<li key={idx}>{item}</li>
+									))}
+								</ul>
 							</div>
 						</CardContent>
 					</Card>
