@@ -1,4 +1,5 @@
 'use client';
+
 import React, { useEffect, useState } from 'react';
 import { getDashboardMetrics } from '@/app/api/linecheckApi';
 import { DashboardMetrics } from '@/app/types';
@@ -25,7 +26,25 @@ const RobustLineCheckDashboard: React.FC<Props> = ({
 		const fetchMetrics = async () => {
 			try {
 				const res = await getDashboardMetrics(locationId);
-				setMetrics(res.data ?? null);
+				const data = res.data ?? {} as DashboardMetrics;
+
+				// Ensure all array fields exist to prevent runtime errors
+				setMetrics({
+					totalChecksToday: data.totalChecksToday ?? 0,
+					totalChecksWeekToDate: data.totalChecksWeekToDate ?? 0,
+					missingItemsToday: data.missingItemsToday ?? 0,
+					outOfTempItemsToday: data.outOfTempItemsToday ?? 0,
+					incorrectPrepItemsToday: data.incorrectPrepItemsToday ?? 0,
+					incorrectPrepItemNamesToday: Array.isArray(
+						data.incorrectPrepItemNamesToday,
+					)
+						? data.incorrectPrepItemNamesToday
+						: [],
+					outOfTempItemNamesToday: Array.isArray(data.outOfTempItemNamesToday)
+						? data.outOfTempItemNamesToday
+						: [],
+					durationSeconds: data.durationSeconds ?? 0,
+				});
 			} catch (err) {
 				toast.error('Failed to load dashboard metrics');
 				setMetrics(null);
@@ -50,8 +69,7 @@ const RobustLineCheckDashboard: React.FC<Props> = ({
 			<Card>
 				<CardHeader>
 					<CardTitle>
-						Total Checks Today
-						<Badge>{metrics.totalChecksToday}</Badge>
+						Total Checks Today <Badge>{metrics.totalChecksToday}</Badge>
 					</CardTitle>
 				</CardHeader>
 				<CardContent>All line checks completed today</CardContent>
@@ -60,8 +78,7 @@ const RobustLineCheckDashboard: React.FC<Props> = ({
 			<Card>
 				<CardHeader>
 					<CardTitle>
-						Week-to-Date
-						<Badge>{metrics.totalChecksWeekToDate}</Badge>
+						Week-to-Date <Badge>{metrics.totalChecksWeekToDate}</Badge>
 					</CardTitle>
 				</CardHeader>
 				<CardContent>Line checks completed since start of week</CardContent>
@@ -70,8 +87,7 @@ const RobustLineCheckDashboard: React.FC<Props> = ({
 			<Card>
 				<CardHeader>
 					<CardTitle>
-						Missing Items Today
-						<Badge>{metrics.missingItemsToday}</Badge>
+						Missing Items Today <Badge>{metrics.missingItemsToday}</Badge>
 					</CardTitle>
 				</CardHeader>
 				<CardContent>
@@ -84,8 +100,7 @@ const RobustLineCheckDashboard: React.FC<Props> = ({
 			<Card>
 				<CardHeader>
 					<CardTitle>
-						Out of Temp Items
-						<Badge>{metrics.outOfTempItemsToday}</Badge>
+						Out of Temp Items <Badge>{metrics.outOfTempItemsToday}</Badge>
 					</CardTitle>
 				</CardHeader>
 				<CardContent>
@@ -98,7 +113,7 @@ const RobustLineCheckDashboard: React.FC<Props> = ({
 			<Card>
 				<CardHeader>
 					<CardTitle>
-						Incorrect Prep Items
+						Incorrect Prep Items{' '}
 						<Badge>{metrics.incorrectPrepItemsToday}</Badge>
 					</CardTitle>
 				</CardHeader>
