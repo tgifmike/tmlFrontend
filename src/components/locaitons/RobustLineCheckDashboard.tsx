@@ -9,6 +9,7 @@ import { Progress } from '@/components/ui/progress';
 import { toast } from 'sonner';
 import ItemListPreview from './ItemListPreview';
 import IssueCard from './IssueCard';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '../ui/accordion';
 
 interface Props {
 	locationId: string;
@@ -31,8 +32,24 @@ const RobustLineCheckDashboard: React.FC<Props> = ({
 		durationSeconds: 0,
 		lineChecks: [],
 	});
+
+	//set state
 	const [lineChecks, setLineChecks] = useState<LineCheckItemIssuesDto[]>([]);
 	const [loading, setLoading] = useState(true);
+
+	// Helper to determine severity of line check issues
+	const getSeverity = (lc: any) => {
+		if (lc.missingItems.length > 0)
+			return { label: 'Critical', color: 'destructive', icon: '🔴' };
+
+		if (lc.outOfTempItems.length > 0)
+			return { label: 'Warning', color: 'secondary', icon: '🟠' };
+
+		if (lc.incorrectPrepItems.length > 0)
+			return { label: 'Minor', color: 'outline', icon: '🟡' };
+
+		return { label: 'Good', color: 'default', icon: '🟢' };
+	};
 
 	useEffect(() => {
 		if (!locationId) return;
@@ -183,56 +200,53 @@ const RobustLineCheckDashboard: React.FC<Props> = ({
 					</CardContent>
 				</Card>
 			</div>
-
 			{/* Line check details */}
+			
 			<div className="space-y-4">
 				<h2 className="text-xl font-semibold">Line Check Details</h2>
+
 				{lineChecks.length === 0 && <div>No line checks available</div>}
 
-				{lineChecks.map((lc) => (
-					<Card key={lc.lineCheckId}>
-						<CardHeader>
-							<CardTitle>
-								Line Check at {new Date(lc.checkTime).toLocaleTimeString()}
-							</CardTitle>
-						</CardHeader>
-						{/* <CardContent className="space-y-2">
-							<div>
-								Missing Items ({lc.missingItems.length}):
-								<ItemListPreview items={lc.missingItems} />
-							</div>
+				<Accordion type="single" collapsible>
+					{lineChecks.map((lc) => {
+						const severity = getSeverity(lc);
 
-							<div>
-								Out of Temp Items ({lc.outOfTempItems.length}):
-								<ItemListPreview items={lc.outOfTempItems} />
-							</div>
+						return (
+							<AccordionItem key={lc.lineCheckId} value={lc.lineCheckId}>
+								<AccordionTrigger>
+									<div className="flex justify-between w-full pr-4">
+										<span>
+											{severity.icon} Line Check at{' '}
+											{new Date(lc.checkTime).toLocaleTimeString()}
+										</span>
+									</div>
+								</AccordionTrigger>
 
-							<div>
-								Incorrect Prep Items ({lc.incorrectPrepItems.length}):
-								<ItemListPreview items={lc.incorrectPrepItems} />
-							</div>
-						</CardContent> */}
-						<CardContent className="grid gap-4 md:grid-cols-3">
-							<IssueCard
-								title="Missing Items"
-								items={lc.missingItems}
-								variant="destructive"
-							/>
+								<AccordionContent>
+									<div className="grid gap-4 md:grid-cols-3">
+										<IssueCard
+											title="Missing Items"
+											items={lc.missingItems}
+											severity="critical"
+										/>
 
-							<IssueCard
-								title="Out of Temp"
-								items={lc.outOfTempItems}
-								variant="outline"
-							/>
+										<IssueCard
+											title="Out of Temp"
+											items={lc.outOfTempItems}
+											severity="warning"
+										/>
 
-							<IssueCard
-								title="Incorrect Prep"
-								items={lc.incorrectPrepItems}
-								variant="secondary"
-							/>
-						</CardContent>
-					</Card>
-				))}
+										<IssueCard
+											title="Incorrect Prep"
+											items={lc.incorrectPrepItems}
+											severity="minor"
+										/>
+									</div>
+								</AccordionContent>
+							</AccordionItem>
+						);
+					})}
+				</Accordion>
 			</div>
 		</div>
 		// </div>
