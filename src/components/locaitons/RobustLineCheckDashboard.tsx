@@ -222,7 +222,7 @@ const RobustLineCheckDashboard: React.FC<Props> = ({
 							<IssueCard
 								title="Out of Temp"
 								items={lc.outOfTempItems}
-								variant="warning"
+								variant="outline"
 							/>
 
 							<IssueCard
