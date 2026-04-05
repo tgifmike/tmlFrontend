@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { toast } from 'sonner';
 import ItemListPreview from './ItemListPreview';
+import IssueCard from './IssueCard';
 
 interface Props {
 	locationId: string;
@@ -66,27 +67,80 @@ const RobustLineCheckDashboard: React.FC<Props> = ({
 
 	return (
 		<div className="space-y-8">
+			<div className="text-center space-y-2">
+				<h1 className="text-chart-3 text-5xl font-bold">LineCheck Dashboard</h1>
+				<p className="text-muted-foreground">
+					Overview of line check performance and common issues
+				</p>
+			</div>
 			{/* Summary cards */}
 			<div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-				<Card>
+				{/* Daily card */}
+				<Card className="bg-chart-1/20 text-2xl">
 					<CardHeader>
-						<CardTitle>
+						<CardTitle className="text-center text-4xl">Daily</CardTitle>
+					</CardHeader>
+					<CardContent>
+						<div className="flex justify-between items-center">
 							Total Checks Today <Badge>{metrics.totalChecksToday}</Badge>
-						</CardTitle>
-					</CardHeader>
-					<CardContent>All line checks completed today</CardContent>
+						</div>
+						<div className="flex justify-between items-center">
+							Goal Progress
+							<Badge
+								className={
+									metrics.totalChecksToday >= dailyGoal
+										? 'bg-green-600 text-white'
+										: 'bg-red-600 text-white'
+								}
+							>
+								{metrics.totalChecksToday}/{dailyGoal}
+							</Badge>
+						</div>
+						<div className="pt-4">
+							<Progress
+								value={Math.min(
+									(metrics.totalChecksToday / dailyGoal) * 100,
+									100,
+								)}
+							/>
+						</div>
+					</CardContent>
 				</Card>
 
-				<Card>
+				{/* weekly card */}
+				<Card className="bg-chart-2/20 text-2xl">
 					<CardHeader>
-						<CardTitle>
-							Week-to-Date <Badge>{metrics.totalChecksWeekToDate}</Badge>
-						</CardTitle>
+						<CardTitle className="text-center text-4xl">Weekly</CardTitle>
 					</CardHeader>
-					<CardContent>Line checks completed since start of week</CardContent>
+					<CardContent>
+						<div className="flex justify-between items-center">
+							Total Checks Week-to-Date{' '}
+							<Badge>{metrics.totalChecksWeekToDate}</Badge>
+						</div>
+						<div className="flex justify-between items-center">
+							Goal Progress
+							<Badge
+								className={
+									metrics.totalChecksWeekToDate >= dailyGoal * 7
+										? 'bg-green-600 text-white'
+										: 'bg-red-600 text-white'
+								}
+							>
+								{metrics.totalChecksWeekToDate}/{dailyGoal * 7}
+							</Badge>
+						</div>
+						<div className="pt-4">
+							<Progress
+								value={Math.min(
+									(metrics.totalChecksWeekToDate / (dailyGoal * 7)) * 100,
+									100,
+								)}
+							/>
+						</div>
+					</CardContent>
 				</Card>
 
-				<Card>
+				{/* <Card>
 					<CardHeader>
 						<CardTitle>
 							Daily Goal Progress
@@ -109,16 +163,23 @@ const RobustLineCheckDashboard: React.FC<Props> = ({
 							)}
 						/>
 					</CardContent>
-				</Card>
+				</Card> */}
 
-				<Card>
+				<Card className="bg-chart-3/20 text-2xl">
 					<CardHeader>
-						<CardTitle>Avg Time per Line Check</CardTitle>
+						<CardTitle className="text-center text-4xl">
+							LineCheck Details
+						</CardTitle>
 					</CardHeader>
 					<CardContent>
-						{(metrics.durationSeconds ?? 0) > 0
-							? `${Math.round((metrics.durationSeconds ?? 0) / 60)} min`
-							: 'N/A'}
+						<div className="flex justify-between items-center">
+							<p>Avg Time per Line Check</p>
+							<Badge>
+								{(metrics.durationSeconds ?? 0) > 0
+									? `${Math.round((metrics.durationSeconds ?? 0) / 60)} min`
+									: 'N/A'}
+							</Badge>
+						</div>
 					</CardContent>
 				</Card>
 			</div>
@@ -135,7 +196,7 @@ const RobustLineCheckDashboard: React.FC<Props> = ({
 								Line Check at {new Date(lc.checkTime).toLocaleTimeString()}
 							</CardTitle>
 						</CardHeader>
-						<CardContent className="space-y-2">
+						{/* <CardContent className="space-y-2">
 							<div>
 								Missing Items ({lc.missingItems.length}):
 								<ItemListPreview items={lc.missingItems} />
@@ -150,6 +211,25 @@ const RobustLineCheckDashboard: React.FC<Props> = ({
 								Incorrect Prep Items ({lc.incorrectPrepItems.length}):
 								<ItemListPreview items={lc.incorrectPrepItems} />
 							</div>
+						</CardContent> */}
+						<CardContent className="grid gap-4 md:grid-cols-3">
+							<IssueCard
+								title="Missing Items"
+								items={lc.missingItems}
+								variant="destructive"
+							/>
+
+							<IssueCard
+								title="Out of Temp"
+								items={lc.outOfTempItems}
+								variant="warning"
+							/>
+
+							<IssueCard
+								title="Incorrect Prep"
+								items={lc.incorrectPrepItems}
+								variant="secondary"
+							/>
 						</CardContent>
 					</Card>
 				))}
