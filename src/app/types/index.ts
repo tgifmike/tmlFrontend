@@ -369,6 +369,6 @@ export interface LineCheckItemIssuesDto {
 export interface EmployeePerformanceDto {
 	userId: string; // Unique ID for the employee
 	userName: string; // Employee display name
-	checksCompleted: number; // Total line checks completed today
+	checkCount: number; // Total line checks completed today
 	avgCompletionSeconds: number; // Average time to complete a line check today, in seconds
 }
