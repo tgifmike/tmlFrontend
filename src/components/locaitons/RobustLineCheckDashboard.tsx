@@ -983,7 +983,7 @@ const RobustLineCheckDashboard: React.FC<Props> = ({
 			</div>
 
 			{/* Summary Cards */}
-			<div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+			<div className="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-5 gap-4">
 				{/* DAILY */}
 				<Card className="bg-chart-1/20">
 					<CardHeader className="text-center">
@@ -1045,7 +1045,7 @@ const RobustLineCheckDashboard: React.FC<Props> = ({
 					</CardContent>
 				</Card>
 
-				{/* SPEED CARD */}
+				{/* SPEED CARD
 				<Card className="bg-chart-4/20">
 					<CardHeader>
 						<CardTitle className="text-center text-4xl">Efficiency</CardTitle>
@@ -1060,7 +1060,7 @@ const RobustLineCheckDashboard: React.FC<Props> = ({
 							}
 						/>
 					</CardContent>
-				</Card>
+				</Card> */}
 
 				{/* EMPLOYEE PERFORMANCE */}
 				<Card className="bg-chart-5/20">
@@ -1069,11 +1069,16 @@ const RobustLineCheckDashboard: React.FC<Props> = ({
 							Employee Performance
 						</CardTitle>
 					</CardHeader>
+
 					<CardContent className="space-y-2">
 						{metrics.employeePerformanceToday.map((emp) => (
 							<div key={emp.userId} className="flex justify-between text-sm">
 								<span>{emp.userName}</span>
-								<span>{Math.round(emp.avgCompletionSeconds / 60)} min avg</span>
+
+								<span>
+									{emp.checkCount} checks •{' '}
+									{((emp.avgCompletionSeconds ?? 0) / 60).toFixed(1)} min avg
+								</span>
 							</div>
 						))}
 					</CardContent>
