@@ -356,7 +356,8 @@ export interface DashboardMetrics {
 
 export interface LineCheckItemIssuesDto {
 	lineCheckId: string; // or UUID
-	checkTime: string; // ISO string
+	checkTime: string;
+	employeeName: string; // ISO string
 	missingCount: number;
 	missingItems: string[];
 	outOfTempCount: number;
