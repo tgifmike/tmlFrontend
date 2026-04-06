@@ -342,6 +342,7 @@ export interface StationHistoryEntity {
 export interface DashboardMetrics {
 	totalChecksToday: number;
 	totalChecksWeekToDate: number;
+	totalChecksMonthToDate: number;
 	missingItemsToday: number;
 	outOfTempItemsToday: number;
 	outOfTempItemNamesToday: string[];
