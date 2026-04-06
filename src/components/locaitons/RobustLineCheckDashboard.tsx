@@ -10,6 +10,7 @@ import { toast } from 'sonner';
 import ItemListPreview from './ItemListPreview';
 import IssueCard from './IssueCard';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '../ui/accordion';
+import { time } from 'node_modules/zod/v4/classic/iso.cjs';
 
 interface Props {
 	locationId: string;
@@ -38,17 +39,47 @@ const RobustLineCheckDashboard: React.FC<Props> = ({
 	const [loading, setLoading] = useState(true);
 
 	// Helper to determine severity of line check issues
+	type Severity = 'good' | 'minor' | 'high' | 'critical';
+
+	const severityMeta = {
+		good: {
+			icon: '🟢',
+			label: 'Good',
+			badge: 'default',
+		},
+		minor: {
+			icon: '🟡',
+			label: 'Minor',
+			badge: 'outline',
+		},
+		high: {
+			icon: '🟠',
+			label: 'High',
+			badge: 'secondary',
+		},
+		critical: {
+			icon: '🔴',
+			label: 'Critical',
+			badge: 'destructive',
+		},
+	};
+
 	const getSeverity = (lc: any) => {
-		if (lc.missingItems.length > 0)
-			return { label: 'Critical', color: 'destructive', icon: '🔴' };
+		const score =
+			lc.outOfTempItems.length * 5 +
+			lc.incorrectPrepItems.length * 3 +
+			lc.missingItems.length * 1;
 
-		if (lc.outOfTempItems.length > 0)
-			return { label: 'Warning', color: 'secondary', icon: '🟠' };
+		let severity: Severity = 'good';
 
-		if (lc.incorrectPrepItems.length > 0)
-			return { label: 'Minor', color: 'outline', icon: '🟡' };
+		if (score >= 10) severity = 'critical';
+		else if (score >= 5) severity = 'high';
+		else if (score >= 1) severity = 'minor';
 
-		return { label: 'Good', color: 'default', icon: '🟢' };
+		return {
+			...severityMeta[severity],
+			score,
+		};
 	};
 
 	useEffect(() => {
@@ -201,12 +232,37 @@ const RobustLineCheckDashboard: React.FC<Props> = ({
 				</Card>
 			</div>
 			{/* Line check details */}
-			
+
 			<div className="space-y-4">
 				<h2 className="text-xl font-semibold">Line Check Details</h2>
-
 				{lineChecks.length === 0 && <div>No line checks available</div>}
 
+				{/* Severity Key */}
+				<Card className="mb-4">
+					<CardContent className="flex flex-col gap-3 text-sm">
+						<div className="flex flex-wrap gap-2 items-center">
+							<span className="font-medium mr-2">Severity Key:</span>
+
+							<Badge variant="destructive">🔴 Critical 10+</Badge>
+
+							<Badge variant="secondary">🟠 High 5–9</Badge>
+
+							<Badge variant="outline">🟡 Minor 1–4</Badge>
+
+							<Badge variant="default">🟢 Good 0</Badge>
+						</div>
+
+						<div className="flex flex-wrap gap-2 items-center">
+							<span className="font-medium mr-2">Scoring:</span>
+
+							<Badge variant="destructive">Out of Temp = 5 pts</Badge>
+
+							<Badge variant="secondary">Incorrect Prep = 3 pts</Badge>
+
+							<Badge variant="outline">Missing Item = 1 pt</Badge>
+						</div>
+					</CardContent>
+				</Card>
 				<Accordion type="single" collapsible>
 					{lineChecks.map((lc) => {
 						const severity = getSeverity(lc);
@@ -218,8 +274,16 @@ const RobustLineCheckDashboard: React.FC<Props> = ({
 										<span>
 											{severity.icon} Line Check at{' '}
 											{new Date(lc.checkTime).toLocaleTimeString()}
+											{/* {lc.stationName} - {lc.employeeName} */}
 										</span>
 									</div>
+									{/* const severity = getSeverity(lc); */}
+									{/* <span>
+										{severity.icon} Line Check at {time}
+									</span> */}
+									<span className="text-xs text-muted-foreground">
+										Score: {severity.score}
+									</span>
 								</AccordionTrigger>
 
 								<AccordionContent>
