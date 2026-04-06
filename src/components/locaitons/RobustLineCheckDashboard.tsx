@@ -983,7 +983,7 @@ const RobustLineCheckDashboard: React.FC<Props> = ({
 			</div>
 
 			{/* Summary Cards */}
-			<div className="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-5 gap-4">
+			<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
 				{/* DAILY */}
 				<Card className="bg-chart-1/20">
 					<CardHeader className="text-center">
@@ -1044,93 +1044,138 @@ const RobustLineCheckDashboard: React.FC<Props> = ({
 						/>
 					</CardContent>
 				</Card>
+			</div>
 
-				{/* SPEED CARD
-				<Card className="bg-chart-4/20">
+			<div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+				{/* ---------------- EMPLOYEE PERFORMANCE (1/3) ---------------- */}
+				<Card className="bg-chart-5/20 min-h-[300px] col-span-1">
 					<CardHeader>
-						<CardTitle className="text-center text-4xl">Efficiency</CardTitle>
-					</CardHeader>
-					<CardContent>
-						<MetricRow
-							label="Avg Time per Check"
-							value={
-								metrics.durationSeconds
-									? `${Math.round(metrics.durationSeconds / 60)} min`
-									: 'N/A'
-							}
-						/>
-					</CardContent>
-				</Card> */}
-
-				{/* EMPLOYEE PERFORMANCE */}
-				<Card className="bg-chart-5/20">
-					<CardHeader>
-						<CardTitle className="text-center text-4xl">
+						<CardTitle className="text-center text-2xl md:text-3xl break-words">
 							Employee Performance
 						</CardTitle>
 					</CardHeader>
-
 					<CardContent className="space-y-2">
-						{metrics.employeePerformanceToday.map((emp) => (
-							<div key={emp.userId} className="flex justify-between text-sm">
-								<span>{emp.userName}</span>
+						{metrics.employeePerformanceToday.length > 0 ? (
+							<>
+								{/* Mini bar chart */}
+								<div className="h-48">
+									<BarChart
+										width={250}
+										height={180}
+										data={metrics.employeePerformanceToday}
+										layout="vertical"
+										margin={{ top: 5, right: 5, bottom: 5, left: 50 }}
+									>
+										<XAxis type="number" />
+										<YAxis type="category" dataKey="userName" />
+										<Tooltip
+											formatter={(value: number) => `${value} checks`}
+											cursor={{ fill: 'rgba(0,0,0,0.1)' }}
+										/>
+										<Bar dataKey="checkCount" fill="#3b82f6" />
+									</BarChart>
+								</div>
 
-								<span>
-									{emp.checkCount} checks •{' '}
-									{((emp.avgCompletionSeconds ?? 0) / 60).toFixed(1)} min avg
-								</span>
+								{/* Optional numeric list */}
+								<div className="space-y-1 text-sm">
+									{metrics.employeePerformanceToday.map((emp) => (
+										<div key={emp.userId} className="flex justify-between">
+											<span>{emp.userName}</span>
+											<span>
+												{emp.checkCount} checks •{' '}
+												{((emp.avgCompletionSeconds ?? 0) / 60).toFixed(1)} min
+												avg
+											</span>
+										</div>
+									))}
+								</div>
+							</>
+						) : (
+							<div className="text-center text-sm text-muted-foreground">
+								No employee performance data yet.
 							</div>
-						))}
+						)}
 					</CardContent>
 				</Card>
+
+				{/* ---------------- LINE CHECKS + LEGEND (2/3) ---------------- */}
+				<div className="flex flex-col gap-4 col-span-2">
+					{/* Legend */}
+					<Card className="p-4">
+						<CardContent className="flex flex-col md:flex-row justify-between gap-4 text-sm">
+							<div className="flex flex-wrap gap-2 items-center">
+								<span className="font-medium">Severity Key:</span>
+								<Badge variant="outline">🔴 Critical 10+</Badge>
+								<Badge variant="outline">🟠 High 5–9</Badge>
+								<Badge variant="outline">🟡 Minor 1–4</Badge>
+								<Badge variant="outline">🟢 Good 0</Badge>
+							</div>
+
+							<div className="flex flex-wrap gap-2 items-center">
+								<span className="font-medium">Scoring:</span>
+								<Badge variant="destructive">Out of Temp = 5 pts</Badge>
+								<Badge variant="outline">Incorrect Prep = 3 pts</Badge>
+								<Badge variant="outline">Missing Item = 1 pt</Badge>
+							</div>
+						</CardContent>
+					</Card>
+
+					{/* Accordion */}
+					{lineChecks.length > 0 ? (
+						<Accordion type="single" collapsible>
+							{lineChecks.map((lc) => {
+								const severity = getSeverity(lc);
+
+								return (
+									<AccordionItem key={lc.lineCheckId} value={lc.lineCheckId}>
+										<AccordionTrigger>
+											<div className="flex justify-between w-full items-center">
+												<div>
+													{severity.icon} Line Check at{' '}
+													{new Date(lc.checkTime).toLocaleTimeString()}
+												</div>
+												<div className="hidden md:block">
+													Line Check by {lc.employeeName}
+												</div>
+												<div className={`flex gap-3 items-center text-xs`}>
+													Score{' '}
+													<span className={`${severity.color}`}>
+														{severity.score}
+													</span>
+												</div>
+											</div>
+										</AccordionTrigger>
+
+										<AccordionContent>
+											<div className="grid gap-4 md:grid-cols-3">
+												<IssueCard
+													title="Out of Temp"
+													items={lc.outOfTempItems}
+													severity="warning"
+												/>
+												<IssueCard
+													title="Incorrect Prep"
+													items={lc.incorrectPrepItems}
+													severity="minor"
+												/>
+												<IssueCard
+													title="Missing Items"
+													items={lc.missingItems}
+													severity="critical"
+												/>
+											</div>
+										</AccordionContent>
+									</AccordionItem>
+								);
+							})}
+						</Accordion>
+					) : (
+						<div className="text-center text-sm text-muted-foreground mt-2">
+							No line check data yet.
+						</div>
+					)}
+				</div>
 			</div>
-
-			{/* Line Check Details */}
-			<Accordion type="single" collapsible>
-				{lineChecks.map((lc) => {
-					const severity = getSeverity(lc);
-
-					return (
-						<AccordionItem key={lc.lineCheckId} value={lc.lineCheckId}>
-							<AccordionTrigger>
-								<div className="flex justify-between w-full">
-									<div>
-										{severity.icon} Line Check at{' '}
-										{new Date(lc.checkTime).toLocaleTimeString()}
-									</div>
-									<div>Line Check by {lc.employeeName}</div>
-									<div className={`flex gap-3 items-center text-xs`}>
-										Score
-										<span className={` ${severity.color}`}>
-											{severity.score}
-										</span>
-									</div>
-								</div>
-							</AccordionTrigger>
-
-							<AccordionContent>
-								<div className="grid gap-4 md:grid-cols-3">
-									<IssueCard
-										title="Out of Temp"
-										items={lc.outOfTempItems}
-										severity="warning"
-									/>
-									<IssueCard
-										title="Incorrect Prep"
-										items={lc.incorrectPrepItems}
-										severity="minor"
-									/>
-									<IssueCard
-										title="Missing Items"
-										items={lc.missingItems}
-										severity="critical"
-									/>
-								</div>
-							</AccordionContent>
-						</AccordionItem>
-					);
-				})}
-			</Accordion>
 		</div>
 	);
 };
@@ -1148,7 +1193,7 @@ const MetricRow = ({ label, value }: any) => (
 const GoalRow = ({ actual, expected, trend }: any) => {
 	const percent = Math.round((actual / expected) * 100);
 	return (
-		<>
+		<div>
 			<div className="flex justify-between text-sm">
 				<span className="text-muted-foreground">Goal Progress</span>
 				<Badge
@@ -1170,6 +1215,6 @@ const GoalRow = ({ actual, expected, trend }: any) => {
 			{trend && (
 				<div className="text-xs text-muted-foreground text-center">{trend}</div>
 			)}
-		</>
+		</div>
 	);
 };
