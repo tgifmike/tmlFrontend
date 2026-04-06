@@ -447,11 +447,393 @@
 
 // export default RobustLineCheckDashboard;
 
+// 'use client';
+
+// import React, { useEffect, useState } from 'react';
+// import { getDashboardMetrics } from '@/app/api/linecheckApi';
+// import { DashboardMetrics, LineCheckItemIssuesDto } from '@/app/types';
+
+// import { Card, CardHeader, CardContent, CardTitle } from '@/components/ui/card';
+// import { Badge } from '@/components/ui/badge';
+// import { Progress } from '@/components/ui/progress';
+// import {
+// 	Accordion,
+// 	AccordionContent,
+// 	AccordionItem,
+// 	AccordionTrigger,
+// } from '@/components/ui/accordion';
+
+// import IssueCard from './IssueCard';
+// import { toast } from 'sonner';
+
+// interface Props {
+// 	locationId: string;
+// 	dailyGoal: number;
+// }
+
+// type Severity = 'good' | 'minor' | 'high' | 'critical';
+
+// const severityMeta = {
+// 	good: {
+// 		icon: '🟢',
+// 		label: 'Good',
+// 		badge: 'default',
+// 		color: 'text-green-600',
+// 	},
+// 	minor: {
+// 		icon: '🟡',
+// 		label: 'Minor',
+// 		badge: 'outline',
+// 		color: 'text-yellow-600',
+// 	},
+// 	high: {
+// 		icon: '🟠',
+// 		label: 'High',
+// 		badge: 'secondary',
+// 		color: 'text-orange-600',
+// 	},
+// 	critical: {
+// 		icon: '🔴',
+// 		label: 'Critical',
+// 		badge: 'destructive',
+// 		color: 'text-red-600',
+// 	},
+// };
+
+// const RobustLineCheckDashboard: React.FC<Props> = ({
+// 	locationId,
+// 	dailyGoal,
+// }) => {
+// 	const [metrics, setMetrics] = useState<DashboardMetrics>({
+// 		totalChecksToday: 0,
+// 		totalChecksWeekToDate: 0,
+// 		totalChecksMonthToDate: 0,
+// 		durationSeconds: 0,
+// 		lineChecks: [],
+// 		missingItemsToday: 0,
+// 		missingItemNamesToday: [],
+// 		outOfTempItemsToday: 0,
+// 		outOfTempItemNamesToday: [],
+// 		incorrectPrepItemsToday: 0,
+// 		incorrectPrepItemNamesToday: [],
+// 	});
+
+// 	const [lineChecks, setLineChecks] = useState<LineCheckItemIssuesDto[]>([]);
+
+// 	const [loading, setLoading] = useState(true);
+
+// 	/*
+// 	|--------------------------------------------------------------------------
+// 	| Date math (working-day aware targets)
+// 	|--------------------------------------------------------------------------
+// 	*/
+
+// 	const today = new Date();
+
+// 	const daysElapsedWeek = today.getDay() + 1;
+// 	const daysElapsedMonth = today.getDate();
+
+// 	const weekGoal = dailyGoal * daysElapsedWeek;
+// 	const monthGoal = dailyGoal * daysElapsedMonth;
+
+// 	/*
+// 	|--------------------------------------------------------------------------
+// 	| Trend indicators
+// 	|--------------------------------------------------------------------------
+// 	*/
+
+// 	const trendIndicator = (actual: number, expected: number) => {
+// 		if (actual >= expected) return '📈 Ahead';
+// 		if (actual >= expected * 0.75) return '➡️ On pace';
+// 		return '📉 Behind';
+// 	};
+
+// 	/*
+// 	|--------------------------------------------------------------------------
+// 	| Severity scoring
+// 	|--------------------------------------------------------------------------
+// 	*/
+
+// 	const getSeverity = (lc: LineCheckItemIssuesDto) => {
+// 		const score =
+// 			lc.outOfTempItems.length * 5 +
+// 			lc.incorrectPrepItems.length * 3 +
+// 			lc.missingItems.length;
+
+// 		let severity: Severity = 'good';
+
+// 		if (score >= 10) severity = 'critical';
+// 		else if (score >= 5) severity = 'high';
+// 		else if (score >= 1) severity = 'minor';
+
+// 		return {
+// 			...severityMeta[severity],
+// 			score,
+// 		};
+// 	};
+
+// 	/*
+// 	|--------------------------------------------------------------------------
+// 	| Fetch metrics
+// 	|--------------------------------------------------------------------------
+// 	*/
+
+// 	useEffect(() => {
+// 		if (!locationId) return;
+
+// 		const fetchMetrics = async () => {
+// 			setLoading(true);
+
+// 			try {
+// 				const res = await getDashboardMetrics(locationId);
+
+// 				const data = (res.data as Partial<DashboardMetrics>) ?? {};
+
+// 				setLineChecks(data.lineChecks ?? []);
+
+// 				setMetrics((prev) => ({
+// 					...prev,
+// 					totalChecksToday: data.totalChecksToday ?? prev.totalChecksToday,
+
+// 					totalChecksWeekToDate:
+// 						data.totalChecksWeekToDate ?? prev.totalChecksWeekToDate,
+
+// 					totalChecksMonthToDate:
+// 						data.totalChecksMonthToDate ?? prev.totalChecksMonthToDate,
+
+// 					durationSeconds: data.durationSeconds ?? prev.durationSeconds,
+// 				}));
+// 			} catch {
+// 				toast.error('Failed to load dashboard metrics');
+// 			} finally {
+// 				setLoading(false);
+// 			}
+// 		};
+
+// 		fetchMetrics();
+// 	}, [locationId]);
+
+// 	if (loading)
+// 		return (
+// 			<div className="p-6 text-center text-muted-foreground">
+// 				Loading dashboard metrics…
+// 			</div>
+// 		);
+
+// 	return (
+// 		<div className="space-y-8">
+// 			{/* Header */}
+
+// 			<div className="text-center space-y-2">
+// 				<h1 className="text-chart-3 text-5xl font-bold">LineCheck Dashboard</h1>
+
+// 				<p className="text-muted-foreground">
+// 					Operational performance overview
+// 				</p>
+// 			</div>
+
+// 			{/* Summary Cards */}
+
+// 			<div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+// 				{/* DAILY */}
+
+// 				<Card className="bg-chart-1/20">
+// 					<CardHeader className="text-center">
+// 						<CardTitle className="text-4xl">Daily</CardTitle>
+
+// 						<div className="text-muted-foreground text-sm">
+// 							{today.toLocaleDateString('en-US', {
+// 								weekday: 'long',
+// 								month: 'short',
+// 								day: 'numeric',
+// 							})}
+// 						</div>
+// 					</CardHeader>
+
+// 					<CardContent className="space-y-4">
+// 						<MetricRow label="Total Checks" value={metrics.totalChecksToday} />
+
+// 						<GoalRow actual={metrics.totalChecksToday} expected={dailyGoal} />
+// 					</CardContent>
+// 				</Card>
+
+// 				{/* WEEKLY */}
+
+// 				<Card className="bg-chart-2/20">
+// 					<CardHeader className="text-center">
+// 						<CardTitle className="text-4xl">Weekly</CardTitle>
+
+// 						<div className="text-muted-foreground text-sm">Week-to-date</div>
+// 					</CardHeader>
+
+// 					<CardContent className="space-y-4">
+// 						<MetricRow
+// 							label="Total Checks"
+// 							value={metrics.totalChecksWeekToDate}
+// 						/>
+
+// 						<GoalRow
+// 							actual={metrics.totalChecksWeekToDate}
+// 							expected={weekGoal}
+// 							trend={trendIndicator(metrics.totalChecksWeekToDate, weekGoal)}
+// 						/>
+// 					</CardContent>
+// 				</Card>
+
+// 				{/* MONTHLY */}
+
+// 				<Card className="bg-chart-3/20">
+// 					<CardHeader className="text-center">
+// 						<CardTitle className="text-4xl">Monthly</CardTitle>
+
+// 						<div className="text-muted-foreground text-sm">
+// 							{today.toLocaleDateString('en-US', {
+// 								month: 'long',
+// 								year: 'numeric',
+// 							})}
+// 						</div>
+// 					</CardHeader>
+
+// 					<CardContent className="space-y-4">
+// 						<MetricRow
+// 							label="Total Checks"
+// 							value={metrics.totalChecksMonthToDate}
+// 						/>
+
+// 						<GoalRow
+// 							actual={metrics.totalChecksMonthToDate}
+// 							expected={monthGoal}
+// 							trend={trendIndicator(metrics.totalChecksMonthToDate, monthGoal)}
+// 						/>
+// 					</CardContent>
+// 				</Card>
+
+// 				{/* SPEED CARD */}
+
+// 				<Card className="bg-chart-4/20">
+// 					<CardHeader>
+// 						<CardTitle className="text-center text-4xl">Efficiency</CardTitle>
+// 					</CardHeader>
+
+// 					<CardContent>
+// 						<MetricRow
+// 							label="Avg Time per Check"
+// 							value={
+// 								metrics.durationSeconds
+// 									? `${Math.round(metrics.durationSeconds / 60)} min`
+// 									: 'N/A'
+// 							}
+// 						/>
+// 					</CardContent>
+// 				</Card>
+// 			</div>
+
+// 			{/* Line Check Details */}
+
+// 			<Accordion type="single" collapsible>
+// 				{lineChecks.map((lc) => {
+// 					const severity = getSeverity(lc);
+
+// 					return (
+// 						<AccordionItem key={lc.lineCheckId} value={lc.lineCheckId}>
+// 							<AccordionTrigger>
+// 								<div className="flex justify-between w-full">
+// 									<span>
+// 										{severity.icon} Line Check at{' '}
+// 										{new Date(lc.checkTime).toLocaleTimeString()}
+// 									</span>
+
+// 									<span className={`text-xs ${severity.color}`}>
+// 										Score {severity.score}
+// 									</span>
+// 								</div>
+// 							</AccordionTrigger>
+
+// 							<AccordionContent>
+// 								<div className="grid gap-4 md:grid-cols-3">
+// 									<IssueCard
+// 										title="Out of Temp"
+// 										items={lc.outOfTempItems}
+// 										severity="warning"
+// 									/>
+
+// 									<IssueCard
+// 										title="Incorrect Prep"
+// 										items={lc.incorrectPrepItems}
+// 										severity="minor"
+// 									/>
+
+// 									<IssueCard
+// 										title="Missing Items"
+// 										items={lc.missingItems}
+// 										severity="critical"
+// 									/>
+// 								</div>
+// 							</AccordionContent>
+// 						</AccordionItem>
+// 					);
+// 				})}
+// 			</Accordion>
+// 		</div>
+// 	);
+// };
+
+// export default RobustLineCheckDashboard;
+
+// /*
+// |--------------------------------------------------------------------------
+// Reusable UI rows
+// |--------------------------------------------------------------------------
+// */
+
+// const MetricRow = ({ label, value }: any) => (
+// 	<div className="flex justify-between text-sm">
+// 		<span className="text-muted-foreground">{label}</span>
+// 		<Badge>{value}</Badge>
+// 	</div>
+// );
+
+// const GoalRow = ({ actual, expected, trend }: any) => {
+// 	const percent = Math.round((actual / expected) * 100);
+
+// 	return (
+// 		<>
+// 			<div className="flex justify-between text-sm">
+// 				<span className="text-muted-foreground">Goal Progress</span>
+
+// 				<Badge
+// 					className={
+// 						actual >= expected
+// 							? 'bg-green-600 text-white'
+// 							: 'bg-red-600 text-white'
+// 					}
+// 				>
+// 					{actual}/{expected}
+// 				</Badge>
+// 			</div>
+
+// 			<div className="flex items-center gap-2">
+// 				<Progress value={Math.min(percent, 100)} />
+
+// 				<span className="text-xs text-muted-foreground">{percent}%</span>
+// 			</div>
+
+// 			{trend && (
+// 				<div className="text-xs text-muted-foreground text-center">{trend}</div>
+// 			)}
+// 		</>
+// 	);
+// };
+
 'use client';
 
 import React, { useEffect, useState } from 'react';
 import { getDashboardMetrics } from '@/app/api/linecheckApi';
-import { DashboardMetrics, LineCheckItemIssuesDto } from '@/app/types';
+import {
+	DashboardMetrics,
+	LineCheckItemIssuesDto,
+	EmployeePerformanceDto,
+} from '@/app/types';
 
 import { Card, CardHeader, CardContent, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -516,68 +898,40 @@ const RobustLineCheckDashboard: React.FC<Props> = ({
 		outOfTempItemNamesToday: [],
 		incorrectPrepItemsToday: 0,
 		incorrectPrepItemNamesToday: [],
+		employeePerformanceToday: [],
 	});
 
 	const [lineChecks, setLineChecks] = useState<LineCheckItemIssuesDto[]>([]);
-
 	const [loading, setLoading] = useState(true);
 
-	/*
-	|--------------------------------------------------------------------------
-	| Date math (working-day aware targets)
-	|--------------------------------------------------------------------------
-	*/
-
+	// Date math
 	const today = new Date();
-
 	const daysElapsedWeek = today.getDay() + 1;
 	const daysElapsedMonth = today.getDate();
-
 	const weekGoal = dailyGoal * daysElapsedWeek;
 	const monthGoal = dailyGoal * daysElapsedMonth;
 
-	/*
-	|--------------------------------------------------------------------------
-	| Trend indicators
-	|--------------------------------------------------------------------------
-	*/
-
+	// Trend indicators
 	const trendIndicator = (actual: number, expected: number) => {
 		if (actual >= expected) return '📈 Ahead';
 		if (actual >= expected * 0.75) return '➡️ On pace';
 		return '📉 Behind';
 	};
 
-	/*
-	|--------------------------------------------------------------------------
-	| Severity scoring
-	|--------------------------------------------------------------------------
-	*/
-
+	// Severity scoring
 	const getSeverity = (lc: LineCheckItemIssuesDto) => {
 		const score =
 			lc.outOfTempItems.length * 5 +
 			lc.incorrectPrepItems.length * 3 +
 			lc.missingItems.length;
-
 		let severity: Severity = 'good';
-
 		if (score >= 10) severity = 'critical';
 		else if (score >= 5) severity = 'high';
 		else if (score >= 1) severity = 'minor';
-
-		return {
-			...severityMeta[severity],
-			score,
-		};
+		return { ...severityMeta[severity], score };
 	};
 
-	/*
-	|--------------------------------------------------------------------------
-	| Fetch metrics
-	|--------------------------------------------------------------------------
-	*/
-
+	// Fetch metrics
 	useEffect(() => {
 		if (!locationId) return;
 
@@ -586,7 +940,6 @@ const RobustLineCheckDashboard: React.FC<Props> = ({
 
 			try {
 				const res = await getDashboardMetrics(locationId);
-
 				const data = (res.data as Partial<DashboardMetrics>) ?? {};
 
 				setLineChecks(data.lineChecks ?? []);
@@ -594,14 +947,13 @@ const RobustLineCheckDashboard: React.FC<Props> = ({
 				setMetrics((prev) => ({
 					...prev,
 					totalChecksToday: data.totalChecksToday ?? prev.totalChecksToday,
-
 					totalChecksWeekToDate:
 						data.totalChecksWeekToDate ?? prev.totalChecksWeekToDate,
-
 					totalChecksMonthToDate:
 						data.totalChecksMonthToDate ?? prev.totalChecksMonthToDate,
-
 					durationSeconds: data.durationSeconds ?? prev.durationSeconds,
+					employeePerformanceToday:
+						data.employeePerformanceToday ?? prev.employeePerformanceToday,
 				}));
 			} catch {
 				toast.error('Failed to load dashboard metrics');
@@ -623,24 +975,19 @@ const RobustLineCheckDashboard: React.FC<Props> = ({
 	return (
 		<div className="space-y-8">
 			{/* Header */}
-
 			<div className="text-center space-y-2">
 				<h1 className="text-chart-3 text-5xl font-bold">LineCheck Dashboard</h1>
-
 				<p className="text-muted-foreground">
 					Operational performance overview
 				</p>
 			</div>
 
 			{/* Summary Cards */}
-
-			<div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+			<div className="grid grid-cols-1 md:grid-cols-5 gap-4">
 				{/* DAILY */}
-
 				<Card className="bg-chart-1/20">
 					<CardHeader className="text-center">
 						<CardTitle className="text-4xl">Daily</CardTitle>
-
 						<div className="text-muted-foreground text-sm">
 							{today.toLocaleDateString('en-US', {
 								weekday: 'long',
@@ -649,29 +996,23 @@ const RobustLineCheckDashboard: React.FC<Props> = ({
 							})}
 						</div>
 					</CardHeader>
-
 					<CardContent className="space-y-4">
 						<MetricRow label="Total Checks" value={metrics.totalChecksToday} />
-
 						<GoalRow actual={metrics.totalChecksToday} expected={dailyGoal} />
 					</CardContent>
 				</Card>
 
 				{/* WEEKLY */}
-
 				<Card className="bg-chart-2/20">
 					<CardHeader className="text-center">
 						<CardTitle className="text-4xl">Weekly</CardTitle>
-
 						<div className="text-muted-foreground text-sm">Week-to-date</div>
 					</CardHeader>
-
 					<CardContent className="space-y-4">
 						<MetricRow
 							label="Total Checks"
 							value={metrics.totalChecksWeekToDate}
 						/>
-
 						<GoalRow
 							actual={metrics.totalChecksWeekToDate}
 							expected={weekGoal}
@@ -681,11 +1022,9 @@ const RobustLineCheckDashboard: React.FC<Props> = ({
 				</Card>
 
 				{/* MONTHLY */}
-
 				<Card className="bg-chart-3/20">
 					<CardHeader className="text-center">
 						<CardTitle className="text-4xl">Monthly</CardTitle>
-
 						<div className="text-muted-foreground text-sm">
 							{today.toLocaleDateString('en-US', {
 								month: 'long',
@@ -693,13 +1032,11 @@ const RobustLineCheckDashboard: React.FC<Props> = ({
 							})}
 						</div>
 					</CardHeader>
-
 					<CardContent className="space-y-4">
 						<MetricRow
 							label="Total Checks"
 							value={metrics.totalChecksMonthToDate}
 						/>
-
 						<GoalRow
 							actual={metrics.totalChecksMonthToDate}
 							expected={monthGoal}
@@ -709,12 +1046,10 @@ const RobustLineCheckDashboard: React.FC<Props> = ({
 				</Card>
 
 				{/* SPEED CARD */}
-
 				<Card className="bg-chart-4/20">
 					<CardHeader>
 						<CardTitle className="text-center text-4xl">Efficiency</CardTitle>
 					</CardHeader>
-
 					<CardContent>
 						<MetricRow
 							label="Avg Time per Check"
@@ -726,10 +1061,26 @@ const RobustLineCheckDashboard: React.FC<Props> = ({
 						/>
 					</CardContent>
 				</Card>
+
+				{/* EMPLOYEE PERFORMANCE */}
+				<Card className="bg-chart-5/20">
+					<CardHeader>
+						<CardTitle className="text-center text-4xl">
+							Employee Performance
+						</CardTitle>
+					</CardHeader>
+					<CardContent className="space-y-2">
+						{metrics.employeePerformanceToday.map((emp) => (
+							<div key={emp.userId} className="flex justify-between text-sm">
+								<span>{emp.userName}</span>
+								<span>{Math.round(emp.avgCompletionSeconds / 60)} min avg</span>
+							</div>
+						))}
+					</CardContent>
+				</Card>
 			</div>
 
 			{/* Line Check Details */}
-
 			<Accordion type="single" collapsible>
 				{lineChecks.map((lc) => {
 					const severity = getSeverity(lc);
@@ -742,7 +1093,6 @@ const RobustLineCheckDashboard: React.FC<Props> = ({
 										{severity.icon} Line Check at{' '}
 										{new Date(lc.checkTime).toLocaleTimeString()}
 									</span>
-
 									<span className={`text-xs ${severity.color}`}>
 										Score {severity.score}
 									</span>
@@ -756,13 +1106,11 @@ const RobustLineCheckDashboard: React.FC<Props> = ({
 										items={lc.outOfTempItems}
 										severity="warning"
 									/>
-
 									<IssueCard
 										title="Incorrect Prep"
 										items={lc.incorrectPrepItems}
 										severity="minor"
 									/>
-
 									<IssueCard
 										title="Missing Items"
 										items={lc.missingItems}
@@ -780,12 +1128,7 @@ const RobustLineCheckDashboard: React.FC<Props> = ({
 
 export default RobustLineCheckDashboard;
 
-/*
-|--------------------------------------------------------------------------
-Reusable UI rows
-|--------------------------------------------------------------------------
-*/
-
+/* Reusable UI rows */
 const MetricRow = ({ label, value }: any) => (
 	<div className="flex justify-between text-sm">
 		<span className="text-muted-foreground">{label}</span>
@@ -795,12 +1138,10 @@ const MetricRow = ({ label, value }: any) => (
 
 const GoalRow = ({ actual, expected, trend }: any) => {
 	const percent = Math.round((actual / expected) * 100);
-
 	return (
 		<>
 			<div className="flex justify-between text-sm">
 				<span className="text-muted-foreground">Goal Progress</span>
-
 				<Badge
 					className={
 						actual >= expected
@@ -814,7 +1155,6 @@ const GoalRow = ({ actual, expected, trend }: any) => {
 
 			<div className="flex items-center gap-2">
 				<Progress value={Math.min(percent, 100)} />
-
 				<span className="text-xs text-muted-foreground">{percent}%</span>
 			</div>
 

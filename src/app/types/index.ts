@@ -350,7 +350,8 @@ export interface DashboardMetrics {
 	incorrectPrepItemNamesToday: string[];
 	missingItemNamesToday: string[];
 	durationSeconds: number | null;
-	lineChecks: LineCheckItemIssuesDto[]; // <-- this is important
+	lineChecks: LineCheckItemIssuesDto[];
+	employeePerformanceToday: EmployeePerformanceDto[];
 }
 
 export interface LineCheckItemIssuesDto {
@@ -362,4 +363,11 @@ export interface LineCheckItemIssuesDto {
 	outOfTempItems: string[];
 	incorrectPrepCount: number;
 	incorrectPrepItems: string[];
+}
+
+export interface EmployeePerformanceDto {
+	userId: string; // Unique ID for the employee
+	userName: string; // Employee display name
+	checksCompleted: number; // Total line checks completed today
+	avgCompletionSeconds: number; // Average time to complete a line check today, in seconds
 }
