@@ -847,6 +847,7 @@ import {
 
 import IssueCard from './IssueCard';
 import { toast } from 'sonner';
+import EmployeePerformanceCard from './EmployeePerformanceCard';
 
 interface Props {
 	locationId: string;
@@ -1048,7 +1049,7 @@ const RobustLineCheckDashboard: React.FC<Props> = ({
 
 			<div className="grid grid-cols-1 md:grid-cols-3 gap-6">
 				{/* ---------------- EMPLOYEE PERFORMANCE (1/3) ---------------- */}
-				<Card className="bg-chart-5/20 min-h-[300px] col-span-1">
+				{/* <Card className="bg-chart-5/20 min-h-[300px] col-span-1">
 					<CardHeader>
 						<CardTitle className="text-center text-2xl md:text-3xl break-words">
 							Employee Performance
@@ -1058,7 +1059,7 @@ const RobustLineCheckDashboard: React.FC<Props> = ({
 						{metrics.employeePerformanceToday.length > 0 ? (
 							<>
 								{/* Mini bar chart */}
-								<div className="h-48">
+								{/* <div className="h-48">
 									<BarChart
 										width={250}
 										height={180}
@@ -1077,7 +1078,7 @@ const RobustLineCheckDashboard: React.FC<Props> = ({
 								</div>
 
 								{/* Optional numeric list */}
-								<div className="space-y-1 text-sm">
+								{/* <div className="space-y-1 text-sm">
 									{metrics.employeePerformanceToday.map((emp) => (
 										<div key={emp.userId} className="flex justify-between">
 											<span>{emp.userName}</span>
@@ -1088,15 +1089,16 @@ const RobustLineCheckDashboard: React.FC<Props> = ({
 											</span>
 										</div>
 									))}
-								</div>
-							</>
-						) : (
+								</div> */}
+							{/* </> */}
+						{/* ) : (
 							<div className="text-center text-sm text-muted-foreground">
 								No employee performance data yet.
 							</div>
 						)}
 					</CardContent>
-				</Card>
+				</Card> */} 
+				<EmployeePerformanceCard data={metrics.employeePerformanceToday} />
 
 				{/* ---------------- LINE CHECKS + LEGEND (2/3) ---------------- */}
 				<div className="flex flex-col gap-4 col-span-2">
