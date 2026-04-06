@@ -1089,13 +1089,17 @@ const RobustLineCheckDashboard: React.FC<Props> = ({
 						<AccordionItem key={lc.lineCheckId} value={lc.lineCheckId}>
 							<AccordionTrigger>
 								<div className="flex justify-between w-full">
-									<span>
+									<div>
 										{severity.icon} Line Check at{' '}
 										{new Date(lc.checkTime).toLocaleTimeString()}
-									</span>
-									<span className={`text-xs ${severity.color}`}>
-										Score {severity.score}
-									</span>
+									</div>
+									<div>Line Check by {lc.employeeName}</div>
+									<div className={`flex gap-3 items-center text-xs`}>
+										Score
+										<span className={` ${severity.color}`}>
+											{severity.score}
+										</span>
+									</div>
 								</div>
 							</AccordionTrigger>
 
