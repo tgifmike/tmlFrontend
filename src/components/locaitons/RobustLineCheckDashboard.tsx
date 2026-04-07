@@ -1037,6 +1037,11 @@ const RobustLineCheckDashboard: React.FC<Props> = ({
 								year: 'numeric',
 							})}
 						</div>
+						<CardAction>
+							<Badge variant="outline" className="mt-2">
+								{trendIndicator(metrics.totalChecksMonthToDate, monthGoal)}
+							</Badge>
+						</CardAction>
 					</CardHeader>
 					<CardContent className="space-y-4">
 						<MetricRow
@@ -1109,7 +1114,7 @@ const RobustLineCheckDashboard: React.FC<Props> = ({
 				<div className="flex flex-col gap-4 col-span-2">
 					{/* Legend */}
 					<Card className="p-4">
-						<CardContent className="flex flex-col md:flex-row justify-between gap-4 text-sm">
+						<CardContent className="flex flex-col justify-between gap-4 text-sm">
 							<div className="flex flex-wrap gap-2 items-center">
 								<span className="font-medium">Severity Key:</span>
 								<Badge variant="outline">🔴 Critical 10+</Badge>
@@ -1145,7 +1150,7 @@ const RobustLineCheckDashboard: React.FC<Props> = ({
 													Line Check by {lc.employeeName}
 												</div>
 												<div className={`flex gap-3 items-center text-xs`}>
-													Score{' '}
+													score;{' '}
 													<span className={`${severity.color}`}>
 														{severity.score}
 													</span>
@@ -1216,7 +1221,7 @@ const GoalRow = ({ actual, expected, trend }: any) => {
 
 	return (
 		<div>
-			<div className="flex justify-between text-sm">
+			<div className="flex justify-between gap-1 text-sm">
 				<span className="text-muted-foreground">Goal Progress</span>
 				<Badge
 					className={
@@ -1234,9 +1239,9 @@ const GoalRow = ({ actual, expected, trend }: any) => {
 				<span className="text-xs text-muted-foreground">{percent}%</span>
 			</div>
 
-			{trend && (
+			{/* {trend && (
 				<div className="text-xs text-muted-foreground text-center">{trend}</div>
-			)}
+			)} */}
 
 			<div className="mt-2 text-xs text-muted-foreground text-center">
 				{getInsight()}
