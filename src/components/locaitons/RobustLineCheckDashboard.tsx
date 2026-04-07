@@ -1041,8 +1041,8 @@ const trendIndicator = (actual: number, expected: number): TrendResult => {
 			<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
 				{/* DAILY */}
 				<Card className="h-full">
-					<CardHeader className="text-center">
-						<CardTitle className="text-2xl sm:text-3xl lg:text-4xl">
+					<CardHeader className="text-left">
+						<CardTitle className="text-xl sm:text-2xl lg:text-3xl">
 							Daily
 						</CardTitle>
 						<div className="text-muted-foreground text-sm">
@@ -1063,7 +1063,10 @@ const trendIndicator = (actual: number, expected: number): TrendResult => {
 						</CardAction>
 					</CardHeader>
 					<CardContent className="space-y-4">
-						<MetricRow label="Total Checks" value={metrics.totalChecksToday} />
+						<MetricRow
+							label="Total Line Checks"
+							value={metrics.totalChecksToday}
+						/>
 						<GoalRow
 							actual={metrics.totalChecksToday}
 							expected={dailyGoal}
@@ -1076,8 +1079,8 @@ const trendIndicator = (actual: number, expected: number): TrendResult => {
 
 				{/* WEEKLY */}
 				<Card className="h-full">
-					<CardHeader className="text-center">
-						<CardTitle className="text-2xl sm:text-3xl lg:text-4xl">
+					<CardHeader className="text-left">
+						<CardTitle className="text-xl sm:text-2xl lg:text-3xl">
 							Weekly
 						</CardTitle>
 						<div className="text-muted-foreground text-sm">Week-to-date</div>
@@ -1093,7 +1096,7 @@ const trendIndicator = (actual: number, expected: number): TrendResult => {
 					</CardHeader>
 					<CardContent className="space-y-4">
 						<MetricRow
-							label="Total Checks"
+							label="Total Line Checks"
 							value={metrics.totalChecksWeekToDate}
 						/>
 						<GoalRow
@@ -1107,8 +1110,8 @@ const trendIndicator = (actual: number, expected: number): TrendResult => {
 
 				{/* MONTHLY */}
 				<Card className="h-full">
-					<CardHeader className="text-center">
-						<CardTitle className="text-2xl sm:text-3xl lg:text-4xl">
+					<CardHeader className="text-left">
+						<CardTitle className="text-xl sm:text-2xl lg:text-3xl">
 							Monthly
 						</CardTitle>
 						<div className="text-muted-foreground text-sm">
@@ -1129,7 +1132,7 @@ const trendIndicator = (actual: number, expected: number): TrendResult => {
 					</CardHeader>
 					<CardContent className="space-y-4">
 						<MetricRow
-							label="Total Checks"
+							label="Total Line Checks"
 							value={metrics.totalChecksMonthToDate}
 						/>
 						<GoalRow
@@ -1151,7 +1154,7 @@ const trendIndicator = (actual: number, expected: number): TrendResult => {
 				{/* ---------------- LINE CHECKS + LEGEND (2/3) ---------------- */}
 				<div className="flex flex-col gap-4 col-span-2">
 					{/* Legend */}
-					<Card className="p-4">
+					<Card className="w-1/2">
 						<CardContent className="flex flex-col justify-between gap-4 text-sm">
 							<div className="flex flex-wrap gap-2 items-center">
 								<span className="font-medium">Severity Key:</span>
@@ -1172,11 +1175,14 @@ const trendIndicator = (actual: number, expected: number): TrendResult => {
 
 					{/* Accordion */}
 					{lineChecks.length > 0 ? (
+						
+						<div className="w-1/2">
 						<Accordion type="single" collapsible>
 							{lineChecks.map((lc) => {
 								const severity = getSeverity(lc);
 
 								return (
+									
 									<AccordionItem key={lc.lineCheckId} value={lc.lineCheckId}>
 										<AccordionTrigger>
 											<div className="flex justify-between w-full items-center">
@@ -1188,7 +1194,7 @@ const trendIndicator = (actual: number, expected: number): TrendResult => {
 													Line Check by {lc.employeeName}
 												</div>
 												<div className={`flex gap-3 items-center text-xs`}>
-													score;{' '}
+													score:{' '}
 													<span className={`${severity.color}`}>
 														{severity.score}
 													</span>
@@ -1218,7 +1224,8 @@ const trendIndicator = (actual: number, expected: number): TrendResult => {
 									</AccordionItem>
 								);
 							})}
-						</Accordion>
+									</Accordion>
+									</div>
 					) : (
 						<div className="text-center text-sm text-muted-foreground mt-2">
 							No line check data yet.
