@@ -835,7 +835,7 @@ import {
 	EmployeePerformanceDto,
 } from '@/app/types';
 
-import { Card, CardHeader, CardContent, CardTitle } from '@/components/ui/card';
+import { Card, CardHeader, CardContent, CardTitle, CardAction } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import {
@@ -1008,6 +1008,11 @@ const RobustLineCheckDashboard: React.FC<Props> = ({
 					<CardHeader className="text-center">
 						<CardTitle className="text-4xl">Weekly</CardTitle>
 						<div className="text-muted-foreground text-sm">Week-to-date</div>
+						<CardAction>
+							<Badge variant="outline" className="mt-2">
+								{trendIndicator(metrics.totalChecksWeekToDate, weekGoal)}
+							</Badge>
+						</CardAction>
 					</CardHeader>
 					<CardContent className="space-y-4">
 						<MetricRow
@@ -1194,6 +1199,21 @@ const MetricRow = ({ label, value }: any) => (
 
 const GoalRow = ({ actual, expected, trend }: any) => {
 	const percent = Math.round((actual / expected) * 100);
+	const remaining = expected - actual;
+	const daysRemaining = Math.max(0, 7 - new Date().getDay());
+	const neededPerDay =
+		daysRemaining > 0 ? Math.ceil(remaining / daysRemaining) : remaining;
+	
+	const getInsight = () => {
+		if (actual >= expected)
+			return '✅ Great job — you are ahead of target. Maintain current pace.';
+
+		if (actual >= expected * 0.75)
+			return `⚠️ Slightly behind pace. Complete ${neededPerDay} checks per day for the next ${daysRemaining} days to recover.`;
+
+		return `🚨 You are trending behind. Complete ${neededPerDay} checks per day over the next ${daysRemaining} days to reach your goal.`;
+	};
+
 	return (
 		<div>
 			<div className="flex justify-between text-sm">
@@ -1217,6 +1237,10 @@ const GoalRow = ({ actual, expected, trend }: any) => {
 			{trend && (
 				<div className="text-xs text-muted-foreground text-center">{trend}</div>
 			)}
+
+			<div className="mt-2 text-xs text-muted-foreground text-center">
+				{getInsight()}
+			</div>
 		</div>
 	);
 };
