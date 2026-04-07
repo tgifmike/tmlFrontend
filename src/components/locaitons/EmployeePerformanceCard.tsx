@@ -51,7 +51,7 @@ export default function EmployeePerformanceCard({
 				</div>
 
 				{/* Right: Numeric list (2/3) */}
-				<div className="md:w-2/3 flex flex-col justify-center gap-2">
+				<div className="flex flex-col justify-center gap-2">
 					{data.map((emp) => (
 						<div key={emp.userId} className="flex justify-between text-sm">
 							<span className="font-medium">{emp.userName}</span>
