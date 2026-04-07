@@ -849,7 +849,9 @@ import {
 import IssueCard from './IssueCard';
 import { toast } from 'sonner';
 import EmployeePerformanceCard from './EmployeePerformanceCard';
-import { TrendingUp, TrendingDown, Target, Goal } from 'lucide-react';
+import { TrendingUp, TrendingDown, Target, Goal, ChevronDown } from 'lucide-react';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '../ui/collapsible';
+import { Button } from '../ui/button';
 
 interface Props {
 	locationId: string;
@@ -905,8 +907,10 @@ const RobustLineCheckDashboard: React.FC<Props> = ({
 		employeePerformanceToday: [],
 	});
 
+	//states
 	const [lineChecks, setLineChecks] = useState<LineCheckItemIssuesDto[]>([]);
 	const [loading, setLoading] = useState(true);
+	const [legendOpen, setLegendOpen] = useState(true);
 
 	//yesterday
 	const vsYesterday = metrics.totalChecksToday - metrics.totalChecksYesterday;
@@ -1154,7 +1158,7 @@ const trendIndicator = (actual: number, expected: number): TrendResult => {
 				{/* ---------------- LINE CHECKS + LEGEND (2/3) ---------------- */}
 				<div className="w-full md:w-1/2 flex flex-col gap-4">
 					{/* Legend */}
-					<Card className="w-full">
+					{/* <Card className="w-full">
 						<CardContent className="flex flex-col justify-between gap-4 text-sm">
 							<div className="flex flex-wrap gap-2 items-center">
 								<span className="font-medium">Severity Key:</span>
@@ -1171,11 +1175,48 @@ const trendIndicator = (actual: number, expected: number): TrendResult => {
 								<Badge variant="outline">Missing Item = 1 pt</Badge>
 							</div>
 						</CardContent>
-					</Card>
+					</Card> */}
+					<Collapsible open={legendOpen} onOpenChange={setLegendOpen}>
+						<div className="flex items-center justify-between">
+							<span className="text-sm font-medium">Legend</span>
+
+							<CollapsibleTrigger asChild>
+								<Button variant="ghost" size="sm" className="gap-1">
+									{legendOpen ? 'Hide Legend' : 'Show Legend'}
+									<ChevronDown
+										className={`h-4 w-4 transition-transform ${
+											legendOpen ? 'rotate-180' : ''
+										}`}
+									/>
+								</Button>
+							</CollapsibleTrigger>
+						</div>
+
+						<CollapsibleContent>
+							<Card className="w-full mt-2">
+								<CardContent className="flex flex-col gap-4 text-sm">
+									<div className="flex flex-wrap gap-2 items-center">
+										<span className="font-medium">Severity Key:</span>
+										<Badge variant="outline">🔴 Critical 10+</Badge>
+										<Badge variant="outline">🟠 High 5–9</Badge>
+										<Badge variant="outline">🟡 Minor 1–4</Badge>
+										<Badge variant="outline">🟢 Good 0</Badge>
+									</div>
+
+									<div className="flex flex-wrap gap-2 items-center">
+										<span className="font-medium">Scoring:</span>
+										<Badge variant="destructive">Out of Temp = 5 pts</Badge>
+										<Badge variant="outline">Incorrect Prep = 3 pts</Badge>
+										<Badge variant="outline">Missing Item = 1 pt</Badge>
+									</div>
+								</CardContent>
+							</Card>
+						</CollapsibleContent>
+					</Collapsible>
 
 					{/* Accordion */}
 					{lineChecks.length > 0 ? (
-						<div className="w-1/2">
+						<div className="w-full">
 							<Accordion type="single" collapsible>
 								{lineChecks.map((lc) => {
 									const severity = getSeverity(lc);
