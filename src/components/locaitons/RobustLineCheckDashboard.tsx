@@ -921,7 +921,7 @@ const trendIndicator = (actual: number, expected: number): TrendResult => {
 			icon: Goal,
 			label: 'Goal Reached',
 			variant: 'default',
-			color: 'text-green-600',
+			// color: 'text-green-600',
 		};
 	}
 
@@ -930,7 +930,7 @@ const trendIndicator = (actual: number, expected: number): TrendResult => {
 			icon: TrendingUp,
 			label: 'Trending Up',
 			variant: 'default',
-			color: 'text-green-600',
+			// color: 'text-green-600',
 		};
 	}
 
@@ -939,7 +939,7 @@ const trendIndicator = (actual: number, expected: number): TrendResult => {
 			icon: Target,
 			label: 'On Target',
 			variant: 'secondary',
-			color: 'text-yellow-600',
+			// color: 'text-yellow-600',
 		};
 	}
 
@@ -947,7 +947,7 @@ const trendIndicator = (actual: number, expected: number): TrendResult => {
 		icon: TrendingDown,
 		label: 'Trending Down',
 		variant: 'destructive',
-		color: 'text-red-600',
+		// color: 'text-red-600',
 	};
 };
 
@@ -1002,7 +1002,9 @@ const trendIndicator = (actual: number, expected: number): TrendResult => {
 
 
 	const weeklyTrend = trendIndicator(metrics.totalChecksWeekToDate, weekGoal);
+	const WeeklyIcon = weeklyTrend.icon;
 	const monthlyTrend = trendIndicator(metrics.totalChecksMonthToDate, monthGoal);
+	const MonthlyIcon = monthlyTrend.icon;
 
 	if (loading)
 		return (
@@ -1022,11 +1024,13 @@ const trendIndicator = (actual: number, expected: number): TrendResult => {
 			</div>
 
 			{/* Summary Cards */}
-			<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+			<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
 				{/* DAILY */}
-				<Card className="bg-chart-1/20">
+				<Card className="h-full">
 					<CardHeader className="text-center">
-						<CardTitle className="text-4xl">Daily</CardTitle>
+						<CardTitle className="text-2xl sm:text-3xl lg:text-4xl">
+							Daily
+						</CardTitle>
 						<div className="text-muted-foreground text-sm">
 							{today.toLocaleDateString('en-US', {
 								weekday: 'long',
@@ -1042,16 +1046,18 @@ const trendIndicator = (actual: number, expected: number): TrendResult => {
 				</Card>
 
 				{/* WEEKLY */}
-				<Card className="bg-chart-2/20">
+				<Card className="h-full">
 					<CardHeader className="text-center">
-						<CardTitle className="text-4xl">Weekly</CardTitle>
+						<CardTitle className="text-2xl sm:text-3xl lg:text-4xl">
+							Weekly
+						</CardTitle>
 						<div className="text-muted-foreground text-sm">Week-to-date</div>
 						<CardAction>
 							<Badge
 								variant={weeklyTrend.variant}
 								className="mt-2 flex items-center gap-1"
 							>
-								<weeklyTrend.icon size={14} className={weeklyTrend.color} />
+								<WeeklyIcon size={14} />
 								{weeklyTrend.label}
 							</Badge>
 						</CardAction>
@@ -1070,9 +1076,11 @@ const trendIndicator = (actual: number, expected: number): TrendResult => {
 				</Card>
 
 				{/* MONTHLY */}
-				<Card className="bg-chart-3/20">
+				<Card className="h-full">
 					<CardHeader className="text-center">
-						<CardTitle className="text-4xl">Monthly</CardTitle>
+						<CardTitle className="text-2xl sm:text-3xl lg:text-4xl">
+							Monthly
+						</CardTitle>
 						<div className="text-muted-foreground text-sm">
 							{today.toLocaleDateString('en-US', {
 								month: 'long',
@@ -1084,7 +1092,7 @@ const trendIndicator = (actual: number, expected: number): TrendResult => {
 								variant={monthlyTrend.variant}
 								className="mt-2 flex items-center gap-1"
 							>
-								<monthlyTrend.icon size={14} className={monthlyTrend.color} />
+								<MonthlyIcon size={14} />
 								{monthlyTrend.label}
 							</Badge>
 						</CardAction>
@@ -1204,7 +1212,8 @@ const MetricRow = ({ label, value }: any) => (
 const GoalRow = ({ actual, expected, trend }: any) => {
 	const percent = Math.round((actual / expected) * 100);
 	const remaining = expected - actual;
-	const daysRemaining = Math.max(0, 7 - new Date().getDay());
+	const today = new Date().getDay() || 7;
+	const daysRemaining = Math.max(0, 7 - today);
 	const neededPerDay =
 		daysRemaining > 0 ? Math.ceil(remaining / daysRemaining) : remaining;
 	
@@ -1218,8 +1227,15 @@ const GoalRow = ({ actual, expected, trend }: any) => {
 		return `🚨 You are trending behind. Complete ${neededPerDay} checks per day over the next ${daysRemaining} days to reach your goal.`;
 	};
 
+	const progressColorClass = (percent: number) => {
+		if (percent >= 100) return '[&>div]:bg-green-600';
+		if (percent >= 60) return '[&>div]:bg-yellow-500';
+		if (percent >= 30) return '[&>div]:bg-orange-500';
+		return '[&>div]:bg-red-600';
+	};
+
 	return (
-		<div>
+		<div className="flex flex-col gap-2">
 			<div className="flex justify-between gap-1 text-sm">
 				<span className="text-muted-foreground">Goal Progress</span>
 				<Badge
@@ -1234,8 +1250,25 @@ const GoalRow = ({ actual, expected, trend }: any) => {
 			</div>
 
 			<div className="flex items-center gap-2">
-				<Progress value={Math.min(percent, 100)} />
-				<span className="text-xs text-muted-foreground">{percent}%</span>
+				<Progress
+					value={Math.min(percent, 100)}
+					className={`[&>div]:transition-all [&>div]:duration-500 ${progressColorClass(
+						percent,
+					)}`}
+				/>
+				<span
+					className={`text-xs font-medium ${
+						percent >= 100
+							? 'text-green-600'
+							: percent >= 60
+								? 'text-yellow-600'
+								: percent >= 30
+									? 'text-orange-600'
+									: 'text-red-600'
+					}`}
+				>
+					{percent}%
+				</span>
 			</div>
 
 			{/* {trend && (

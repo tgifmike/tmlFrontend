@@ -377,5 +377,5 @@ export type TrendResult = {
 	icon: React.ElementType;
 	label: string;
 	variant: 'default' | 'secondary' | 'destructive' | 'outline';
-	color: string;
+	// color: string;
 };
