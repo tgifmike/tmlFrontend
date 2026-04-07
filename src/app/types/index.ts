@@ -341,6 +341,7 @@ export interface StationHistoryEntity {
 // types/dashboard.ts
 export interface DashboardMetrics {
 	totalChecksToday: number;
+	totalChecksYesterday: number;
 	totalChecksWeekToDate: number;
 	totalChecksMonthToDate: number;
 	missingItemsToday: number;
@@ -379,3 +380,5 @@ export type TrendResult = {
 	variant: 'default' | 'secondary' | 'destructive' | 'outline';
 	// color: string;
 };
+
+type Period = 'daily' | 'weekly' | 'monthly';

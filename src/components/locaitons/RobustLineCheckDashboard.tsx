@@ -891,6 +891,7 @@ const RobustLineCheckDashboard: React.FC<Props> = ({
 }) => {
 	const [metrics, setMetrics] = useState<DashboardMetrics>({
 		totalChecksToday: 0,
+		totalChecksYesterday: 0,
 		totalChecksWeekToDate: 0,
 		totalChecksMonthToDate: 0,
 		durationSeconds: 0,
@@ -906,6 +907,16 @@ const RobustLineCheckDashboard: React.FC<Props> = ({
 
 	const [lineChecks, setLineChecks] = useState<LineCheckItemIssuesDto[]>([]);
 	const [loading, setLoading] = useState(true);
+
+	//yesterday
+	const vsYesterday = metrics.totalChecksToday - metrics.totalChecksYesterday;
+
+	const vsYesterdayLabel =
+		vsYesterday === 0
+			? 'No change vs yesterday'
+			: vsYesterday > 0
+				? `+${vsYesterday} vs yesterday`
+				: `${vsYesterday} vs yesterday`;
 
 	// Date math
 	const today = new Date();
@@ -982,6 +993,7 @@ const trendIndicator = (actual: number, expected: number): TrendResult => {
 				setMetrics((prev) => ({
 					...prev,
 					totalChecksToday: data.totalChecksToday ?? prev.totalChecksToday,
+					totalChecksYesterday: data.totalChecksYesterday ?? prev.totalChecksYesterday,
 					totalChecksWeekToDate:
 						data.totalChecksWeekToDate ?? prev.totalChecksWeekToDate,
 					totalChecksMonthToDate:
@@ -1001,6 +1013,8 @@ const trendIndicator = (actual: number, expected: number): TrendResult => {
 	}, [locationId]);
 
 
+	const dailyTrend = trendIndicator(metrics.totalChecksToday, dailyGoal);
+	const DailyIcon = dailyTrend.icon;
 	const weeklyTrend = trendIndicator(metrics.totalChecksWeekToDate, weekGoal);
 	const WeeklyIcon = weeklyTrend.icon;
 	const monthlyTrend = trendIndicator(metrics.totalChecksMonthToDate, monthGoal);
@@ -1038,10 +1052,25 @@ const trendIndicator = (actual: number, expected: number): TrendResult => {
 								day: 'numeric',
 							})}
 						</div>
+						<CardAction>
+							<Badge
+								variant={dailyTrend.variant}
+								className="mt-2 flex items-center gap-1"
+							>
+								<DailyIcon size={14} />
+								{dailyTrend.label}
+							</Badge>
+						</CardAction>
 					</CardHeader>
 					<CardContent className="space-y-4">
 						<MetricRow label="Total Checks" value={metrics.totalChecksToday} />
-						<GoalRow actual={metrics.totalChecksToday} expected={dailyGoal} />
+						<GoalRow
+							actual={metrics.totalChecksToday}
+							expected={dailyGoal}
+							trend={dailyTrend}
+							period="daily"
+							vsYesterday={metrics.totalChecksYesterday}
+						/>
 					</CardContent>
 				</Card>
 
@@ -1071,6 +1100,7 @@ const trendIndicator = (actual: number, expected: number): TrendResult => {
 							actual={metrics.totalChecksWeekToDate}
 							expected={weekGoal}
 							trend={trendIndicator(metrics.totalChecksWeekToDate, weekGoal)}
+							period="weekly"
 						/>
 					</CardContent>
 				</Card>
@@ -1106,6 +1136,7 @@ const trendIndicator = (actual: number, expected: number): TrendResult => {
 							actual={metrics.totalChecksMonthToDate}
 							expected={monthGoal}
 							trend={trendIndicator(metrics.totalChecksMonthToDate, monthGoal)}
+							period="monthly"
 						/>
 					</CardContent>
 				</Card>
@@ -1209,22 +1240,71 @@ const MetricRow = ({ label, value }: any) => (
 	</div>
 );
 
-const GoalRow = ({ actual, expected, trend }: any) => {
+type Period = "daily" | "weekly" | "monthly";
+
+
+
+const GoalRow = ({ actual, expected, trend, period, vsYesterday }: { actual: number; expected: number; trend: TrendResult; period: Period; vsYesterday?: number }) => {
 	const percent = Math.round((actual / expected) * 100);
-	const remaining = expected - actual;
-	const today = new Date().getDay() || 7;
-	const daysRemaining = Math.max(0, 7 - today);
+	const remaining = Math.max(expected - actual, 0);
+
+	const now = new Date();
+
+	let daysRemaining = 0;
+
+	if (period === 'weekly') {
+		const today = now.getDay() || 7;
+		daysRemaining = Math.max(0, 7 - today);
+	}
+
+	if (period === 'monthly') {
+		const daysInMonth = new Date(
+			now.getFullYear(),
+			now.getMonth() + 1,
+			0,
+		).getDate();
+
+		daysRemaining = Math.max(0, daysInMonth - now.getDate());
+	}
+
 	const neededPerDay =
 		daysRemaining > 0 ? Math.ceil(remaining / daysRemaining) : remaining;
 	
 	const getInsight = () => {
 		if (actual >= expected)
-			return '✅ Great job — you are ahead of target. Maintain current pace.';
+			return '✅ Great job — goal achieved. Maintain consistency.';
 
-		if (actual >= expected * 0.75)
-			return `⚠️ Slightly behind pace. Complete ${neededPerDay} checks per day for the next ${daysRemaining} days to recover.`;
+		if (period === 'daily') {
+			if (vsYesterday !== undefined) {
+				const diff = actual - vsYesterday;
 
-		return `🚨 You are trending behind. Complete ${neededPerDay} checks per day over the next ${daysRemaining} days to reach your goal.`;
+				if (diff > 0)
+					return `📈 ${diff} more checks than yesterday. ${remaining} remaining to hit goal.`;
+
+				if (diff < 0)
+					return `📉 ${Math.abs(diff)} fewer checks than yesterday. ${remaining} remaining to recover pace.`;
+
+				return `➖ Same as yesterday. ${remaining} remaining to hit goal.`;
+			}
+
+			return `⚠️ ${remaining} checks remaining today to reach your target.`;
+		}
+
+		if (period === 'weekly') {
+			if (actual >= expected * 0.75)
+				return `⚠️ Slightly behind pace. Complete ${neededPerDay} checks/day over the next ${daysRemaining} days.`;
+
+			return `🚨 Behind weekly pace. Average ${neededPerDay} checks/day for the next ${daysRemaining} days to recover.`;
+		}
+
+		if (period === 'monthly') {
+			if (actual >= expected * 0.75)
+				return `⚠️ Slightly behind monthly pace. Average ${neededPerDay} checks/day for the next ${daysRemaining} days.`;
+
+			return `🚨 Behind monthly pace. Increase activity to ${neededPerDay} checks/day to reach goal.`;
+		}
+
+		return '';
 	};
 
 	const progressColorClass = (percent: number) => {
@@ -1233,6 +1313,8 @@ const GoalRow = ({ actual, expected, trend }: any) => {
 		if (percent >= 30) return '[&>div]:bg-orange-500';
 		return '[&>div]:bg-red-600';
 	};
+
+	
 
 	return (
 		<div className="flex flex-col gap-2">
