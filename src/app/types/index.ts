@@ -352,6 +352,10 @@ export interface DashboardMetrics {
 	missingItemNamesToday: string[];
 	durationSeconds: number | null;
 	lineChecks: LineCheckItemIssuesDto[];
+	mostMissingItemsDay: string;
+	mostOutOfTempDay: string;
+	mostIncorrectPrepDay: string;
+	weakestLineCheckDay: string;
 	employeePerformanceToday: EmployeePerformanceDto[];
 }
 

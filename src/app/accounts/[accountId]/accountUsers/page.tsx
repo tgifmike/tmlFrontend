@@ -239,9 +239,9 @@ const AccountUsersPage = () => {
 	
 
 	return (
-		<div className="flex flex-1 overflow-hidden">
+		<div className="flex flex-1 min-w-0">
 			{/* Desktop Sidebar */}
-			<aside className="hidden md:block w-1/6 border-r h-screen bg-ring">
+			<aside className="hidden md:block w-1/6 border-r h-screen bg-ring shrink-0">
 				<LeftNav
 					accountName={accountName}
 					accountImage={accountImage}

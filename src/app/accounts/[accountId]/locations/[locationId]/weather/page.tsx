@@ -217,8 +217,8 @@ const ExtendedForecastPage = () => {
 										</p>
 									</CardDescription>
 								</CardHeader>
-								<CardContent className="flex">
-									<div className="w-1/4 rounded-2xl">
+								<CardContent className="flex gap-4">
+									<div className="w-1/4 rounded-2xl ">
 										<Image
 											src={day.icon}
 											alt="Weather condition"
@@ -227,15 +227,6 @@ const ExtendedForecastPage = () => {
 											className="md:object-contain w-55 h-55 rounded-2xl md:shadow-2xl"
 										/>
 									</div>
-									{/* <div className="w-1/4 flex justify-center items-center">
-										<Image
-											src={day.icon}
-											alt="Weather condition"
-											width={120}
-											height={120}
-											className="object-contain rounded-2xl md:shadow-2xl w-[120px] h-[120px] sm:w-[100px] sm:h-[100px] md:w-[80px] md:h-[80px]"
-										/>
-									</div> */}
 
 									<div className="w-3/4">
 										<div className="p-0">

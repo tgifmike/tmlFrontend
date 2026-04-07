@@ -152,7 +152,7 @@ const LocationPage = () => {
 		<main className="flex min-h-screen overflow-hidden">
 			{/* Desktop Sidebar */}
 			{/* left nav */}
-			<aside className="hidden md:block w-1/6 border-r h-screen bg-ring">
+			<aside className="hidden md:block w-1/6 border-r bg-ring overflow-y-auto">
 				<LocationNav
 					accountName={accountName}
 					accountImage={accountImage}
