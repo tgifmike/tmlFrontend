@@ -19,7 +19,7 @@ export default function EmployeePerformanceCard({
 	return (
 		<Card className="bg-chart-5/20 min-h-[300px] w-full">
 			<CardHeader>
-				<CardTitle className="text-center text-2xl md:text-3xl break-words">
+				<CardTitle className="text-center text-2xl md:text-3xl break-word">
 					Employee Performance
 				</CardTitle>
 			</CardHeader>
