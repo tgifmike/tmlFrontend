@@ -179,7 +179,7 @@ const handleUpdateLocation = async (
 		);
 
 	return (
-		<div className="flex flex-1 overflow-hidden">
+		<div className="flex flex-1 min-w-0">
 			{/* Desktop Sidebar */}
 			<aside className="hidden md:block w-1/6 border-r h-screen bg-ring">
 				<LeftNav
@@ -297,7 +297,13 @@ const handleUpdateLocation = async (
 								{paginatedLocations.map((loc) => (
 									<DataCard
 										key={loc.id}
-										title={loc.locationName!}
+										title={
+											<Link
+												href={`/accounts/${accountIdParam}/locations/${loc.id}`}
+											>
+												{loc.locationName}
+											</Link>
+										}
 										fields={[
 											{
 												label: 'Status',
