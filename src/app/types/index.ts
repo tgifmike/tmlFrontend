@@ -372,3 +372,10 @@ export interface EmployeePerformanceDto {
 	checkCount: number; // Total line checks completed today
 	avgCompletionSeconds: number; // Average time to complete a line check today, in seconds
 }
+
+export type TrendResult = {
+	icon: React.ElementType;
+	label: string;
+	variant: 'default' | 'secondary' | 'destructive' | 'outline';
+	color: string;
+};

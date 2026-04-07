@@ -833,6 +833,7 @@ import {
 	DashboardMetrics,
 	LineCheckItemIssuesDto,
 	EmployeePerformanceDto,
+	TrendResult,
 } from '@/app/types';
 
 import { Card, CardHeader, CardContent, CardTitle, CardAction } from '@/components/ui/card';
@@ -848,6 +849,7 @@ import {
 import IssueCard from './IssueCard';
 import { toast } from 'sonner';
 import EmployeePerformanceCard from './EmployeePerformanceCard';
+import { TrendingUp, TrendingDown, Target, Goal } from 'lucide-react';
 
 interface Props {
 	locationId: string;
@@ -913,11 +915,43 @@ const RobustLineCheckDashboard: React.FC<Props> = ({
 	const monthGoal = dailyGoal * daysElapsedMonth;
 
 	// Trend indicators
-	const trendIndicator = (actual: number, expected: number) => {
-		if (actual >= expected) return '📈 Ahead';
-		if (actual >= expected * 0.75) return '➡️ On pace';
-		return '📉 Behind';
+const trendIndicator = (actual: number, expected: number): TrendResult => {
+	if (actual === expected) {
+		return {
+			icon: Goal,
+			label: 'Goal Reached',
+			variant: 'default',
+			color: 'text-green-600',
+		};
+	}
+
+	if (actual > expected) {
+		return {
+			icon: TrendingUp,
+			label: 'Trending Up',
+			variant: 'default',
+			color: 'text-green-600',
+		};
+	}
+
+	if (actual >= expected * 0.75) {
+		return {
+			icon: Target,
+			label: 'On Target',
+			variant: 'secondary',
+			color: 'text-yellow-600',
+		};
+	}
+
+	return {
+		icon: TrendingDown,
+		label: 'Trending Down',
+		variant: 'destructive',
+		color: 'text-red-600',
 	};
+};
+
+
 
 	// Severity scoring
 	const getSeverity = (lc: LineCheckItemIssuesDto) => {
@@ -966,6 +1000,10 @@ const RobustLineCheckDashboard: React.FC<Props> = ({
 		fetchMetrics();
 	}, [locationId]);
 
+
+	const weeklyTrend = trendIndicator(metrics.totalChecksWeekToDate, weekGoal);
+	const monthlyTrend = trendIndicator(metrics.totalChecksMonthToDate, monthGoal);
+
 	if (loading)
 		return (
 			<div className="p-6 text-center text-muted-foreground">
@@ -1009,8 +1047,12 @@ const RobustLineCheckDashboard: React.FC<Props> = ({
 						<CardTitle className="text-4xl">Weekly</CardTitle>
 						<div className="text-muted-foreground text-sm">Week-to-date</div>
 						<CardAction>
-							<Badge variant="outline" className="mt-2">
-								{trendIndicator(metrics.totalChecksWeekToDate, weekGoal)}
+							<Badge
+								variant={weeklyTrend.variant}
+								className="mt-2 flex items-center gap-1"
+							>
+								<weeklyTrend.icon size={14} className={weeklyTrend.color} />
+								{weeklyTrend.label}
 							</Badge>
 						</CardAction>
 					</CardHeader>
@@ -1038,8 +1080,12 @@ const RobustLineCheckDashboard: React.FC<Props> = ({
 							})}
 						</div>
 						<CardAction>
-							<Badge variant="outline" className="mt-2">
-								{trendIndicator(metrics.totalChecksMonthToDate, monthGoal)}
+							<Badge
+								variant={monthlyTrend.variant}
+								className="mt-2 flex items-center gap-1"
+							>
+								<monthlyTrend.icon size={14} className={monthlyTrend.color} />
+								{monthlyTrend.label}
 							</Badge>
 						</CardAction>
 					</CardHeader>
@@ -1057,58 +1103,11 @@ const RobustLineCheckDashboard: React.FC<Props> = ({
 				</Card>
 			</div>
 
-			<div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-				{/* ---------------- EMPLOYEE PERFORMANCE (1/3) ---------------- */}
-				{/* <Card className="bg-chart-5/20 min-h-[300px] col-span-1">
-					<CardHeader>
-						<CardTitle className="text-center text-2xl md:text-3xl break-words">
-							Employee Performance
-						</CardTitle>
-					</CardHeader>
-					<CardContent className="space-y-2">
-						{metrics.employeePerformanceToday.length > 0 ? (
-							<>
-								{/* Mini bar chart */}
-								{/* <div className="h-48">
-									<BarChart
-										width={250}
-										height={180}
-										data={metrics.employeePerformanceToday}
-										layout="vertical"
-										margin={{ top: 5, right: 5, bottom: 5, left: 50 }}
-									>
-										<XAxis type="number" />
-										<YAxis type="category" dataKey="userName" />
-										<Tooltip
-											formatter={(value: number) => `${value} checks`}
-											cursor={{ fill: 'rgba(0,0,0,0.1)' }}
-										/>
-										<Bar dataKey="checkCount" fill="#3b82f6" />
-									</BarChart>
-								</div>
-
-								{/* Optional numeric list */}
-								{/* <div className="space-y-1 text-sm">
-									{metrics.employeePerformanceToday.map((emp) => (
-										<div key={emp.userId} className="flex justify-between">
-											<span>{emp.userName}</span>
-											<span>
-												{emp.checkCount} checks •{' '}
-												{((emp.avgCompletionSeconds ?? 0) / 60).toFixed(1)} min
-												avg
-											</span>
-										</div>
-									))}
-								</div> */}
-							{/* </> */}
-						{/* ) : (
-							<div className="text-center text-sm text-muted-foreground">
-								No employee performance data yet.
-							</div>
-						)}
-					</CardContent>
-				</Card> */} 
-				<EmployeePerformanceCard data={metrics.employeePerformanceToday} />
+			{/* <div className="grid grid-cols-1 md:grid-cols-3 gap-6"> */}
+			<div className="flex flex-col gap-4 md:flex-row justify-between">
+				<div>
+					<EmployeePerformanceCard data={metrics.employeePerformanceToday} />
+				</div>
 
 				{/* ---------------- LINE CHECKS + LEGEND (2/3) ---------------- */}
 				<div className="flex flex-col gap-4 col-span-2">

@@ -83,7 +83,7 @@ const LocationNav = ({ accountName, accountImage, accountId, sessionUserRole, lo
 			<div className="flex flex-col gap-2 px-4 pb-6">
 				<NavLink
 					href={`/accounts/${accountId}/locations/${locationId}`}
-					label="Location Home"
+					label="Dashboard"
 					icon={<DashboardIcon />}
 					pathname={pathname}
 				/>
@@ -118,7 +118,7 @@ const LocationNav = ({ accountName, accountImage, accountId, sessionUserRole, lo
 							<span>
 								<NavLink
 									href={`/accounts/${accountId}/locations/${locationId}/stations`}
-									label="Manage Stations"
+									label="Stations"
 									icon={<StationsIcon />}
 									pathname={pathname}
 								/>
