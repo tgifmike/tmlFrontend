@@ -118,7 +118,7 @@ export default function EmployeePerformanceCard({
 	}));
 
 	return (
-		<Card className="bg-chart-5/20 min-h-[350px] w-full">
+		<Card className="w-full">
 			<CardHeader>
 				<CardTitle className="text-center text-2xl md:text-3xl break-word">
 					Employee Performance
@@ -127,7 +127,7 @@ export default function EmployeePerformanceCard({
 
 			<CardContent className="flex flex-col gap-4">
 				{data.length > 0 ? (
-					<div className="h-[300px] md:h-[400px] w-full">
+					<div className="h-[250px] md:h-[350px] w-full">
 						<ResponsiveContainer width="100%" height="100%">
 							<ComposedChart
 								data={formattedData}

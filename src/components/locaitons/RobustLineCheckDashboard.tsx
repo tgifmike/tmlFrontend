@@ -1147,14 +1147,14 @@ const trendIndicator = (actual: number, expected: number): TrendResult => {
 
 			{/* <div className="grid grid-cols-1 md:grid-cols-3 gap-6"> */}
 			<div className="flex flex-col gap-4 md:flex-row justify-between">
-				<div>
+				<div className="w-full md:w-1/2">
 					<EmployeePerformanceCard data={metrics.employeePerformanceToday} />
 				</div>
 
 				{/* ---------------- LINE CHECKS + LEGEND (2/3) ---------------- */}
-				<div className="flex flex-col gap-4 col-span-2">
+				<div className="w-full md:w-1/2 flex flex-col gap-4">
 					{/* Legend */}
-					<Card className="w-1/2">
+					<Card className="w-full">
 						<CardContent className="flex flex-col justify-between gap-4 text-sm">
 							<div className="flex flex-wrap gap-2 items-center">
 								<span className="font-medium">Severity Key:</span>
@@ -1175,57 +1175,55 @@ const trendIndicator = (actual: number, expected: number): TrendResult => {
 
 					{/* Accordion */}
 					{lineChecks.length > 0 ? (
-						
 						<div className="w-1/2">
-						<Accordion type="single" collapsible>
-							{lineChecks.map((lc) => {
-								const severity = getSeverity(lc);
+							<Accordion type="single" collapsible>
+								{lineChecks.map((lc) => {
+									const severity = getSeverity(lc);
 
-								return (
-									
-									<AccordionItem key={lc.lineCheckId} value={lc.lineCheckId}>
-										<AccordionTrigger>
-											<div className="flex justify-between w-full items-center">
-												<div>
-													{severity.icon} Line Check at{' '}
-													{new Date(lc.checkTime).toLocaleTimeString()}
+									return (
+										<AccordionItem key={lc.lineCheckId} value={lc.lineCheckId}>
+											<AccordionTrigger>
+												<div className="flex justify-between w-full items-center">
+													<div>
+														{severity.icon} Line Check at{' '}
+														{new Date(lc.checkTime).toLocaleTimeString()}
+													</div>
+													<div className="hidden md:block">
+														Line Check by {lc.employeeName}
+													</div>
+													<div className={`flex gap-3 items-center text-xs`}>
+														score:{' '}
+														<span className={`${severity.color}`}>
+															{severity.score}
+														</span>
+													</div>
 												</div>
-												<div className="hidden md:block">
-													Line Check by {lc.employeeName}
-												</div>
-												<div className={`flex gap-3 items-center text-xs`}>
-													score:{' '}
-													<span className={`${severity.color}`}>
-														{severity.score}
-													</span>
-												</div>
-											</div>
-										</AccordionTrigger>
+											</AccordionTrigger>
 
-										<AccordionContent>
-											<div className="grid gap-4 md:grid-cols-3">
-												<IssueCard
-													title="Out of Temp"
-													items={lc.outOfTempItems}
-													severity="warning"
-												/>
-												<IssueCard
-													title="Incorrect Prep"
-													items={lc.incorrectPrepItems}
-													severity="minor"
-												/>
-												<IssueCard
-													title="Missing Items"
-													items={lc.missingItems}
-													severity="critical"
-												/>
-											</div>
-										</AccordionContent>
-									</AccordionItem>
-								);
-							})}
-									</Accordion>
-									</div>
+											<AccordionContent>
+												<div className="grid gap-4 md:grid-cols-3">
+													<IssueCard
+														title="Out of Temp"
+														items={lc.outOfTempItems}
+														severity="warning"
+													/>
+													<IssueCard
+														title="Incorrect Prep"
+														items={lc.incorrectPrepItems}
+														severity="minor"
+													/>
+													<IssueCard
+														title="Missing Items"
+														items={lc.missingItems}
+														severity="critical"
+													/>
+												</div>
+											</AccordionContent>
+										</AccordionItem>
+									);
+								})}
+							</Accordion>
+						</div>
 					) : (
 						<div className="text-center text-sm text-muted-foreground mt-2">
 							No line check data yet.
