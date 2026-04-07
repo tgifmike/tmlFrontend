@@ -175,7 +175,8 @@ const trendIndicator = (actual: number, expected: number): TrendResult => {
 				setMetrics((prev) => ({
 					...prev,
 					totalChecksToday: data.totalChecksToday ?? prev.totalChecksToday,
-					totalChecksYesterday: data.totalChecksYesterday ?? prev.totalChecksYesterday,
+					totalChecksYesterday:
+						data.totalChecksYesterday ?? prev.totalChecksYesterday,
 					totalChecksWeekToDate:
 						data.totalChecksWeekToDate ?? prev.totalChecksWeekToDate,
 					totalChecksMonthToDate:
@@ -183,6 +184,13 @@ const trendIndicator = (actual: number, expected: number): TrendResult => {
 					durationSeconds: data.durationSeconds ?? prev.durationSeconds,
 					employeePerformanceToday:
 						data.employeePerformanceToday ?? prev.employeePerformanceToday,
+					mostMissingItemsDay:
+						data.mostMissingItemsDay ?? prev.mostMissingItemsDay,
+					mostOutOfTempDay: data.mostOutOfTempDay ?? prev.mostOutOfTempDay,
+					mostIncorrectPrepDay:
+						data.mostIncorrectPrepDay ?? prev.mostIncorrectPrepDay,
+					weakestLineCheckDay:
+						data.weakestLineCheckDay ?? prev.weakestLineCheckDay,
 				}));
 			} catch {
 				toast.error('Failed to load dashboard metrics');
