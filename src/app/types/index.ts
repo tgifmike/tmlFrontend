@@ -357,6 +357,15 @@ export interface DashboardMetrics {
 	mostIncorrectPrepDay: string;
 	weakestLineCheckDay: string;
 	employeePerformanceToday: EmployeePerformanceDto[];
+
+	topMissingDays: RankedDayDto[];
+	topOutOfTempDays: RankedDayDto[];
+	topIncorrectPrepDays: RankedDayDto[];
+	topWeakestCompletionDays: RankedDayDto[];
+
+	topMissingItems: RankedItemDto[];
+	topOutOfTempItems: RankedItemDto[];
+	topIncorrectPrepItems: RankedItemDto[];
 }
 
 export interface LineCheckItemIssuesDto {
@@ -386,3 +395,13 @@ export type TrendResult = {
 };
 
 type Period = 'daily' | 'weekly' | 'monthly';
+
+export interface RankedDayDto {
+	day: string;
+	avg: number;
+}
+
+export interface RankedItemDto {
+	itemName: string;
+	count: number;
+}

@@ -26,6 +26,7 @@ import { TrendingUp, TrendingDown, Target, Goal, ChevronDown } from 'lucide-reac
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '../ui/collapsible';
 import { Button } from '../ui/button';
 import WeekdayInsightsCard from './WeekdayInsightsCard';
+import TopRankingInsightsCard from './TopRankingInsightsCard';
 
 interface Props {
 	locationId: string;
@@ -83,6 +84,14 @@ const RobustLineCheckDashboard: React.FC<Props> = ({
 		mostOutOfTempDay: '',
 		mostIncorrectPrepDay: '',
 		weakestLineCheckDay: '',
+		topMissingDays: [],
+		topOutOfTempDays: [],
+		topIncorrectPrepDays: [],
+		topWeakestCompletionDays: [],
+		topMissingItems: [],
+		topOutOfTempItems: [],
+		topIncorrectPrepItems: [],
+
 	});
 
 	//states
@@ -191,6 +200,33 @@ const trendIndicator = (actual: number, expected: number): TrendResult => {
 						data.mostIncorrectPrepDay ?? prev.mostIncorrectPrepDay,
 					weakestLineCheckDay:
 						data.weakestLineCheckDay ?? prev.weakestLineCheckDay,
+					topMissingDays: data.topMissingDays ?? prev.topMissingDays,
+					topOutOfTempDays: data.topOutOfTempDays ?? prev.topOutOfTempDays,
+					topIncorrectPrepDays:
+						data.topIncorrectPrepDays ?? prev.topIncorrectPrepDays,
+					topWeakestCompletionDays:
+						data.topWeakestCompletionDays ??
+						prev.topWeakestCompletionDays,
+					topMissingItems:
+						data.topMissingItems ?? prev.topMissingItems,
+					topOutOfTempItems:
+						data.topOutOfTempItems ?? prev.topOutOfTempItems,
+					topIncorrectPrepItems:
+						data.topIncorrectPrepItems ?? prev.topIncorrectPrepItems,
+					missingItemsToday: data.missingItemsToday ?? prev.missingItemsToday,
+					missingItemNamesToday:
+						data.missingItemNamesToday ?? prev.missingItemNamesToday,
+					outOfTempItemsToday:
+						data.outOfTempItemsToday ?? prev.outOfTempItemsToday,
+					outOfTempItemNamesToday:
+						data.outOfTempItemNamesToday ?? prev.outOfTempItemNamesToday,
+					incorrectPrepItemsToday:
+						data.incorrectPrepItemsToday ??
+						prev.incorrectPrepItemsToday,
+					incorrectPrepItemNamesToday:
+						data.incorrectPrepItemNamesToday ??
+						prev.incorrectPrepItemNamesToday,
+					
 				}));
 			} catch {
 				toast.error('Failed to load dashboard metrics');
@@ -333,6 +369,18 @@ const trendIndicator = (actual: number, expected: number): TrendResult => {
 						/>
 					</CardContent>
 				</Card>
+			</div>
+
+			<div>
+				<TopRankingInsightsCard
+					topMissingDays={metrics.topMissingDays}
+					topOutOfTempDays={metrics.topOutOfTempDays}
+					topIncorrectPrepDays={metrics.topIncorrectPrepDays}
+					topWeakestCompletionDays={metrics.topWeakestCompletionDays}
+					topMissingItems={metrics.topMissingItems}
+					topOutOfTempItems={metrics.topOutOfTempItems}
+					topIncorrectPrepItems={metrics.topIncorrectPrepItems}
+				/>
 			</div>
 
 			<div>
