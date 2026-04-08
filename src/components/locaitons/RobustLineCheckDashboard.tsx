@@ -27,6 +27,8 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '../ui/colla
 import { Button } from '../ui/button';
 import WeekdayInsightsCard from './WeekdayInsightsCard';
 import TopRankingInsightsCard from './TopRankingInsightsCard';
+import TopWeekdayTrendCard from './TopWeekdayTrendCard';
+import TopIssueItemsCard from './TopIssueItemsCard';
 
 interface Props {
 	locationId: string;
@@ -371,7 +373,20 @@ const trendIndicator = (actual: number, expected: number): TrendResult => {
 				</Card>
 			</div>
 
-			<div>
+			<TopWeekdayTrendCard
+				topMissingDays={metrics.topMissingDays}
+				topOutOfTempDays={metrics.topOutOfTempDays}
+				topIncorrectPrepDays={metrics.topIncorrectPrepDays}
+				topWeakestCompletionDays={metrics.topWeakestCompletionDays}
+			/>
+
+			<TopIssueItemsCard
+				topMissingItems={metrics.topMissingItems}
+				topOutOfTempItems={metrics.topOutOfTempItems}
+				topIncorrectPrepItems={metrics.topIncorrectPrepItems}
+			/>
+
+			{/* <div>
 				<TopRankingInsightsCard
 					topMissingDays={metrics.topMissingDays}
 					topOutOfTempDays={metrics.topOutOfTempDays}
@@ -381,7 +396,7 @@ const trendIndicator = (actual: number, expected: number): TrendResult => {
 					topOutOfTempItems={metrics.topOutOfTempItems}
 					topIncorrectPrepItems={metrics.topIncorrectPrepItems}
 				/>
-			</div>
+			</div> */}
 
 			{/* <div>
 				<WeekdayInsightsCard
