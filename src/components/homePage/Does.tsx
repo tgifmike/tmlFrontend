@@ -23,7 +23,9 @@ export default function Does() {
 		'/iPhoneLineCheckScreenShot.png',
 		'/backendLineCheckScreenShot2.png',
 		'/iPhoneLineCheckTempCheckScreenShot.png',
-		'/Dashboard.png',
+		'/newDashboard1.png',
+		'/newDashboard2.png',
+		'/newDashboard3.png',
 	];
 
 	const carouselRef = useRef(null);

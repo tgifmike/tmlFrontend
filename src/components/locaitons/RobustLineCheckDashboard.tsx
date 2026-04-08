@@ -5,7 +5,6 @@ import { getDashboardMetrics } from '@/app/api/linecheckApi';
 import {
 	DashboardMetrics,
 	LineCheckItemIssuesDto,
-	EmployeePerformanceDto,
 	TrendResult,
 } from '@/app/types';
 
@@ -25,8 +24,6 @@ import EmployeePerformanceCard from './EmployeePerformanceCard';
 import { TrendingUp, TrendingDown, Target, Goal, ChevronDown } from 'lucide-react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '../ui/collapsible';
 import { Button } from '../ui/button';
-import WeekdayInsightsCard from './WeekdayInsightsCard';
-import TopRankingInsightsCard from './TopRankingInsightsCard';
 import TopWeekdayTrendCard from './TopWeekdayTrendCard';
 import TopIssueItemsCard from './TopIssueItemsCard';
 
@@ -256,7 +253,7 @@ const trendIndicator = (actual: number, expected: number): TrendResult => {
 		);
 
 	return (
-		<div className="space-y-8">
+		<div className="space-y-2">
 			{/* Header */}
 			<div className="text-center space-y-2">
 				<h1 className="text-chart-3 text-5xl font-bold">LineCheck Dashboard</h1>
@@ -266,7 +263,7 @@ const trendIndicator = (actual: number, expected: number): TrendResult => {
 			</div>
 
 			{/* Summary Cards */}
-			<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+			<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
 				{/* DAILY */}
 				<Card className="h-full">
 					<CardHeader className="text-left">
@@ -385,27 +382,6 @@ const trendIndicator = (actual: number, expected: number): TrendResult => {
 				topOutOfTempItems={metrics.topOutOfTempItems}
 				topIncorrectPrepItems={metrics.topIncorrectPrepItems}
 			/>
-
-			{/* <div>
-				<TopRankingInsightsCard
-					topMissingDays={metrics.topMissingDays}
-					topOutOfTempDays={metrics.topOutOfTempDays}
-					topIncorrectPrepDays={metrics.topIncorrectPrepDays}
-					topWeakestCompletionDays={metrics.topWeakestCompletionDays}
-					topMissingItems={metrics.topMissingItems}
-					topOutOfTempItems={metrics.topOutOfTempItems}
-					topIncorrectPrepItems={metrics.topIncorrectPrepItems}
-				/>
-			</div> */}
-
-			{/* <div>
-				<WeekdayInsightsCard
-					mostMissingItemsDay={metrics?.mostMissingItemsDay}
-					mostOutOfTempDay={metrics?.mostOutOfTempDay}
-					mostIncorrectPrepDay={metrics?.mostIncorrectPrepDay}
-					weakestLineCheckDay={metrics?.weakestLineCheckDay}
-				/>
-			</div> */}
 
 			{/* <div className="grid grid-cols-1 md:grid-cols-3 gap-6"> */}
 			<div className="flex flex-col gap-4 md:flex-row justify-between">
@@ -638,10 +614,6 @@ const GoalRow = ({ actual, expected, trend, period, vsYesterday }: { actual: num
 					{percent}%
 				</span>
 			</div>
-
-			{/* {trend && (
-				<div className="text-xs text-muted-foreground text-center">{trend}</div>
-			)} */}
 
 			<div className="mt-2 text-xs text-muted-foreground text-center">
 				{getInsight()}
