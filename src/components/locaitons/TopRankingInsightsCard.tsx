@@ -58,37 +58,37 @@ export default function TopRankingInsightsCard({
 }: Props) {
 	const rows = [
 		{
-			label: 'Missing Items Trend',
+			label: 'Days with Most Missing Items',
 			value: renderDayRankings(topMissingDays),
 			variant: 'destructive',
 		},
 		{
-			label: 'Out-of-Temp Trend',
+			label: 'Days with Most Out-of-Temp Items',
 			value: renderDayRankings(topOutOfTempDays),
 			variant: 'secondary',
 		},
 		{
-			label: 'Incorrect Prep Trend',
+			label: 'Days with Most Incorrect Prep Items',
 			value: renderDayRankings(topIncorrectPrepDays),
 			variant: 'outline',
 		},
 		{
-			label: 'Weakest Completion Days',
+			label: 'Days with least line check completions',
 			value: renderDayRankings(topWeakestCompletionDays),
 			variant: 'default',
 		},
 		{
-			label: 'Top Missing Items',
+			label: 'Top-5 Missing Items',
 			value: renderItemRankings(topMissingItems),
 			variant: 'destructive',
 		},
 		{
-			label: 'Top Out-of-Temp Items',
+			label: 'Top-5 Out-of-Temp Items',
 			value: renderItemRankings(topOutOfTempItems),
 			variant: 'secondary',
 		},
 		{
-			label: 'Top Incorrect Prep Items',
+			label: 'Top-5 Incorrect Prep Items',
 			value: renderItemRankings(topIncorrectPrepItems),
 			variant: 'outline',
 		},
@@ -103,7 +103,7 @@ export default function TopRankingInsightsCard({
 			<Card>
 				<CardHeader className="pb-2">
 					<CardTitle className="text-base md:text-lg">
-						📊 Advanced Trend Rankings (Last 30 Days)
+                        Trend Rankings (Last 30 Days)
 					</CardTitle>
 				</CardHeader>
 
@@ -115,7 +115,7 @@ export default function TopRankingInsightsCard({
 						>
 							<span className="text-xs text-muted-foreground">{row.label}</span>
 
-							<Badge
+							{/* <Badge
 								variant={
 									row.variant as
 										| 'default'
@@ -126,7 +126,11 @@ export default function TopRankingInsightsCard({
 								className="text-sm md:text-base px-2 py-1 space-y-1"
 							>
 								{row.value}
-							</Badge>
+							</Badge> */}
+                            <div className='flex flex-col text-sm md:text-base space-y-1'>
+                                {row.value}
+                            </div>
+                            
 						</div>
 					))}
 				</CardContent>
