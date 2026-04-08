@@ -383,14 +383,14 @@ const trendIndicator = (actual: number, expected: number): TrendResult => {
 				/>
 			</div>
 
-			<div>
+			{/* <div>
 				<WeekdayInsightsCard
 					mostMissingItemsDay={metrics?.mostMissingItemsDay}
 					mostOutOfTempDay={metrics?.mostOutOfTempDay}
 					mostIncorrectPrepDay={metrics?.mostIncorrectPrepDay}
 					weakestLineCheckDay={metrics?.weakestLineCheckDay}
 				/>
-			</div>
+			</div> */}
 
 			{/* <div className="grid grid-cols-1 md:grid-cols-3 gap-6"> */}
 			<div className="flex flex-col gap-4 md:flex-row justify-between">
