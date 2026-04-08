@@ -6,6 +6,7 @@ import Does from '@/components/homePage/Does';
 import Headlines from '@/components/homePage/Headlines';
 import { motion } from 'framer-motion';
 import Pricing from './Pricing';
+import DashboardPreview from './DashboardPreview';
 
 export default function Home() {
 	// Variants for section animation
@@ -39,6 +40,15 @@ export default function Home() {
 				viewport={{ once: true, amount: 0.2 }}
 			>
 				<Does />
+			</motion.div>
+
+			<motion.div
+				variants={sectionVariant}
+				initial="hidden"
+				whileInView="visible"
+				viewport={{ once: true, amount: 0.2 }}
+			>
+				<DashboardPreview />
 			</motion.div>
 
 			<motion.div
