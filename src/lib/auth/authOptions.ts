@@ -217,11 +217,18 @@ export const authOptions: NextAuthOptions = {
 				console.log('DB USER RETURNED:', dbUser);
 
 				// Attach DB user info to token
-				(user as any).id = dbUser.user.id;
-				(user as any).appRole = dbUser.user.appRole ?? 'MEMBER';
-				(user as any).accessRole = dbUser.user.accessRole ?? 'USER';
-				(user as any).googleId = dbUser.user.googleId ?? '';
-				(user as any).appleId = dbUser.user.appleId ?? '';
+				// (user as any).id = dbUser.user.id;
+				// (user as any).appRole = dbUser.user.appRole ?? 'MEMBER';
+				// (user as any).accessRole = dbUser.user.accessRole ?? 'USER';
+				// (user as any).googleId = dbUser.user.googleId ?? '';
+				// (user as any).appleId = dbUser.user.appleId ?? '';
+				// (user as any).jwt = dbUser.token ?? '';
+
+				(user as any).id = dbUser.userId;
+				(user as any).appRole = dbUser.role ?? 'MEMBER';
+				(user as any).accessRole = 'USER';
+				(user as any).googleId = '';
+				(user as any).appleId = '';
 				(user as any).jwt = dbUser.token ?? '';
 
 				return true;
