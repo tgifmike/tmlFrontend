@@ -12,9 +12,13 @@ import {
 	DialogTrigger,
 } from '@/components/ui/dialog';
 import { Icons } from '@/lib/icon';
+import { useSession } from 'next-auth/react';
+import { User } from 'next-auth';
 
 
 export const InviteUserDialog = ({ accountId, onUserCreated }: any) => {
+
+const { data: session } = useSession();
 	
 	//icons
 	const Add_User = Icons.addUser;
@@ -38,6 +42,7 @@ export const InviteUserDialog = ({ accountId, onUserCreated }: any) => {
 					method: 'POST',
 					headers: {
 						'Content-Type': 'application/json',
+						Authorization: `Bearer ${session?.user.jwt ?? ''}`,
 					},
 					body: JSON.stringify({
 						email,
@@ -54,7 +59,7 @@ export const InviteUserDialog = ({ accountId, onUserCreated }: any) => {
 
 			const data = await res.json();
 
-			onUserCreated(data.user);
+			onUserCreated((data.user ?? data) as User);
 
 			toast.success('Invitation sent successfully');
 			setEmail('');

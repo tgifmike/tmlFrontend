@@ -115,7 +115,7 @@ const AccountUsersPage = () => {
 		}, [pageSize]);
 	
 	//toggle showing only active users and search
-		const filteredUsers = users.filter((user) => {
+		const filteredUsers = (users ?? []).filter((user) => {
 			const name = user.userName ?? '';
 			const email = user.userEmail ?? '';
 	
