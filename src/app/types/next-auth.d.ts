@@ -33,5 +33,6 @@ declare module 'next-auth/jwt' {
 		picture?: string;
 		appRole: string;
 		accessRole: string;
+		jwt?: string;
 	}
 }

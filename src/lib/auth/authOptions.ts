@@ -225,8 +225,8 @@ export const authOptions: NextAuthOptions = {
 				// (user as any).jwt = dbUser.token ?? '';
 
 				(user as any).id = dbUser.userId;
-				(user as any).appRole = dbUser.role ?? 'MEMBER';
-				(user as any).accessRole = 'USER';
+				(user as any).appRole = dbUser.appRole ?? 'MEMBER';
+				(user as any).accessRole = dbUser.accessRole ?? 'USER';
 				(user as any).googleId = '';
 				(user as any).appleId = '';
 				(user as any).jwt = dbUser.token ?? '';
