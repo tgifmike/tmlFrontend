@@ -172,7 +172,7 @@ export const authOptions: NextAuthOptions = {
 			authorization: {
 				params: {
 					scope: 'name email',
-					response_mode: 'form_post',
+					// response_mode: 'form_post',
 				},
 			},
 		}),
@@ -180,6 +180,17 @@ export const authOptions: NextAuthOptions = {
 	secret: process.env.NEXTAUTH_SECRET!,
 	session: { strategy: 'jwt' },
 	pages: { signIn: '/login', error: '/login' },
+	cookies: {
+		sessionToken: {
+			name: `__Secure-next-auth.session-token`,
+			options: {
+				httpOnly: true,
+				sameSite: 'lax',
+				path: '/',
+				secure: true,
+			},
+		}
+	},
 
 	callbacks: {
 		// Runs after successful provider auth
