@@ -2,17 +2,22 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import React from 'react';
+import React, { useState } from 'react';
 import { useSession } from 'next-auth/react';
 import UserAccountNav from './UserAccountNav';
 import { buttonVariants } from '../ui/button';
+import SectionNav from './SectionNav';
+import MobileDrawerNav from './MoibileDrawerNav';
+import LandingSectionLinks from './LandingSectionLinks';
 
 const NavBar = () => {
 	const { data: session } = useSession();
+	const [drawerOpen, setDrawerOpen] = useState(false);
 
 	return (
-		<header className="sticky top-0 z-50 w-full">
-			<nav className="flex justify-between items-center w-full px-3 sm:px-6 md:px-10 py-0 bg-accent text-chart-3 overflow-x-hidden">
+		// <header className="sticky top-0 z-50 w-full">
+			<header className="fixed top-0 left-0 right-0 z-50">
+			<nav className="flex justify-between items-center w-full px-3 sm:px-6 md:px-10 py-0 bg-accent text-chart-3">
 				{/* Left: Logo + Title */}
 				<Link href="/" className="flex items-center min-w-0">
 					<Image
@@ -37,6 +42,21 @@ const NavBar = () => {
 						ife
 					</h1>
 				</Link>
+
+				{/* stickly nav */}
+				<div className="flex items-center gap-4">
+					{/* Desktop nav */}
+					<SectionNav />
+
+					{/* Mobile nav */}
+					<MobileDrawerNav
+						open={drawerOpen}
+						setOpen={setDrawerOpen}
+						title="Menu"
+					>
+						<LandingSectionLinks onNavigate={() => setDrawerOpen(false)} />
+					</MobileDrawerNav>
+				</div>
 
 				{/* Right: Auth / Avatar */}
 				<div className="flex-shrink-0">

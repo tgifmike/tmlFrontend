@@ -18,12 +18,17 @@ export default function Home() {
 	return (
 		<div className="w-full mx-auto max-w-7xl">
 			{/* Hero */}
-			<motion.div variants={sectionVariant} initial="hidden" animate="visible">
+			<motion.div
+				id='hero'
+				variants={sectionVariant}
+				initial="hidden"
+				animate="visible">
 				<Hero />
 			</motion.div>
 
 			{/* Why Section */}
 			<motion.div
+				id='why'
 				variants={sectionVariant}
 				initial="hidden"
 				whileInView="visible"
@@ -34,6 +39,7 @@ export default function Home() {
 
 			{/* Does Section */}
 			<motion.div
+				id='features'
 				variants={sectionVariant}
 				initial="hidden"
 				whileInView="visible"
@@ -43,6 +49,7 @@ export default function Home() {
 			</motion.div>
 
 			<motion.div
+				id='dashboard'
 				variants={sectionVariant}
 				initial="hidden"
 				whileInView="visible"
@@ -52,6 +59,7 @@ export default function Home() {
 			</motion.div>
 
 			<motion.div
+				id='pricing'
 				variants={sectionVariant}
 				initial="hidden"
 				whileInView="visible"
@@ -62,6 +70,7 @@ export default function Home() {
 
 			{/* Headlines */}
 			<motion.div
+				id='headlines'
 				variants={sectionVariant}
 				initial="hidden"
 				whileInView="visible"

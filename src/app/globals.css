@@ -113,14 +113,24 @@
 }
 
 @layer base {
-    html,
+  html,
   body {
     height: 100%;
   }
-  
+
+  html {
+    scroll-behavior: smooth;
+    scroll-padding: 96px;
+  }
+
+  [id] {
+    scroll-margin-top: 90px;
+  }
+
   * {
     @apply border-border outline-ring/50;
   }
+
   body {
     @apply bg-background text-foreground;
   }
