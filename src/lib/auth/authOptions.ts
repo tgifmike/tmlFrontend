@@ -180,17 +180,17 @@ export const authOptions: NextAuthOptions = {
 	secret: process.env.NEXTAUTH_SECRET!,
 	session: { strategy: 'jwt' },
 	pages: { signIn: '/login', error: '/login' },
-	cookies: {
-		sessionToken: {
-			name: `__Secure-next-auth.session-token`,
-			options: {
-				httpOnly: true,
-				sameSite: 'lax',
-				path: '/',
-				secure: true,
-			},
-		}
-	},
+	// cookies: {
+	// 	sessionToken: {
+	// 		name: `__Secure-next-auth.session-token`,
+	// 		options: {
+	// 			httpOnly: true,
+	// 			sameSite: 'lax',
+	// 			path: '/',
+	// 			secure: true,
+	// 		},
+	// 	}
+	// },
 
 	callbacks: {
 		// Runs after successful provider auth
