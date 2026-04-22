@@ -23,7 +23,7 @@ export default function SectionNav() {
 					<Link
 						key={link.href}
 						href={fullHref}
-						className="text-muted-foreground hover:text-foreground transition"
+						className="text-muted-foreground hover:text-foreground transition-colors"
 					>
 						{link.label}
 					</Link>

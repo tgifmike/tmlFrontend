@@ -120,7 +120,7 @@
 
   html {
     scroll-behavior: smooth;
-    scroll-padding: 96px;
+    scroll-padding-top: 80px;
   }
 
   [id] {
