@@ -2,20 +2,16 @@
 
 import React, { useEffect, useState } from 'react';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import ReactAnimatedWeather from 'react-animated-weather';
-import { motion } from 'framer-motion';
 import { getUserLocationAccess, getWeather } from '@/app/api/locationApi';
 import { useParams, useRouter } from 'next/navigation';
-import { useSession } from 'next-auth/react';
-import { User } from '@/app/types';
 import Spinner from '@/components/spinner/Spinner';
 import { getAccountsForUser } from '@/app/api/accountApi';
 import { toast } from 'sonner';
 import LocationNav from '@/components/navBar/LocationNav';
 import MobileDrawerNav from '@/components/navBar/MoibileDrawerNav';
 import Image from 'next/image';
-import { PlayCircle } from 'lucide-react';
+import { useSession } from '@/lib/auth/useSession';
+
 
 interface WeatherResponse {
 	forecast: any;
@@ -39,8 +35,8 @@ const iconMapping: Record<string, string> = {
 };
 
 const ExtendedForecastPage = () => {
-    const { data: session, status } = useSession();
-    const sessionUserRole = session?.user?.appRole;
+    const { user, status } = useSession();
+    const sessionUserRole = user?.appRole;
 	const params = useParams<{ accountId: string; locationId: string }>();
 	const accountIdParam = params.accountId;
 	const locationIdParam = params.locationId;
@@ -58,7 +54,7 @@ const ExtendedForecastPage = () => {
 	useEffect(() => {
 		if (
 			status !== 'authenticated' ||
-			!session?.user?.id ||
+			!user?.id ||
 			!accountIdParam ||
 			!locationIdParam
 		)
@@ -67,7 +63,7 @@ const ExtendedForecastPage = () => {
 
 		const verifyAccess = async () => {
 			try {
-				const response = await getAccountsForUser(session.user.id);
+				const response = await getAccountsForUser(user.id);
 				const account = response.data?.find(
 					(acc: any) => acc.id?.toString() === accountIdParam
 				);
@@ -78,7 +74,7 @@ const ExtendedForecastPage = () => {
 					return;
 				}
 
-				const locationResponse = await getUserLocationAccess(session.user.id);
+				const locationResponse = await getUserLocationAccess(user.id);
 				const location = locationResponse.data?.find(
 					(loc) => loc.id?.toString() === locationIdParam
 				);
@@ -110,7 +106,7 @@ const ExtendedForecastPage = () => {
 		};
 
 		verifyAccess();
-	}, [status, session?.user?.id, accountIdParam, locationIdParam, hasAccess]);
+	}, [status, user?.id, accountIdParam, locationIdParam, hasAccess]);
 
     const dailyForecast = weather?.forecast?.properties?.periods || [];
 
@@ -149,13 +145,13 @@ const ExtendedForecastPage = () => {
 		return 'bg-gradient-to-br from-gray-300 to-gray-100';
 	};
 
-	if (loadingAccess)
-		return (
-			<div className="flex justify-center items-center py-40 text-chart-3 text-xl">
-				{' '}
-				<Spinner /> <span className="ml-4">Loading Weather…</span>{' '}
-			</div>
-		);
+	// if (loadingAccess)
+	// 	return (
+	// 		<div className="flex justify-center items-center py-40 text-chart-3 text-xl">
+	// 			{' '}
+	// 			<Spinner /> <span className="ml-4">Loading Weather…</span>{' '}
+	// 		</div>
+	// 	);
 
 	
 

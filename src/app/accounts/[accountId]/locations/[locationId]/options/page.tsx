@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { useSession } from 'next-auth/react';
 import { useParams } from 'next/navigation';
 import { toast } from 'sonner';
 import {
@@ -31,7 +30,7 @@ import { DeleteConfirmButton } from '@/components/tableComponents/DeleteConfirmB
 import Spinner from '@/components/spinner/Spinner';
 import { CreateOptionDialog } from '@/components/options/CreateOptionDialog';
 import { getAccountsForUser } from '@/app/api/accountApi';
-import router from 'next/router';
+import { useRouter } from 'next/navigation';
 import {
 	Accordion,
 	AccordionContent,
@@ -47,21 +46,15 @@ import { Button } from '@/components/ui/button';
 import clsx from 'clsx';
 
 import OptionAuditFeed from '@/components/options/OptionAuditFeed';
-
-// const OptionTypeLabels: Record<OptionType, string> = {
-// 	[OptionType.TOOL]: 'Tool',
-// 	[OptionType.SHELF_LIFE]: 'Shelf Life',
-// 	[OptionType.PAN_SIZE]: 'Pan Size',
-// 	[OptionType.PORTION_SIZE]: 'Portion Size',
-// };
+import { useSession } from '@/lib/auth/useSession';
 
 const OptionsPage = () => {
-	const { data: session, status } = useSession();
+	const { user, status } = useSession();
 	
 	const params = useParams<{ accountId: string; locationId: string }>();
 	const accountIdParam = params.accountId;
 	const locationIdParam = params.locationId;
-
+	const router = useRouter();
 	const [accountImage, setAccountImage] = useState<string | null>(null);
 	const [loadingAccess, setLoadingAccess] = useState(true);
 	const [drawerOpen, setDrawerOpen] = useState(false);
@@ -81,35 +74,41 @@ const OptionsPage = () => {
 		new Set()
 	);
 
-	const currentUser = session?.user as User | undefined;
+	const currentUser = user as User | undefined;
 	const canToggle = currentUser?.appRole === AppRole.MANAGER;
 	const UpDownIcon = Icons.sort;
 	const LogIcon = Icons.log;
 
+	
+
 	// Fetch options and verify access
 	useEffect(() => {
-		if (status !== 'authenticated' || !accountIdParam || !currentUser?.id)
-			return;
+		if (!user?.id) return;
+		if (!accountIdParam) return;
 
 		const verifyAccess = async () => {
 			try {
-				const accountsRes = await getAccountsForUser(session.user.id);
+				const accountsRes = await getAccountsForUser(user.id);
+
 				const account = accountsRes.data?.find(
-					(acc) => acc.id?.toString() === accountIdParam
+					(acc) => acc.id?.toString() === accountIdParam,
 				);
+
 				if (!account) {
 					toast.error('Access denied to this account.');
 					router.push('/accounts');
 					return;
 				}
 
-				const locationRes = await getUserLocationAccess(session.user.id);
+				const locationRes = await getUserLocationAccess(user.id);
 				const fetchedLocations: Locations[] = locationRes.data ?? [];
+
 				setLocations(fetchedLocations);
 
 				const location = fetchedLocations.find(
-					(loc) => loc.id?.toString() === locationIdParam
+					(loc) => loc.id?.toString() === locationIdParam,
 				);
+
 				if (!location) {
 					toast.error('You do not have access to this location.');
 					router.push(`/accounts/${accountIdParam}/locations`);
@@ -117,14 +116,16 @@ const OptionsPage = () => {
 				}
 
 				const res = await getOptions(accountIdParam);
+
 				if (!res.data) {
 					toast.error('Failed to load options.');
 					return;
 				}
 
 				const sorted = res.data.sort(
-					(a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0)
+					(a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0),
 				);
+
 				setOptions(sorted);
 				setCurrentLocation(location);
 				setAccountImage(account.imageBase64 || null);
@@ -139,7 +140,7 @@ const OptionsPage = () => {
 		};
 
 		verifyAccess();
-	}, [status, session, accountIdParam, router]);
+	}, [user?.id, accountIdParam, locationIdParam]);
 
 	// Toggle active status
 	const handleToggleActive = async (optionId: string, checked: boolean) => {
@@ -239,14 +240,14 @@ const OptionsPage = () => {
 		};
 
 
-	if (status === 'loading' || loadingAccess) {
-		return (
-			<div className="flex justify-center items-center py-40 text-xl">
-				<Spinner />
-				<span className="ml-4">Loading options…</span>
-			</div>
-		);
-	}
+	// if (status === 'loading' || loadingAccess) {
+	// 	return (
+	// 		<div className="flex justify-center items-center py-40 text-xl">
+	// 			<Spinner />
+	// 			<span className="ml-4">Loading options…</span>
+	// 		</div>
+	// 	);
+	// }
 
 	const filteredOptions = options.filter(
 		(o) =>

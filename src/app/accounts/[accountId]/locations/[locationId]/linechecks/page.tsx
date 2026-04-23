@@ -1,11 +1,9 @@
 'use client';
 
 import { useEffect, useState, useMemo } from 'react';
-import { useSession } from 'next-auth/react';
 import { useParams, useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { PDFDownloadLink } from '@react-pdf/renderer';
-
 import { getAccountsForUser } from '@/app/api/accountApi';
 import { getUserLocationAccess } from '@/app/api/locationApi';
 import { getStationsByLocation } from '@/app/api/stationApi';
@@ -56,12 +54,13 @@ import {
 	PopoverTrigger,
 } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
+import { useSession } from '@/lib/auth/useSession';
 
 type SortMode = 'dateDesc' | 'dateAsc' | 'userAsc' | 'userDesc';
 
 const LocationLineChecksPage = () => {
-	const { data: session, status } = useSession();
-	const currentUser = session?.user as User | undefined;
+	const { user, status } = useSession();
+	const currentUser = user as User | undefined;
 	const params = useParams<{ accountId: string; locationId: string }>();
 	const router = useRouter();
 
@@ -89,7 +88,7 @@ const LocationLineChecksPage = () => {
 	// --- Verify access ---
 	useEffect(() => {
 		if (
-			!session?.user?.id ||
+			!user?.id ||
 			!accountIdParam ||
 			!locationIdParam ||
 			status !== 'authenticated'
@@ -99,7 +98,7 @@ const LocationLineChecksPage = () => {
 
 		const verifyAccess = async () => {
 			try {
-				const accountsRes = await getAccountsForUser(session.user.id);
+				const accountsRes = await getAccountsForUser(user.id);
 				const account = accountsRes.data?.find(
 					(acc) => acc.id?.toString() === accountIdParam
 				);
@@ -109,7 +108,7 @@ const LocationLineChecksPage = () => {
 					return;
 				}
 
-				const locationRes = await getUserLocationAccess(session.user.id);
+				const locationRes = await getUserLocationAccess(user.id);
 				const fetchedLocations: Locations[] = locationRes.data ?? [];
 				setLocations(fetchedLocations);
 
@@ -151,7 +150,7 @@ const LocationLineChecksPage = () => {
 		};
 
 		verifyAccess();
-	}, [status, session, accountIdParam, locationIdParam, hasAccess, router]);
+	}, [status, user, accountIdParam, locationIdParam, hasAccess, router]);
 
 	// --- Fetch line checks ---
 	useEffect(() => {
@@ -237,14 +236,14 @@ const LocationLineChecksPage = () => {
 		return grouped;
 	}, [filteredAndSortedLineChecks]);
 
-	if (loadingAccess) {
-		return (
-			<div className="flex justify-center items-center py-40 text-xl">
-				<Spinner />
-				<span className="ml-4">Loading Line Checks…</span>
-			</div>
-		);
-	}
+	// if (loadingAccess) {
+	// 	return (
+	// 		<div className="flex justify-center items-center py-40 text-xl">
+	// 			<Spinner />
+	// 			<span className="ml-4">Loading Line Checks…</span>
+	// 		</div>
+	// 	);
+	// }
 
 	return (
 		<main className="flex min-h-screen overflow-hidden">

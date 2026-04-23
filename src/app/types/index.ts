@@ -405,3 +405,16 @@ export interface RankedItemDto {
 	itemName: string;
 	count: number;
 }
+
+export type SessionUser = {
+	userId: string;
+	email: string;
+	appRole: AppRole;
+	accessRole: AccessRole;
+	accounts: any[];
+};
+
+export type SessionState = {
+	user: SessionUser | null;
+	loading: boolean;
+};

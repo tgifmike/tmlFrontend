@@ -5,7 +5,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { useEffect, useState } from 'react';
-import { useSession } from 'next-auth/react';
+
 
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -18,6 +18,7 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { useSession } from '@/lib/auth/useSession';
 
 // Zod schema
 const formSchema = z.object({
@@ -31,7 +32,7 @@ const formSchema = z.object({
 type FormValues = z.infer<typeof formSchema>;
 
 export default function ContactSalesPage() {
-	const { data: session } = useSession();
+	const { user } = useSession();
 	const [loading, setLoading] = useState(false);
 	const [success, setSuccess] = useState(false);
 	const [mounted, setMounted] = useState(false);
@@ -42,17 +43,17 @@ export default function ContactSalesPage() {
 			name: '',
 			restaurant: '',
 			email: '',
-			locations: 1,
+			locations: undefined,
 			message: '',
 		},
 	});
 
 	useEffect(() => {
-		if (session?.user) {
-			form.setValue('name', session.user.name || '');
-			form.setValue('email', session.user.email || '');
+		if (user) {
+			form.setValue('name', user.name || '');
+			form.setValue('email', user.email || '');
 		}
-	}, [session, form]);
+	}, [user, form]);
 
 	useEffect(() => setMounted(true), []);
 
@@ -175,6 +176,7 @@ export default function ContactSalesPage() {
 															type="number"
 															min={1}
 															step={1}
+															placeholder="Number of locations"
 															{...field}
 															value={field.value ?? ''}
 															onChange={(e) =>

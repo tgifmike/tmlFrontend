@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { useSession } from 'next-auth/react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { toast } from 'sonner';
@@ -38,9 +37,10 @@ import {
 import router from 'next/router';
 import MobileDrawerNav from '@/components/navBar/MoibileDrawerNav';
 import LocationHistoryFeed from '@/components/tableComponents/LocationHistoryFeed';
+import { useSession } from '@/lib/auth/useSession';
 
 const AccountPage = () => {
-	const { data: session, status } = useSession();
+	const { user, status } = useSession();
 	
 	const params = useParams<{ accountId: string }>();
 	const accountIdParam = params.accountId;
@@ -56,8 +56,8 @@ const AccountPage = () => {
 	const [pageSize, setPageSize] = useState(10);
 	const [drawerOpen, setDrawerOpen] = useState(false);
 
-	const currentUser = session?.user as User | undefined;
-	const sessionUserRole = session?.user?.appRole;
+	const currentUser = user as User | undefined;
+	const sessionUserRole = user?.appRole;
 	const MANAGER = currentUser?.appRole === AppRole.MANAGER;
 	const SRADMIN = currentUser?.accessRole === AccessRole.SRADMIN;
 	const canToggle = currentUser?.appRole === AppRole.MANAGER;
@@ -170,13 +170,13 @@ const handleUpdateLocation = async (
 		currentPage * pageSize
 	);
 
-	if (loadingAccess)
-		return (
-			<div className="flex justify-center items-center py-40 text-xl text-chart-3">
-				<Spinner />
-				<span className="ml-4">Loading Locations…</span>
-			</div>
-		);
+	// if (loadingAccess)
+	// 	return (
+	// 		<div className="flex justify-center items-center py-40 text-xl text-chart-3">
+	// 			<Spinner />
+	// 			<span className="ml-4">Loading Locations…</span>
+	// 		</div>
+	// 	);
 
 	return (
 		<div className="flex flex-1 min-w-0">

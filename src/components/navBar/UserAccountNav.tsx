@@ -10,9 +10,10 @@ import {
 
 import UserAvatar from './UserAvatar';
 import { Icons } from '../../lib/icon';
-import { signOut } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ModeToggle } from '../theme/ModeToggle';
+import { emitAuthChange } from '@/lib/auth/authEvents';
 
 
 type User = {
@@ -34,6 +35,14 @@ const UserAccountNav: React.FC<UserAccountNavProps> = ({ user }) => {
 	const AccountsIcon = Icons.account;
 
 	const [open, setOpen] = useState(false);
+	const router = useRouter();
+
+	const handleLogout = () => {
+		localStorage.removeItem('jwt');
+		emitAuthChange();
+		setOpen(false);
+		router.push('/login');
+	};
 
 	// ✅ Handle undefined user
 	if (!user) {
@@ -107,13 +116,7 @@ const UserAccountNav: React.FC<UserAccountNavProps> = ({ user }) => {
 				<DropdownMenuSeparator />
 
 				{/* sign out link */}
-				<DropdownMenuItem
-					onClick={() =>
-						signOut({
-							callbackUrl: `${window.location.origin}/login`,
-						})
-					}
-				>
+				<DropdownMenuItem onClick={handleLogout}>
 					<p className="text-xl">Logout</p>
 				</DropdownMenuItem>
 			</DropdownMenuContent>

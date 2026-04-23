@@ -46,11 +46,10 @@ export default function UserAccessPage() {
 
 				const users = userRes?.data ?? [];
 				const accounts = accountRes?.data ?? [];
-				//const locations = locationRes?.data ?? [];
-				//console.log('accountRes.data:', accountRes?.data);
+	
 				setUsers(users);
 				setAccounts(accounts);
-				//setLocations(locations);
+			
 
 				// Fetch access for each user
 				const accessResults = await Promise.all(
@@ -219,14 +218,6 @@ export default function UserAccessPage() {
 		}
 	};
 
-
-	if (loading) {
-		return (
-			<div className="flex justify-center items-center h-64 text-muted-foreground">
-				Loading users and accounts...
-			</div>
-		);
-	}
 
 	return (
 		<div className="p-6 space-y-6">

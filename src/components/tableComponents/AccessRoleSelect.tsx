@@ -10,7 +10,8 @@ import { Badge } from '@/components/ui/badge';
 import { AccessRole, User } from '@/app/types';
 import { updateUserAccessRole } from '@/app/api/userApI';
 import { toast } from 'sonner';
-import { useSession } from 'next-auth/react';
+import { useSession } from '@/lib/auth/useSession';
+
 
 type Props = {
 	user: User;
@@ -21,9 +22,9 @@ export const AccessRoleSelectOrBadge = ({ user, onRoleChange }: Props) => {
 	
 
 	//session
-	const { data: session } = useSession();
+	const { user: sessionUser} = useSession();
 
-	const sessionUserRole = session?.user?.appRole;
+	const sessionUserRole = sessionUser?.appRole;
 	const isManager = sessionUserRole === 'MANAGER';
 
 

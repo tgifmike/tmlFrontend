@@ -18,8 +18,8 @@ import { StatusSwitchOrBadge } from '@/components/tableComponents/StatusSwitchOr
 import { UserControls } from '@/components/tableComponents/UserControls';
 import { UserStatusSwitchOrBadge } from '@/components/tableComponents/UserStatusSwitch';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { useSession } from '@/lib/auth/useSession';
 import { Icons } from '@/lib/icon';
-import { useSession } from 'next-auth/react';
 import { useParams } from 'next/navigation';
 import router from 'next/router';
 import React, { useEffect, useState } from 'react';
@@ -30,9 +30,9 @@ const AccountUsersPage = () => {
 		const UserIcon = Icons.user;
 
 	//session
-	const { data: session, status } = useSession();
-	const currentUser = session?.user as User | undefined;
-	const sessionUserRole = session?.user?.appRole;
+	const { user, status } = useSession();
+	const currentUser = user as User | undefined;
+	const sessionUserRole = user?.appRole;
 	const canToggle = currentUser?.appRole === AppRole.MANAGER;
 	
 	const params = useParams<{ accountId: string; locationId: string }>();
@@ -51,14 +51,14 @@ const AccountUsersPage = () => {
 	const [drawerOpen, setDrawerOpen] = useState(false);
 
 	useEffect(() => {
-		if (status !== 'authenticated' || !session?.user?.id || !accountIdParam)
+		if (status !== 'authenticated' || !user?.id || !accountIdParam)
 			return;
 		if (hasAccess) return; // prevent rerun
 
 		const verifyAccess = async () => {
 			try {
 				// Fetch accounts for user
-				const accountsRes = await getAccountsForUser(session.user.id);
+				const accountsRes = await getAccountsForUser(user.id);
 				const account = accountsRes.data?.find(
 					(acc) => acc.id?.toString() === accountIdParam
 				);
@@ -88,7 +88,7 @@ const AccountUsersPage = () => {
 		};
 
 		verifyAccess();
-	}, [status, session, accountIdParam, hasAccess, router]);
+	}, [status, user, accountIdParam, hasAccess, router]);
 
 	// Load pagination settings from localStorage safely
 		useEffect(() => {
