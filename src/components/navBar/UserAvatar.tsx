@@ -1,7 +1,6 @@
-import React, { FC } from 'react'
-import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar'
-import { Icons } from '../../lib/icon';
-import { User } from 'lucide-react';
+import React, { FC } from 'react';
+import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
+import { User as UserIcon } from 'lucide-react';
 
 type User = {
 	id?: string;
@@ -15,22 +14,17 @@ type UserAvatarProps = {
 };
 
 const UserAvatar: FC<UserAvatarProps> = ({ user }) => {
-    const UserIcon = Icons.user;
+	return (
+		<Avatar>
+			{user?.image ? (
+				<AvatarImage src={user.image} alt="User Avatar" />
+			) : (
+				<AvatarFallback>
+					<UserIcon className="h-8 w-8" />
+				</AvatarFallback>
+			)}
+		</Avatar>
+	);
+};
 
-  return (
-      <main>
-          
-          <Avatar>
-              {user?.image ? (
-                  <AvatarImage src={user.image} alt="User Avatar" />
-              ) : (
-                  <AvatarFallback>
-                      <UserIcon className='h-8 w-8'/>
-                  </AvatarFallback>
-              )}
-          </Avatar>
-    </main>
-  )
-}
-
-export default UserAvatar
+export default UserAvatar;

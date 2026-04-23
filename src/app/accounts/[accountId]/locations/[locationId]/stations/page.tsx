@@ -6,7 +6,6 @@ import {
 	Draggable,
 	DropResult,
 } from '@hello-pangea/dnd';
-// import { ReusableTable } from '@/components/tableComponents/ReusableTableProps';
 import { getAccountsForUser } from '@/app/api/accountApi';
 import { getUserLocationAccess } from '@/app/api/locationApi';
 import { deleteStation, getStationsByLocation, reorderStations, toggleStationActive } from '@/app/api/stationApi';
@@ -15,7 +14,6 @@ import LocationNav from '@/components/navBar/LocationNav';
 import Spinner from '@/components/spinner/Spinner';
 import CreateStationDialog from '@/components/tableComponents/CreateStationForm';
 import { UserControls } from '@/components/tableComponents/UserControls';
-import { useSession } from 'next-auth/react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
@@ -25,15 +23,13 @@ import { DeleteConfirmButton } from '@/components/tableComponents/DeleteConfirmB
 import { Pagination } from '@/components/tableComponents/Pagination';
 import { EditStationDialog } from '@/components/tableComponents/EditStationDialog';
 import { DataCard } from '@/components/cards/DataCard';
-//import router from 'next/router';
 import MobileDrawerNav from '@/components/navBar/MoibileDrawerNav';
 import { Icons } from '@/lib/icon';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import StationHistoryFeed from '@/components/tableComponents/StationHistoryFeed';
 import { CloneStationDialog } from '@/components/cloneStation/CloneStationDialog';
-// import StationAuditFeed from '@/components/tableComponents/StationHistoryFeed';
-// import { a } from 'node_modules/framer-motion/dist/types.d-DagZKalS';
-// import { set } from 'zod';
+import { useSession } from '@/lib/auth/useSession';
+
 
 interface CreateStationDialogProps {
 	locationId: string;
@@ -50,7 +46,7 @@ const LocationStationsPage = () => {
 		const UpDownIcon = Icons.sort;
 
 	//session
-	const { data: session, status } = useSession();
+	const { user, status } = useSession();
 	const params = useParams<{ accountId: string; locationId: string }>();
 	const accountIdParam = params.accountId;
 	const locationIdParam = params.locationId;
@@ -75,15 +71,15 @@ const LocationStationsPage = () => {
 		new Set()
 	);
 
-	const currentUser = session?.user as User | undefined;
-	const currentUserId = session?.user?.id || '';
-	const sessionUserRole = session?.user?.appRole;
+	const currentUser = user as User | undefined;
+	const currentUserId = user?.id || '';
+	const sessionUserRole = user?.appRole;
 	const canToggle = currentUser?.appRole === AppRole.MANAGER;
 
 	useEffect(() => {
 		if (
 			status !== 'authenticated' ||
-			!session?.user?.id ||
+			!user?.id ||
 			!accountIdParam ||
 			!locationIdParam
 		)
@@ -93,7 +89,7 @@ const LocationStationsPage = () => {
 		const verifyAccess = async () => {
 			try {
 				// Fetch accounts for user
-				const accountsRes = await getAccountsForUser(session.user.id);
+				const accountsRes = await getAccountsForUser(user.id);
 				const account = accountsRes.data?.find(
 					(acc) => acc.id?.toString() === accountIdParam
 				);
@@ -157,7 +153,7 @@ const LocationStationsPage = () => {
 		};
 
 		verifyAccess();
-	}, [status, session, accountIdParam, locationIdParam, hasAccess, router]);
+	}, [status, user, accountIdParam, locationIdParam, hasAccess, router]);
 
 	//toggle station active
 	const handleToggleActive = async (stationId: string, checked: boolean) => {

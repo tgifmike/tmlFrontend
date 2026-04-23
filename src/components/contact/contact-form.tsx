@@ -4,7 +4,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { useEffect, useState } from 'react';
-import { useSession } from 'next-auth/react';
+
 
 import { Button } from '@/components/ui/button';
 import {
@@ -18,6 +18,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardTitle } from '@/components/ui/card';
+import { useSession } from '@/lib/auth/useSession';
 
 // Zod schema
 const formSchema = z.object({
@@ -29,26 +30,26 @@ const formSchema = z.object({
 type FormValues = z.infer<typeof formSchema>;
 
 export default function ContactForm() {
-	const { data: session } = useSession();
+	const { user } = useSession();
 	const [loading, setLoading] = useState(false);
 	const [success, setSuccess] = useState(false);
 
 	const form = useForm<FormValues>({
 		resolver: zodResolver(formSchema),
 		defaultValues: {
-			name: session?.user?.name || '',
-			email: session?.user?.email || '',
+			name: user?.name || '',
+			email: user?.email || '',
 			message: '',
 		},
 	});
 
 	// Prefill if session exists
 	useEffect(() => {
-		if (session?.user) {
-			form.setValue('name', session.user.name || '');
-			form.setValue('email', session.user.email || '');
+		if (user) {
+			form.setValue('name', user.name || '');
+			form.setValue('email', user.email || '');
 		}
-	}, [session, form]);
+	}, [user, form]);
 
 	async function onSubmit(values: FormValues) {
 		setLoading(true);

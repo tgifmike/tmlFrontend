@@ -10,7 +10,6 @@ import {
 } from '../api/accountApi';
 import { ReusableTable } from '@/components/tableComponents/ReusableTableProps';
 import { StatusSwitchOrBadge } from '@/components/tableComponents/StatusSwitchOrBadge';
-import { useSession } from 'next-auth/react';
 import { EditAccountDialog } from '@/components/tableComponents/EditAccountDialog';
 import { DeleteConfirmButton } from '@/components/tableComponents/DeleteConfirmButton';
 import Spinner from '@/components/spinner/Spinner';
@@ -20,15 +19,16 @@ import CreateAccountDialog from '@/components/tableComponents/CreateAccountForm'
 import { DataCard } from '@/components/cards/DataCard';
 import Link from 'next/link';
 import AccountHistoryFeed from '@/components/tableComponents/AccountHistoryFeed';
+import { useSession } from '@/lib/auth/useSession';
 
 
 const MainAccountPage = () => {
 	//icons
 
 	//session
-	const { data: session, status } = useSession();
-	const currentUser = session?.user as User | undefined;
-	const sessionUserRole = session?.user?.appRole;
+	const { user, status } = useSession();
+	const currentUser = user as User | undefined;
+	const sessionUserRole = user?.appRole;
 	const canToggle = currentUser?.appRole === AppRole.MANAGER;
 	const SRADMIN = currentUser?.accessRole === AccessRole.SRADMIN;
 
@@ -46,10 +46,10 @@ const MainAccountPage = () => {
 
 	useEffect(() => {
 		// Only fetch if session is loaded and user id exists
-		if (status === 'authenticated' && session?.user?.id) {
+		if (status === 'authenticated' && user?.id) {
 			const fetchAccounts = async () => {
 				try {
-					const response = await getAccountsForUser(session.user.id);
+					const response = await getAccountsForUser(user.id);
 					setAccounts(response.data || []);
 				} catch (error: any) {
 					toast.error('Failed to fetch accounts: ' + (error.message || error));
@@ -62,7 +62,7 @@ const MainAccountPage = () => {
 			// Session failed or no user
 			setLoading(false);
 		}
-	}, [status, session]);
+	}, [status, user]);
 
 	const handleAccountUpdated = (updated: AccountHistory) => {
 		setAccountHistoryUpdates((prev) => [updated, ...prev]);
@@ -86,8 +86,8 @@ const MainAccountPage = () => {
 			const { error } = await toggleAccountActive(
 				accountId,
 				checked,
-				session?.user?.id!,
-				session?.user?.name!
+				user?.id!,
+				user?.name!
 				// currentUser.id,
 				// currentUser.userName
 			);
@@ -175,7 +175,7 @@ const MainAccountPage = () => {
 		);
 
 	return (
-		<div className="pt-4">
+		<div className="pt-3">
 			<div className="w-full max-w-5xl mx-auto flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 px-4">
 				<h1 className="text-2xl sm:text-3xl font-bold text-center sm:text-left">
 					Accounts

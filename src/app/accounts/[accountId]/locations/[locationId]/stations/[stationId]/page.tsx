@@ -15,7 +15,7 @@ import {
 } from '@hello-pangea/dnd';
 import { getUserLocationAccess } from '@/app/api/locationApi';
 import { getStationsByLocation } from '@/app/api/stationApi';
-import { AppRole, Item, Locations, OptionEntity, OptionHistory, Station, StationDto, User } from '@/app/types';
+import { AppRole, Item, Locations, OptionEntity, Station, StationDto, User } from '@/app/types';
 import LocationNav from '@/components/navBar/LocationNav';
 import Spinner from '@/components/spinner/Spinner';
 import CreateItemDialog from '@/components/tableComponents/CreateItemDialog';
@@ -24,7 +24,6 @@ import { EditItemDialog } from '@/components/tableComponents/EditItemDialog';
 import { Pagination } from '@/components/tableComponents/Pagination';
 import { StatusSwitchOrBadge } from '@/components/tableComponents/StatusSwitchOrBadge';
 import { UserControls } from '@/components/tableComponents/UserControls';
-import { useSession } from 'next-auth/react';
 import { useParams } from 'next/navigation';
 import React, { useEffect, useState } from 'react';
 import { toast } from 'sonner';
@@ -34,9 +33,9 @@ import router from 'next/router';
 import MobileDrawerNav from '@/components/navBar/MoibileDrawerNav';
 import { DataCard } from '@/components/cards/DataCard';
 import { getOptions } from '@/app/api/optionsApi';
-import { set } from 'zod';
 import Link from 'next/link';
 import ItemHistoryFeed from '@/components/tableComponents/ItemHistoryFeed';
+import { useSession } from '@/lib/auth/useSession';
 
 
 const StationPage = () => {
@@ -44,7 +43,7 @@ const StationPage = () => {
 	const UpDownIcon = Icons.sort;
 
 	//session
-	const { data: session, status } = useSession();
+	const { user, status } = useSession();
 	const params = useParams<{
 		accountId: string;
 		locationId: string;
@@ -75,16 +74,16 @@ const StationPage = () => {
 	const [open, setOpen] = useState(false);
 	const [options, setOptions] = useState<OptionEntity[]>([]);
 
-	const currentUser = session?.user as User | undefined;
-	const currentUserId = session?.user?.id;
-	const sessionUserRole = session?.user?.appRole;
+	const currentUser = user as User | undefined;
+	const currentUserId = user?.id;
+	const sessionUserRole = user?.appRole;
 	const canToggle = currentUser?.appRole === AppRole.MANAGER;
 
 	// verify access & fetch items
 	useEffect(() => {
 		if (
 			status !== 'authenticated' ||
-			!session?.user?.id ||
+			!user?.id ||
 			!accountIdParam ||
 			!locationIdParam ||
 			!stationIdParam
@@ -94,7 +93,7 @@ const StationPage = () => {
 
 		const verifyAccess = async () => {
 			try {
-				const accountsRes = await getAccountsForUser(session.user.id);
+				const accountsRes = await getAccountsForUser(user.id);
 				const account = accountsRes.data?.find(
 					(acc) => acc.id?.toString() === accountIdParam
 				);
@@ -104,7 +103,7 @@ const StationPage = () => {
 					return;
 				}
 
-				const locationRes = await getUserLocationAccess(session.user.id);
+				const locationRes = await getUserLocationAccess(user.id);
 				const fetchedLocations = locationRes.data ?? [];
 				setLocations(fetchedLocations);
 
@@ -179,7 +178,7 @@ const StationPage = () => {
 		};
 
 		verifyAccess();
-	}, [status, session, accountIdParam, locationIdParam, hasAccess, router]);
+	}, [status, user, accountIdParam, locationIdParam, hasAccess, router]);
 
 	// toggle active
 	const handleToggleActive = async (itemId: string, checked: boolean) => {

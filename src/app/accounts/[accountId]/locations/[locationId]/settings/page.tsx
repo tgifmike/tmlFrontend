@@ -30,11 +30,11 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useSession } from '@/lib/auth/useSession';
 import { US_STATES, US_TIME_ZONES } from '@/lib/constants/usConstants';
 import { Icons } from '@/lib/icon';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { se } from 'date-fns/locale';
-import { useSession } from 'next-auth/react';
 import { useParams } from 'next/navigation';
 import router from 'next/router';
 import React, { useEffect, useMemo, useState } from 'react';
@@ -48,13 +48,13 @@ const LocationSettingsPage = () => {
 	const BadgeQuestionMarkIcon = Icons.badgeQuestionMark;
 
 	//session
-	const { data: session, status } = useSession();
-	const currentUser = session?.user as User | undefined;
-	const sessionUserRole = session?.user?.appRole;
+	const { user, status } = useSession();
+	const currentUser = user as User | undefined;
+	const sessionUserRole = user?.appRole;
 	const MANAGER = currentUser?.appRole === AppRole.MANAGER;
 	const SRADMIN = currentUser?.accessRole === AccessRole.SRADMIN;
 	const canToggle = currentUser?.appRole === AppRole.MANAGER;
-	const isManager = session?.user?.appRole === AppRole.MANAGER;
+	const isManager = user?.appRole === AppRole.MANAGER;
 	const params = useParams<{ accountId: string; locationId: string }>();
 	const accountIdParam = params.accountId;
 	const locationIdParam = params.locationId;
@@ -110,16 +110,18 @@ const LocationSettingsPage = () => {
 	useEffect(() => {
 		if (
 			status !== 'authenticated' ||
-			!session?.user?.id ||
+			user?.id ||
 			!accountIdParam ||
 			!locationIdParam
 		)
 			return;
 		if (hasAccess) return; // prevent rerun
 
+		if (!user?.id) return;
+
 		const verifyAccess = async () => {
 			try {
-				const response = await getAccountsForUser(session.user.id);
+				const response = await getAccountsForUser(user.id);
 				const account = response.data?.find(
 					(acc) => acc.id?.toString() === accountIdParam
 				);
@@ -131,7 +133,7 @@ const LocationSettingsPage = () => {
 				}
 
 				// Check location access
-				const locationResponse = await getUserLocationAccess(session.user.id);
+				const locationResponse = await getUserLocationAccess(user.id);
 
 				const fetchedLocations = locationResponse.data ?? [];
 				setLocations(fetchedLocations);
@@ -160,7 +162,7 @@ const LocationSettingsPage = () => {
 		};
 
 		verifyAccess();
-	}, [status, session?.user?.id, accountIdParam, locationIdParam, hasAccess]);
+	}, [status, user?.id, accountIdParam, locationIdParam, hasAccess]);
 
 	const schema = useMemo(
 		() => getSchema(locations, locationIdParam),
@@ -231,16 +233,16 @@ const LocationSettingsPage = () => {
 				}
 			});
 
-			//console.log('Updates going to backend:', updates);
+			
 
-			if (!session?.user.id) {
+			if (!user?.id) {
 				toast.error('You must be logged in to update a location.');
 				return;
 			}
 
 			const { data, error } = await updateLocation(
 				currentLocation.id!,
-				session?.user.id,
+				user.id,
 				updates
 			);
 
@@ -287,12 +289,12 @@ const LocationSettingsPage = () => {
 		}
 
 		try {
-			if (!session?.user.id) {
+			if (!user?.id) {
 				toast.error('You must be logged in to update a location.');
 				return;
 			}
 
-			await toggleLocationActive(locationId, checked, session.user.id);
+			await toggleLocationActive(locationId, checked, user.id);
 		} catch (error: any) {
 			// Rollback both states
 			setLocations((prev) =>
@@ -310,13 +312,13 @@ const LocationSettingsPage = () => {
 	};
 
 	//show loadding state
-	if (loadingAccess)
-		return (
-			<div className="flex justify-center items-center py-40  text-chart-3 text-xl">
-				<Spinner />
-				<span className="ml-4">Loading Location Settings…</span>
-			</div>
-		);
+	// if (loadingAccess)
+	// 	return (
+	// 		<div className="flex justify-center items-center py-40  text-chart-3 text-xl">
+	// 			<Spinner />
+	// 			<span className="ml-4">Loading Location Settings…</span>
+	// 		</div>
+	// 	);
 
 	return (
 		<main className="flex min-h-screen overflow-hidden">
@@ -599,7 +601,7 @@ const LocationSettingsPage = () => {
 				</div>
 				<LineCheckSettingsForm
 					locationId={locationIdParam}
-					userId={session?.user.id}
+					userId={user?.id}
 				/>
 
 				<div className="flex justify-center items-center">

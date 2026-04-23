@@ -3,11 +3,13 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/sonner";
 import { ThemeProvider } from "@/components/theme/Theme-Provider";
-import { SessionProviderLib } from "@/lib/auth/SessionProviderLib";
 import NavBar from "@/components/navBar/NavBar";
 import { Analytics } from '@vercel/analytics/next';
 import Footer from "@/components/navBar/Footer";
 import { TooltipProvider } from '@/components/ui/tooltip';
+import { SessionProvider } from "@/lib/auth/session-context";
+import AuthGuard from "@/lib/auth/AuthGuard";
+
 
 
 const geistSans = Geist({
@@ -88,9 +90,10 @@ export default function RootLayout({
   return (
 		<html lang="en" suppressHydrationWarning>
 			<body
-				className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen flex flex-col`}
+				className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen flex flex-col mt-20`}
 			>
-				<SessionProviderLib>
+			  <SessionProvider>
+				  <AuthGuard>
 					<ThemeProvider
 						attribute="class"
 						defaultTheme="system"
@@ -104,8 +107,9 @@ export default function RootLayout({
 							<Analytics />
 							<Toaster />
 						</TooltipProvider>
-					</ThemeProvider>
-				</SessionProviderLib>
+					  </ThemeProvider>
+					  </AuthGuard>
+				</SessionProvider>
 
 				<script
 					type="application/ld+json"
@@ -169,6 +173,13 @@ export default function RootLayout({
 						}),
 					}}
 				/>
+
+				<script
+					src="https://accounts.google.com/gsi/client"
+					async
+					defer
+				></script>
+				<script src="https://appleid.cdn-apple.com/appleauth/static/jsapi/appleid/1/en_US/appleid.auth.js"></script>
 			</body>
 		</html>
 	);

@@ -3,15 +3,16 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import React, { useEffect, useState } from 'react';
-import { useSession } from 'next-auth/react';
+
 import UserAccountNav from './UserAccountNav';
 import { buttonVariants } from '../ui/button';
 import SectionNav from './SectionNav';
 import MobileDrawerNav from './MoibileDrawerNav';
 import LandingSectionLinks from './LandingSectionLinks';
+import { useSession } from '@/lib/auth/useSession';
 
 const NavBar = () => {
-	const { data: session } = useSession();
+	const { user, status } = useSession();
 	const [drawerOpen, setDrawerOpen] = useState(false);
 	const [scrolled, setScrolled] = useState(false);
 
@@ -75,9 +76,9 @@ const NavBar = () => {
 
 				{/* Right: Auth / Avatar */}
 				<div className="flex justify-end items-center gap-3 min-w-0">
-					{session?.user ? (
+					{status === 'authenticated' && user ? (
 						<div className="max-w-[160px] truncate">
-							<UserAccountNav user={session.user} />
+							<UserAccountNav user={user} />
 						</div>
 					) : (
 						<Link

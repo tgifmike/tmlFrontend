@@ -12,13 +12,14 @@ import {
 	DialogTrigger,
 } from '@/components/ui/dialog';
 import { Icons } from '@/lib/icon';
-import { useSession } from 'next-auth/react';
 import { User } from 'next-auth';
+import { useSession } from '@/lib/auth/useSession';
+import { apiFetch } from '@/app/api/userApI';
 
 
 export const InviteUserDialog = ({ accountId, onUserCreated }: any) => {
 
-const { data: session } = useSession();
+const { user, status } = useSession();
 	
 	//icons
 	const Add_User = Icons.addUser;
@@ -36,22 +37,32 @@ const { data: session } = useSession();
 		try {
 			setLoading(true);
 
-			const res = await fetch(
-				`${process.env.NEXT_PUBLIC_BACKEND_URL}/users/invite`,
-				{
-					method: 'POST',
-					headers: {
-						'Content-Type': 'application/json',
-						Authorization: `Bearer ${session?.user.jwt ?? ''}`,
-					},
-					body: JSON.stringify({
-						email,
-						accountId,
-						appRole: 'MEMBER',
-						accessRole: 'USER',
-					}),
-				},
-			);
+			// const res = await fetch(
+			// 	`${process.env.NEXT_PUBLIC_BACKEND_URL}/users/invite`,
+			// 	{
+			// 		method: 'POST',
+			// 		headers: {
+			// 			'Content-Type': 'application/json',
+			// 			Authorization: `Bearer ${user.jwt ?? ''}`,
+			// 		},
+			// 		body: JSON.stringify({
+			// 			email,
+			// 			accountId,
+			// 			appRole: 'MEMBER',
+			// 			accessRole: 'USER',
+			// 		}),
+			// 	},
+			// );
+
+			const res = await apiFetch('/users/invite', {
+				method: 'POST',
+				body: JSON.stringify({
+					email,
+					accountId,
+					appRole: 'MEMBER',
+					accessRole: 'USER',
+				}),
+			});
 
 			if (!res.ok) {
 				throw new Error(await res.text());

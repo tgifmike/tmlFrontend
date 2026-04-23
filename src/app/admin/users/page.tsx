@@ -25,17 +25,17 @@ import { Pagination } from '@/components/tableComponents/Pagination';
 import { UserControls } from '@/components/tableComponents/UserControls';
 import { Icons } from '@/lib/icon';
 import { StatusSwitchOrBadge } from '@/components/tableComponents/StatusSwitchOrBadge';
-import { useSession } from 'next-auth/react';
 import { DeleteConfirmButton } from '@/components/tableComponents/DeleteConfirmButton';
+import { useSession } from '@/lib/auth/useSession';
 
 const Page = () => {
 	//icons
 	const UserIcon = Icons.user;
 
 	//session
-	const { data: session } = useSession();
-	const currentUser = session?.user as User | undefined;
-	const sessionUserRole = session?.user?.appRole;
+	const { user, status } = useSession();
+	const currentUser = user as User | undefined;
+	const sessionUserRole = user?.appRole;
 	const canToggle = currentUser?.appRole === AppRole.MANAGER;
 
 	//set state

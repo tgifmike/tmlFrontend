@@ -28,7 +28,8 @@ import {
 } from '../ui/form';
 import { Input } from '../ui/input';
 import { Icons } from '../../lib/icon';
-import { useSession } from 'next-auth/react';
+import { useSession } from '@/lib/auth/useSession';
+
 
 type CreateAccountDialogProps = {
 	onAccountCreated?: (account: Account) => void;
@@ -62,8 +63,8 @@ export default function CreateAccountDialog({
 	const [open, setOpen] = useState(false);
 	
 	//get user id from session
-	const { data: session, status } = useSession();
-	const userId = session?.user?.id || '';
+	const { user, status } = useSession();
+	const userId = user?.id || '';
     
 
 	// dynamically revalidate when account list changes

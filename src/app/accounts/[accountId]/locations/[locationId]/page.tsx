@@ -3,35 +3,27 @@
 import { getAccountsForUser } from '@/app/api/accountApi';
 import { getCompletedLineChecksByLocationApi } from '@/app/api/linecheckApi';
 import { getLineCheckSettings, getUserLocationAccess, getWeather } from '@/app/api/locationApi';
-import { AppRole, LineCheck, Locations, User } from '@/app/types';
-import FreshLineCheckDashboard from '@/components/locaitons/FreshLineCheckDashbord';
-import LineCheckDashboard from '@/components/locaitons/LineCheckDashboard';
+import { AppRole, LineCheck, User } from '@/app/types';
 import RobustLineCheckDashboard from '@/components/locaitons/RobustLineCheckDashboard';
-import WeatherWidget from '@/components/locaitons/WeatherWidget';
 import TimeOfDayGreeting from '@/components/login/TimeOfDayGreeting';
 import LocationNav from '@/components/navBar/LocationNav';
 import MobileDrawerNav from '@/components/navBar/MoibileDrawerNav';
 import Spinner from '@/components/spinner/Spinner';
-import { useSession } from 'next-auth/react';
+import { useSession } from '@/lib/auth/useSession';
 import { useParams, useRouter } from 'next/navigation';
 
 import React, { useEffect, useState } from 'react'
 import { toast } from 'sonner';
 
 
-interface WeatherResponse {
-	forecast: any;
-	hourly: any;
-	alerts: any;
-}
 
 const LocationPage = () => {
 	//icons
 
 	//session
-	const { data: session, status } = useSession();
-	const currentUser = session?.user as User | undefined;
-	const sessionUserRole = session?.user?.appRole;
+	const { user, status } = useSession();
+	const currentUser = user as User | undefined;
+	const sessionUserRole = user?.appRole;
 	const canToggle = currentUser?.appRole === AppRole.MANAGER;
 	const params = useParams<{ accountId: string; locationId: string }>();
 	const accountIdParam = params.accountId;
@@ -46,7 +38,6 @@ const LocationPage = () => {
 	const [accountImage, setAccountImage] = useState<string | null>(null);
 	const [drawerOpen, setDrawerOpen] = useState(false);
 	const [currentLocation, setCurrentLocation] = useState<any>();
-	const [weather, setWeather] = useState<WeatherResponse | null>(null);
 	const [lineChecks, setLineChecks] = useState<LineCheck[]>([]);
 	const [lineCheckSettings, setLineCheckSettings] = useState<{ dailyGoal: number }>({ dailyGoal: 5 });
 
@@ -55,16 +46,18 @@ const LocationPage = () => {
 	useEffect(() => {
 		if (
 			status !== 'authenticated' ||
-			!session?.user?.id ||
+			user?.id ||
 			!accountIdParam ||
 			!locationIdParam
 		)
 			return;
 		if (hasAccess) return; // prevent rerun
 
+		if (!user?.id) return;
+
 		const verifyAccess = async () => {
 			try {
-				const response = await getAccountsForUser(session.user.id);
+				const response = await getAccountsForUser(user.id);
 				const account = response.data?.find(
 					// const account = accountList.find(
 					(acc: any) => acc.id?.toString() === accountIdParam
@@ -78,7 +71,7 @@ const LocationPage = () => {
 				}
 
 				// Check location access
-				const locationResponse = await getUserLocationAccess(session.user.id);
+				const locationResponse = await getUserLocationAccess(user.id);
 				const location = locationResponse.data?.find(
 					(loc) => loc.id?.toString() === locationIdParam
 				);
@@ -97,13 +90,6 @@ const LocationPage = () => {
 
 				const settingsRes = await getLineCheckSettings(locationIdParam);
 				setLineCheckSettings({ dailyGoal: settingsRes.data?.dailyGoal ?? 5 });
-
-
-				const weatherData = await getWeather(
-					location.locationLatitude,
-					location.locationLongitude
-				);
-				setWeather(weatherData.data as WeatherResponse);
 				
 			} catch (err) {
 				toast.error('You do not have access to this location.');
@@ -116,7 +102,7 @@ const LocationPage = () => {
 		verifyAccess();
 	}, [
 		status,
-		session?.user?.id,
+		user,
 		accountIdParam,
 		locationIdParam,
 		router,
@@ -140,13 +126,13 @@ const LocationPage = () => {
 	}, [locationIdParam]);
 
 	//show loadding state
-	if (loadingAccess)
-		return (
-			<div className="flex justify-center items-center py-40  text-chart-3 text-xl">
-				<Spinner />
-				<span className="ml-4">Loading Locations…</span>
-			</div>
-		);
+	// if (loadingAccess)
+	// 	return (
+	// 		<div className="flex justify-center items-center py-40  text-chart-3 text-xl">
+	// 			<Spinner />
+	// 			<span className="ml-4">Loading Locations…</span>
+	// 		</div>
+	// 	);
 
 	return (
 		<main className="flex min-h-screen overflow-hidden">
@@ -184,34 +170,10 @@ const LocationPage = () => {
 						</MobileDrawerNav>
 						<h1 className="text-3xl font-bold mb-4">{locationName}</h1>
 					</div>
-					<TimeOfDayGreeting name={session?.user?.name} />
+					<TimeOfDayGreeting name={user?.name} />
 				</header>
 				<div className="flex flex-col justify-between p-2 gap-3">
-					{/* <div className="p-4">
-						<TimeOfDayGreeting name={session?.user?.name} />
-					</div> */}
-
-					{/* <div className="w-3/5">
-						<LineCheckDashboard
-							lineChecks={lineChecks}
-							locationId={locationIdParam!}
-						/>
-					</div>
-					<div>
-						<FreshLineCheckDashboard
-							// lineChecks={lineChecks}
-							locationId={locationIdParam!}
-						/>
-					</div> */}
-					{/* <div className="w-2/5">
-						{currentLocation && (
-							<WeatherWidget
-								lat={currentLocation.locationLatitude}
-								lon={currentLocation.locationLongitude}
-								fetchWeather={getWeather}
-							/>
-						)}
-					</div> */}
+				
 					<div>
 						<RobustLineCheckDashboard
 							locationId={locationIdParam!}
