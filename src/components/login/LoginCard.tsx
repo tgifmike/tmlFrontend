@@ -24,6 +24,7 @@ import { OAuthButton } from './OAuthButton';
 export default function LoginCard() {
     const {
         initGoogle,
+        startGoogleLogin,
 		loginGoogle,
 		loginApple,
 		loginPasskey,
@@ -40,6 +41,22 @@ export default function LoginCard() {
 	 */
 	useEffect(() => {
 		initGoogle();
+
+		const google = window.google;
+		if (!google?.accounts?.id) return;
+
+		const el = document.getElementById('googleBtn');
+
+		if (el) {
+			google.accounts.id.renderButton(el, {
+				type: 'standard',
+				theme: 'filled_black',
+				size: 'large',
+				shape: 'pill',
+				text: 'signin_with',
+				width: 320,
+			});
+		}
 	}, [initGoogle]);
 
 	const lastUser = userPreview; // 👈 biometric-first hook
@@ -105,21 +122,35 @@ export default function LoginCard() {
 						Continue with Google
 					</OAuthButton> */}
 
-					<div
-						id="googleHiddenBtn"
-						className="absolute opacity-0 pointer-events-none"
-					/>
-					<OAuthButton
-						onClick={() =>
-							document
-								.querySelector('#googleHiddenBtn div[role=button]')
-								?.dispatchEvent(new MouseEvent('click', { bubbles: true }))
-						}
-						loading={loading === 'google'}
-					>
-						<FcGoogle className="text-2xl" />
-						Continue with Google
-					</OAuthButton>
+					{/* <div className="flex justify-center w-full min-h-[48px]">
+						<div id="googleBtn" />
+					</div>
+
+					<div className="relative">
+						<OAuthButton
+							onClick={() =>
+								document
+									.querySelector('#googleHiddenBtn div[role=button]')
+									?.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+							}
+							loading={loading === 'google'}
+						>
+							<FcGoogle className="text-2xl" />
+							Continue with Google
+						</OAuthButton>
+
+						<div id="googleHiddenBtn" className="absolute inset-0 opacity-0" />
+					</div> */}
+
+					<div className="flex justify-center w-full min-h-[48px]">
+						<OAuthButton
+							onClick={startGoogleLogin}
+							loading={loading === 'google'}
+						>
+							<FcGoogle className="text-2xl" />
+							Continue with Google
+						</OAuthButton>
+					</div>
 
 					{/* DIVIDER */}
 					<div className="flex items-center gap-3">
