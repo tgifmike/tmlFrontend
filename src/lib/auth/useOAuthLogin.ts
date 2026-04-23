@@ -34,7 +34,26 @@ export function useAuthLogin() {
 	const [userPreview, setUserPreview] = useState<UserPreview>(null);
 
 	/**
-	 * 🔐 GOOGLE LOGIN (from callback or prompt)
+	 * 🔐 GOOGLE INIT (ONE TIME ONLY)
+	 */
+	const initGoogle = useCallback(() => {
+		if (typeof window === 'undefined') return;
+
+		const google = window.google;
+		if (!google?.accounts?.id) return;
+
+		google.accounts.id.initialize({
+			client_id: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID!,
+			callback: async (res: any) => {
+				await loginGoogle(res.credential);
+			},
+			auto_select: false,
+			use_fedcm_for_prompt: false,
+		});
+	}, []);
+
+	/**
+	 * 🔐 GOOGLE LOGIN (CUSTOM BUTTON TRIGGER)
 	 */
 	const loginGoogle = useCallback(
 		async (credential: string) => {
@@ -63,59 +82,23 @@ export function useAuthLogin() {
 	);
 
 	/**
-	 * 🔐 GOOGLE INIT (ONLY ONCE — SAFE)
+	 * 👉 THIS is the ONLY trigger you need
 	 */
-	const initGoogle = useCallback(() => {
+	const startGoogleLogin = useCallback(() => {
 		if (typeof window === 'undefined') return;
 
-		const waitForGoogle = () => {
-			if (!window.google?.accounts?.id) {
-				setTimeout(waitForGoogle, 120);
-				return;
-			}
+		const google = window.google;
 
-			const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
+		if (!google?.accounts?.id) {
+			setErrors((p) => ({
+				...p,
+				google: 'Google SDK not ready',
+			}));
+			return;
+		}
 
-			window.google.accounts.id.initialize({
-				client_id: clientId!,
-				callback: async (res: any) => {
-					await loginGoogle(res.credential);
-				},
-				use_fedcm_for_prompt: false,
-			});
-
-			const hiddenEl = document.getElementById('googleHiddenBtn');
-
-			if (hiddenEl) {
-				window.google.accounts.id.renderButton(hiddenEl, {
-					type: 'standard',
-					theme: 'outline',
-					size: 'large',
-					text: 'signin_with',
-				});
-			}
-		};
-
-		waitForGoogle();
-	}, [loginGoogle]);
-
-	// const startGoogleLogin = useCallback(() => {
-	// 	if (typeof window === 'undefined') return;
-
-	// 	const google = window.google;
-
-	// 	if (!google?.accounts?.id) {
-	// 		setErrors((p) => ({
-	// 			...p,
-	// 			google: 'Google SDK not ready',
-	// 		}));
-	// 		return;
-	// 	}
-
-	// 	google.accounts.id.prompt();
-	// }, []);
-
-	
+		google.accounts.id.prompt();
+	}, []);
 
 	/**
 	 * 🍏 APPLE LOGIN
@@ -146,7 +129,7 @@ export function useAuthLogin() {
 	};
 
 	/**
-	 * 🔑 PASSKEY (UI ONLY FOR NOW)
+	 * 🔑 PASSKEY (future)
 	 */
 	const loginPasskey = async () => {
 		setErrors((p) => ({ ...p, passkey: undefined }));
@@ -166,6 +149,7 @@ export function useAuthLogin() {
 
 	return {
 		initGoogle,
+		startGoogleLogin,
 		loginGoogle,
 		loginApple,
 		loginPasskey,
