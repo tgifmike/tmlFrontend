@@ -146,7 +146,7 @@
 // 			}
 // 		},
 // 	},
-4564541454vczdddnewest edition
+
 // import type { NextAuthOptions } from 'next-auth';
 // import GoogleProvider from 'next-auth/providers/google';
 // import AppleProvider from 'next-auth/providers/apple';
@@ -274,8 +274,3 @@
 // 	},
 // };
 //can delete file if new ways works
-export const authOptions = {
-	// NextAuth is no longer used for authentication
-	providers: [],
-	session: { strategy: 'jwt' }, // optional or remove entirely
-};
