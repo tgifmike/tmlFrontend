@@ -1,7 +1,6 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
 
 const links = [
 	{ label: 'Why', href: '#why' },
@@ -12,12 +11,10 @@ const links = [
 ];
 
 export default function SectionNav() {
-	const pathname = usePathname();
-
 	return (
 		<div className="hidden md:flex items-center gap-6 text-sm font-medium">
 			{links.map((link) => {
-				const fullHref = pathname === '/' ? link.href : `/${link.href}`;
+				const fullHref = `/${link.href}`;
 
 				return (
 					<Link
