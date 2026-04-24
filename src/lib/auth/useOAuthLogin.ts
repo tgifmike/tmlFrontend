@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useCallback, useState } from 'react';
+import { useState } from 'react';
 import { loginWithBackend } from '@/lib/auth/login';
 import { emitAuthChange } from '@/lib/auth/authEvents';
 import { getAppleIdToken } from '@/lib/auth/apple';
@@ -20,12 +20,6 @@ type UserPreview = {
 	image?: string;
 } | null;
 
-declare global {
-	interface Window {
-		google?: any;
-	}
-}
-
 export function useAuthLogin() {
 	const router = useRouter();
 
@@ -34,74 +28,14 @@ export function useAuthLogin() {
 	const [userPreview, setUserPreview] = useState<UserPreview>(null);
 
 	/**
-	 * 🔐 GOOGLE INIT (ONE TIME ONLY)
+	 * GOOGLE LOGIN (Spring redirect flow)
 	 */
-	const initGoogle = useCallback(() => {
-		if (typeof window === 'undefined') return;
-
-		const google = window.google;
-		if (!google?.accounts?.id) return;
-
-		google.accounts.id.initialize({
-			client_id: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID!,
-			callback: async (res: any) => {
-				await loginGoogle(res.credential);
-			},
-			auto_select: false,
-			use_fedcm_for_prompt: false,
-		});
-	}, []);
+	const loginGoogle = () => {
+		window.location.href = `${process.env.NEXT_PUBLIC_BACKEND_URL}/auth/google/login`;
+	};
 
 	/**
-	 * 🔐 GOOGLE LOGIN (CUSTOM BUTTON TRIGGER)
-	 */
-	const loginGoogle = useCallback(
-		async (credential: string) => {
-			try {
-				setLoading('google');
-				setErrors((p) => ({ ...p, google: undefined }));
-
-				const result = await loginWithBackend('google', credential);
-
-				setUserPreview(result.user ?? null);
-
-				localStorage.setItem('jwt', result.token);
-				emitAuthChange();
-
-				router.push('/dashboard');
-			} catch {
-				setErrors((p) => ({
-					...p,
-					google: 'Google sign-in failed. Please try again.',
-				}));
-			} finally {
-				setLoading(null);
-			}
-		},
-		[router],
-	);
-
-	/**
-	 * 👉 THIS is the ONLY trigger you need
-	 */
-	const startGoogleLogin = useCallback(() => {
-		if (typeof window === 'undefined') return;
-
-		const google = window.google;
-
-		if (!google?.accounts?.id) {
-			setErrors((p) => ({
-				...p,
-				google: 'Google SDK not ready',
-			}));
-			return;
-		}
-
-		google.accounts.id.prompt();
-	}, []);
-
-	/**
-	 * 🍏 APPLE LOGIN
+	 * APPLE LOGIN
 	 */
 	const loginApple = async () => {
 		try {
@@ -129,7 +63,7 @@ export function useAuthLogin() {
 	};
 
 	/**
-	 * 🔑 PASSKEY (future)
+	 * PASSKEY (future)
 	 */
 	const loginPasskey = async () => {
 		setErrors((p) => ({ ...p, passkey: undefined }));
@@ -148,12 +82,9 @@ export function useAuthLogin() {
 	};
 
 	return {
-		initGoogle,
-		startGoogleLogin,
 		loginGoogle,
 		loginApple,
 		loginPasskey,
-
 		loading,
 		errors,
 		userPreview,

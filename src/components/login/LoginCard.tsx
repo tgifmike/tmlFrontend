@@ -23,9 +23,7 @@ import { OAuthButton } from './OAuthButton';
 
 export default function LoginCard() {
     const {
-        initGoogle,
-        startGoogleLogin,
-		loginGoogle,
+        loginGoogle,
 		loginApple,
 		loginPasskey,
 		loading,
@@ -39,25 +37,29 @@ export default function LoginCard() {
 	/**
 	 * future: hydrate biometrics / last user session
 	 */
-	useEffect(() => {
-		initGoogle();
+	// useEffect(() => {
+	// 	initGoogle();
 
-		const google = window.google;
-		if (!google?.accounts?.id) return;
+	// 	const google = window.google;
+	// 	if (!google?.accounts?.id) return;
 
-		const el = document.getElementById('googleBtn');
+	// 	const el = document.getElementById('googleBtn');
 
-		if (el) {
-			google.accounts.id.renderButton(el, {
-				type: 'standard',
-				theme: 'filled_black',
-				size: 'large',
-				shape: 'pill',
-				text: 'signin_with',
-				width: 320,
-			});
-		}
-	}, [initGoogle]);
+	// 	if (el) {
+	// 		google.accounts.id.renderButton(el, {
+	// 			type: 'standard',
+	// 			theme: 'filled_black',
+	// 			size: 'large',
+	// 			shape: 'pill',
+	// 			text: 'signin_with',
+	// 			width: 320,
+	// 		});
+	// 	}
+    // }, [initGoogle]);
+    
+    // const loginWithGoogle = () => {
+	// 		window.location.href = `${process.env.NEXT_PUBLIC_API_URL}/auth/google/login`;
+	// 	};
 
 	const lastUser = userPreview; // 👈 biometric-first hook
 
@@ -142,15 +144,10 @@ export default function LoginCard() {
 						<div id="googleHiddenBtn" className="absolute inset-0 opacity-0" />
 					</div> */}
 
-					<div className="flex justify-center w-full min-h-[48px]">
-						<OAuthButton
-							onClick={startGoogleLogin}
-							loading={loading === 'google'}
-						>
-							<FcGoogle className="text-2xl" />
-							Continue with Google
-						</OAuthButton>
-					</div>
+					<OAuthButton onClick={loginGoogle}>
+						<FcGoogle className="text-2xl" />
+						Continue with Google
+					</OAuthButton>
 
 					{/* DIVIDER */}
 					<div className="flex items-center gap-3">
