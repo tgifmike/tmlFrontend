@@ -15,13 +15,19 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
 		}
 	}, [status, router]);
 
+	// IMPORTANT FIX ↓↓↓
 	if (status === 'loading') {
 		return (
-            <div className="flex items-center justify-center h-screen text-2xl text-chart-3 gap-3">
-                <Spinner />
+			<div className="flex items-center justify-center h-screen gap-3">
+				<Spinner />
 				Loading...
 			</div>
 		);
+	}
+
+	// don't render anything until decision is made
+	if (status === 'unauthenticated') {
+		return null;
 	}
 
 	return <>{children}</>;

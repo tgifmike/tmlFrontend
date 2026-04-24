@@ -17,82 +17,80 @@ const NavBar = () => {
 	const [scrolled, setScrolled] = useState(false);
 
 	useEffect(() => {
-		const onScroll = () => {
-			setScrolled(window.scrollY > 10);
-		};
-
+		const onScroll = () => setScrolled(window.scrollY > 10);
 		window.addEventListener('scroll', onScroll);
 		onScroll();
-
-		
-
 		return () => window.removeEventListener('scroll', onScroll);
 	}, []);
 
 	return (
 		<header
-			className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-				scrolled
-					? 'backdrop-blur-xl bg-accent/70 border-b shadow-sm'
-					: 'bg-accent'
+			className={`fixed top-0 left-0 right-0 z-50 border-b backdrop-blur-xl transition-all duration-300 ${
+				scrolled ? 'bg-accent/70 shadow-sm' : 'bg-accent'
 			}`}
 		>
 			<nav
-				className={`grid grid-cols-3 items-center w-full px-3 sm:px-6 md:px-10 transition-all duration-300 ${
-					scrolled ? 'h-14' : 'h-20'
+				className={`grid grid-cols-3 items-center px-4 sm:px-6 md:px-10 transition-all duration-300 ${
+					scrolled ? 'h-14' : 'h-24'
 				}`}
 			>
-				{/* Left: Logo + Title */}
-				<div className="flex items-center">
-					<Link href="/" className="flex items-center">
+				{/* ================= LEFT ================= */}
+				<div className="flex items-center gap-2">
+					<Link href="/" className="flex items-center gap-2">
 						<Image
 							src="/newLogo.png"
 							alt="Logo"
-							width={85}
-							height={85}
-							className={`rounded-full transition-all duration-300 ${
-								scrolled ? 'w-9 h-9' : 'w-12 h-12 sm:w-14 sm:h-14'
-							}`}
+							width={scrolled ? 34 : 40}
+							height={scrolled ? 34 : 40}
+							className="rounded-full transition-all duration-300"
 						/>
 
-						<h1 className="hidden sm:block font-bold italic text-xl md:text-3xl ml-2 truncate">
+						<span
+							className={`font-bold transition-all duration-300 ${
+								scrolled ? 'text-lg' : 'text-xl'
+							}`}
+						>
 							The Manager Life
-						</h1>
+						</span>
 					</Link>
 				</div>
 
-				{/* stickly nav */}
-				<div className="flex justify-center gap-4">
-					{/* Desktop nav */}
-					<SectionNav />
+				{/* ================= CENTER (ALWAYS VISIBLE) ================= */}
+				<div className="flex justify-center">
+					<div className="transition-all duration-300 scale-100">
+						<div className="hidden md:flex">
+							<SectionNav />
+						</div>
 
-					{/* Mobile nav */}
-					<MobileDrawerNav
-						open={drawerOpen}
-						setOpen={setDrawerOpen}
-						title="Menu"
-					>
-						<LandingSectionLinks onNavigate={() => setDrawerOpen(false)} />
-					</MobileDrawerNav>
+						<div className="md:hidden">
+							<MobileDrawerNav
+								open={drawerOpen}
+								setOpen={setDrawerOpen}
+								title="Menu"
+							>
+								<LandingSectionLinks onNavigate={() => setDrawerOpen(false)} />
+							</MobileDrawerNav>
+						</div>
+					</div>
 				</div>
 
-				{/* Right: Auth / Avatar */}
-				<div className="flex justify-end items-center gap-3 min-w-0">
-					{status === 'authenticated' && user ? (
-						<div className="max-w-[160px] truncate">
+				{/* ================= RIGHT ================= */}
+				<div className="flex justify-end">
+					<div className="transition-all duration-300">
+						{status === 'authenticated' && user ? (
 							<UserAccountNav user={user} />
-						</div>
-					) : (
-						<Link
-							href="/login"
-							className={buttonVariants({
-								variant: 'outline',
-								className: 'font-bold whitespace-nowrap',
-							})}
-						>
-							Sign In
-						</Link>
-					)}
+						) : (
+							<Link
+								href="/login"
+								className={buttonVariants({
+									variant: 'outline',
+									className: 'font-bold transition-all hover:scale-[1.03]',
+								})}
+							>
+								Sign In
+							</Link>
+						)}
+					</div>
 				</div>
 			</nav>
 		</header>
