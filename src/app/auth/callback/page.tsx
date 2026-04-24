@@ -11,9 +11,6 @@ export default function AuthCallback() {
 	useEffect(() => {
 		const token = params.get('token');
 
-		// IMPORTANT: wait until params are actually ready
-		if (token === null) return;
-
 		if (!token) {
 			router.replace('/login');
 			return;
@@ -21,7 +18,10 @@ export default function AuthCallback() {
 
 		localStorage.setItem('jwt', token);
 
-		router.replace('/dashboard');
+		// important: delay ensures storage flush before redirect
+		setTimeout(() => {
+			router.replace('/dashboard');
+		}, 100);
 	}, [params, router]);
 
 	return (
