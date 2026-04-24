@@ -21,11 +21,43 @@ const api = axios.create({
 // });
 
 
+// export async function request<T>(
+// 	config: AxiosRequestConfig
+// ): Promise<{ data?: T; error?: string }> {
+// 	try {
+// 		const response = await api.request<T>(config);
+// 		return { data: response.data };
+// 	} catch (err: unknown) {
+// 		let errorMsg = 'An unexpected error occurred';
+
+// 		if (axios.isAxiosError(err)) {
+// 			errorMsg =
+// 				err.response?.data?.message || err.response?.data?.error || err.message;
+// 		}
+
+// 		// ✅ Only log in development mode
+// 		if (process.env.NODE_ENV === 'development') {
+// 			console.warn(`[API Error] ${errorMsg}`);
+// 		}
+
+// 		return { error: errorMsg };
+// 	}
+// }
+
 export async function request<T>(
-	config: AxiosRequestConfig
+	config: AxiosRequestConfig,
 ): Promise<{ data?: T; error?: string }> {
 	try {
-		const response = await api.request<T>(config);
+		const token = localStorage.getItem('jwt');
+
+		const response = await api.request<T>({
+			...config,
+			headers: {
+				...config.headers,
+				Authorization: token ? `Bearer ${token}` : '',
+			},
+		});
+
 		return { data: response.data };
 	} catch (err: unknown) {
 		let errorMsg = 'An unexpected error occurred';
@@ -35,7 +67,6 @@ export async function request<T>(
 				err.response?.data?.message || err.response?.data?.error || err.message;
 		}
 
-		// ✅ Only log in development mode
 		if (process.env.NODE_ENV === 'development') {
 			console.warn(`[API Error] ${errorMsg}`);
 		}
