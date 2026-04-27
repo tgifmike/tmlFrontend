@@ -19,8 +19,9 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
 	const [loading, setLoading] = useState(true);
 
 	const refreshSession = async () => {
+		setLoading(true);
+
 		try {
-			setLoading(true);
 			const me = await fetchMe();
 			setUser(me);
 		} catch {
@@ -38,7 +39,7 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
 			});
 		} finally {
 			setUser(null);
-			setLoading(true);
+			setLoading(false);
 			await refreshSession();
 			window.dispatchEvent(new Event('auth-change'));
 		}
@@ -52,10 +53,7 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
 		const onAuthChange = () => refreshSession();
 
 		window.addEventListener('auth-change', onAuthChange);
-
-		return () => {
-			window.removeEventListener('auth-change', onAuthChange);
-		};
+		return () => window.removeEventListener('auth-change', onAuthChange);
 	}, []);
 
 	return (
