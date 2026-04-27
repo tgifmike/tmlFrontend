@@ -3,6 +3,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { fetchMe } from './session-api';
 import { SessionUser } from '@/app/types';
+import { tr } from 'date-fns/locale';
 
 type Ctx = {
 	user: SessionUser | null;
@@ -37,7 +38,8 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
 			});
 		} finally {
 			setUser(null);
-			setLoading(false);
+			setLoading(true);
+			await refreshSession();
 			window.dispatchEvent(new Event('auth-change'));
 		}
 	};
@@ -47,13 +49,14 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
 	}, []);
 
 	useEffect(() => {
-		const onAuthChange = () => {
-			refreshSession();
-		};
+		const onAuthChange = () => refreshSession();
 
 		window.addEventListener('auth-change', onAuthChange);
-		return () => window.removeEventListener('auth-change', onAuthChange);
-	}, [refreshSession]);
+
+		return () => {
+			window.removeEventListener('auth-change', onAuthChange);
+		};
+	}, []);
 
 	return (
 		<SessionContext.Provider value={{ user, loading, refreshSession, logout }}>
