@@ -35,7 +35,8 @@ import { DataCard } from '@/components/cards/DataCard';
 import { getOptions } from '@/app/api/optionsApi';
 import Link from 'next/link';
 import ItemHistoryFeed from '@/components/tableComponents/ItemHistoryFeed';
-import { useSession } from '@/lib/auth/useSession';
+import { useSession } from '@/lib/auth/session-context';
+
 
 
 const StationPage = () => {
@@ -43,7 +44,7 @@ const StationPage = () => {
 	const UpDownIcon = Icons.sort;
 
 	//session
-	const { user, status } = useSession();
+	const { user, loading, logout } = useSession();
 	const params = useParams<{
 		accountId: string;
 		locationId: string;
@@ -82,7 +83,7 @@ const StationPage = () => {
 	// verify access & fetch items
 	useEffect(() => {
 		if (
-			status !== 'authenticated' ||
+			loading ||
 			!user?.id ||
 			!accountIdParam ||
 			!locationIdParam ||
@@ -178,7 +179,7 @@ const StationPage = () => {
 		};
 
 		verifyAccess();
-	}, [status, user, accountIdParam, locationIdParam, hasAccess, router]);
+	}, [loading, user, accountIdParam, locationIdParam, hasAccess, router]);
 
 	// toggle active
 	const handleToggleActive = async (itemId: string, checked: boolean) => {
@@ -269,14 +270,6 @@ const StationPage = () => {
 	const portionSize = optionsByType['PORTION_SIZE'] ?? [];
 	const shelfLife = optionsByType['SHELF_LIFE'] ?? [];
 		
-	if (status === 'loading' || loadingAccess) {
-		return (
-			<div className="flex justify-center items-center py-40 text-chart-3 text-xl">
-				<Spinner />
-				<span className="ml-4">Loading items…</span>
-			</div>
-		);
-	}
 
 	return (
 		<main className="flex min-h-screen overflow-hidden">

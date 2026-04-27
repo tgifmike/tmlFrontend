@@ -6,7 +6,6 @@ import { AccessRole, AppRole, Locations, User } from '@/app/types';
 import LineCheckSettingsForm from '@/components/locaitons/LineCheckSettingsForm';
 import LocationNav from '@/components/navBar/LocationNav';
 import MobileDrawerNav from '@/components/navBar/MoibileDrawerNav';
-import Spinner from '@/components/spinner/Spinner';
 import LocationHistoryFeed from '@/components/tableComponents/LocationHistoryFeed';
 import { StatusSwitchOrBadge } from '@/components/tableComponents/StatusSwitchOrBadge';
 import { Badge } from '@/components/ui/badge';
@@ -30,7 +29,8 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useSession } from '@/lib/auth/useSession';
+import { useSession } from '@/lib/auth/session-context';
+
 import { US_STATES, US_TIME_ZONES } from '@/lib/constants/usConstants';
 import { Icons } from '@/lib/icon';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -48,7 +48,7 @@ const LocationSettingsPage = () => {
 	const BadgeQuestionMarkIcon = Icons.badgeQuestionMark;
 
 	//session
-	const { user, status } = useSession();
+	const { user, loading, logout } = useSession();
 	const currentUser = user as User | undefined;
 	const sessionUserRole = user?.appRole;
 	const MANAGER = currentUser?.appRole === AppRole.MANAGER;
@@ -60,7 +60,6 @@ const LocationSettingsPage = () => {
 	const locationIdParam = params.locationId;
 
 	// state
-	const [loadingAccess, setLoadingAccess] = useState(true);
 	const [hasAccess, setHasAccess] = useState(false);
 	const [locationName, setLocationName] = useState<string | null>(null);
 	const [accountName, setAccountName] = useState<string | null>(null);
@@ -108,15 +107,7 @@ const LocationSettingsPage = () => {
 		});
 
 	useEffect(() => {
-		if (
-			status !== 'authenticated' ||
-			user?.id ||
-			!accountIdParam ||
-			!locationIdParam
-		)
-			return;
-		if (hasAccess) return; // prevent rerun
-
+		
 		if (!user?.id) return;
 
 		const verifyAccess = async () => {
@@ -157,12 +148,12 @@ const LocationSettingsPage = () => {
 				toast.error('You do not have access to this location.');
 				router.push('/accounts');
 			} finally {
-				setLoadingAccess(false);
+				// setLoadingAccess(false);
 			}
 		};
 
 		verifyAccess();
-	}, [status, user?.id, accountIdParam, locationIdParam, hasAccess]);
+	}, [user?.userId, accountIdParam, locationIdParam, hasAccess]);
 
 	const schema = useMemo(
 		() => getSchema(locations, locationIdParam),
@@ -289,12 +280,12 @@ const LocationSettingsPage = () => {
 		}
 
 		try {
-			if (!user?.id) {
+			if (!user?.userId) {
 				toast.error('You must be logged in to update a location.');
 				return;
 			}
 
-			await toggleLocationActive(locationId, checked, user.id);
+			await toggleLocationActive(locationId, checked, user.userId);
 		} catch (error: any) {
 			// Rollback both states
 			setLocations((prev) =>
@@ -311,14 +302,6 @@ const LocationSettingsPage = () => {
 		}
 	};
 
-	//show loadding state
-	// if (loadingAccess)
-	// 	return (
-	// 		<div className="flex justify-center items-center py-40  text-chart-3 text-xl">
-	// 			<Spinner />
-	// 			<span className="ml-4">Loading Location Settings…</span>
-	// 		</div>
-	// 	);
 
 	return (
 		<main className="flex min-h-screen overflow-hidden">
@@ -601,7 +584,7 @@ const LocationSettingsPage = () => {
 				</div>
 				<LineCheckSettingsForm
 					locationId={locationIdParam}
-					userId={user?.id}
+					userId={user?.userId}
 				/>
 
 				<div className="flex justify-center items-center">

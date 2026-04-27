@@ -37,10 +37,11 @@ import {
 import router from 'next/router';
 import MobileDrawerNav from '@/components/navBar/MoibileDrawerNav';
 import LocationHistoryFeed from '@/components/tableComponents/LocationHistoryFeed';
-import { useSession } from '@/lib/auth/useSession';
+import { useSession } from '@/lib/auth/session-context';
+
 
 const AccountPage = () => {
-	const { user, status } = useSession();
+	const { user, loading, logout } = useSession();
 	
 	const params = useParams<{ accountId: string }>();
 	const accountIdParam = params.accountId;
@@ -64,8 +65,8 @@ const AccountPage = () => {
 	const userId = currentUser?.id;
 
 	useEffect(() => {
-		if (status !== 'authenticated' || !userId || !accountIdParam) return;
-		if (hasAccess) return;
+		if (!userId || !accountIdParam) return;
+		
 
 		const verifyAccess = async () => {
 			try {

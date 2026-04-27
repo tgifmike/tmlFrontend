@@ -78,7 +78,7 @@ export default function RootLayout({
 	return (
 		<html lang="en" suppressHydrationWarning>
 			<body
-				className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen flex flex-col`}
+				className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen flex flex-col pt-23`}
 			>
 				{/* GLOBAL PROVIDERS ONLY */}
 				<SessionProvider>
@@ -92,7 +92,7 @@ export default function RootLayout({
 							{/* PUBLIC SITE */}
 							<NavBar />
 
-							<main className="flex-1 w-full pt-10">{children}</main>
+							<main className="flex-1 w-full">{children}</main>
 
 							<Footer />
 

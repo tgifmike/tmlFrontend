@@ -13,20 +13,20 @@ import {
 } from '@/components/ui/dialog';
 import { Icons } from '@/lib/icon';
 import { User } from 'next-auth';
-import { useSession } from '@/lib/auth/useSession';
 import { apiFetch } from '@/app/api/userApI';
+import { useSession } from '@/lib/auth/session-context';
 
 
 export const InviteUserDialog = ({ accountId, onUserCreated }: any) => {
 
-const { user, status } = useSession();
+const { user, loading, logout } = useSession();
 	
 	//icons
 	const Add_User = Icons.addUser;
 	
 	//set state
 	const [email, setEmail] = useState('');
-	const [loading, setLoading] = useState(false);
+	
 
 	const inviteUser = async () => {
 		if (!email) {
@@ -35,24 +35,6 @@ const { user, status } = useSession();
 		}
 
 		try {
-			setLoading(true);
-
-			// const res = await fetch(
-			// 	`${process.env.NEXT_PUBLIC_BACKEND_URL}/users/invite`,
-			// 	{
-			// 		method: 'POST',
-			// 		headers: {
-			// 			'Content-Type': 'application/json',
-			// 			Authorization: `Bearer ${user.jwt ?? ''}`,
-			// 		},
-			// 		body: JSON.stringify({
-			// 			email,
-			// 			accountId,
-			// 			appRole: 'MEMBER',
-			// 			accessRole: 'USER',
-			// 		}),
-			// 	},
-			// );
 
 			const res = await apiFetch('/users/invite', {
 				method: 'POST',
@@ -77,7 +59,7 @@ const { user, status } = useSession();
 		} catch (err: any) {
 			toast.error(err.message || 'Failed to invite user');
 		} finally {
-			setLoading(false);
+			
 		}
 	};
 

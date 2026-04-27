@@ -9,10 +9,11 @@ import { buttonVariants } from '../ui/button';
 import SectionNav from './SectionNav';
 import MobileDrawerNav from './MoibileDrawerNav';
 import LandingSectionLinks from './LandingSectionLinks';
-import { useSession } from '@/lib/auth/useSession';
+import { useSession } from '@/lib/auth/session-context';
+
 
 const NavBar = () => {
-	const { user, status } = useSession();
+	const { user, loading, logout } = useSession();
 	const [drawerOpen, setDrawerOpen] = useState(false);
 	const [scrolled, setScrolled] = useState(false);
 
@@ -77,7 +78,7 @@ const NavBar = () => {
 				{/* ================= RIGHT ================= */}
 				<div className="flex justify-end">
 					<div className="transition-all duration-300">
-						{status === 'authenticated' && user ? (
+						{ user ? (
 							<UserAccountNav user={user} />
 						) : (
 							<Link

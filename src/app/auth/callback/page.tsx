@@ -1,44 +1,32 @@
 'use client';
 
-console.log('🔥 CALLBACK FILE LOADED');
-
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Spinner from '@/components/spinner/Spinner';
 
 export default function AuthCallback() {
-
-    console.log('🔥 COMPONENT RENDERED');
-    console.log('AUTH CALLBACK RENDERED');
-
-
 	const router = useRouter();
 
 	useEffect(() => {
-		const search = window.location.search;
-		const token = new URLSearchParams(search).get('token');
+		// 🔥 Just verify session via cookie
+		const checkSession = async () => {
+			try {
+				const res = await fetch(
+					`${process.env.NEXT_PUBLIC_BACKEND_URL}/auth/me`,
+					{ credentials: 'include' },
+				);
 
-		console.log('TOKEN FROM URL:', token);
+				if (!res.ok) {
+					throw new Error('Not authenticated');
+				}
 
-		if (!token) {
-			router.replace('/login');
-			return;
-		}
-
-		try {
-			localStorage.setItem('jwt', token);
-
-			console.log('JWT AFTER SAVE:', localStorage.getItem('jwt'));
-
-			window.dispatchEvent(new Event('auth-change'));
-
-			setTimeout(() => {
 				router.replace('/dashboard');
-			}, 150);
-		} catch (e) {
-			console.error('Failed to save JWT', e);
-			router.replace('/login');
-		}
+			} catch {
+				router.replace('/login');
+			}
+		};
+
+		checkSession();
 	}, [router]);
 
 	return (

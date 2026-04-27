@@ -1,114 +1,101 @@
-'use client';
+// 'use client';
 
-import { useEffect, useState } from 'react';
+// import { useEffect, useState } from 'react';
 
-export type SessionUser = {
-	id: string;
-	name?: string;
-	email: string;
-	appRole: string;
-	accessRole: string;
-	image?: string;
-};
+// export type SessionUser = {
+// 	id: string;
+// 	name?: string;
+// 	email: string;
+// 	appRole: string;
+// 	accessRole: string;
+// 	image?: string;
+// };
 
-type Status = 'loading' | 'authenticated' | 'unauthenticated';
+// type Status = 'loading' | 'authenticated' | 'unauthenticated';
 
-export function useSession() {
-	const [user, setUser] = useState<SessionUser | null>(null);
-	const [status, setStatus] = useState<Status>('loading');
+// export function useSession() {
+// 	const [user, setUser] = useState<SessionUser | null>(null);
+// 	const [status, setStatus] = useState<Status>('loading');
 
-	const loadSession = async (source = 'unknown') => {
-		console.log('\n==============================');
-		console.log('🚀 loadSession TRIGGERED');
-		console.log('📍 source:', source);
-		console.log('🕒 time:', new Date().toISOString());
+// 	const loadSession = async (source = 'unknown') => {
+// 		console.log('\n==============================');
+// 		console.log('🚀 loadSession TRIGGERED');
+// 		console.log('📍 source:', source);
+// 		console.log('🕒 time:', new Date().toISOString());
 
-		const token = localStorage.getItem('jwt');
+// 		setStatus('loading');
 
-		console.log('🔑 token exists:', !!token);
-		console.log('🔥 RAW JWT:', token);
-		console.log('📦 storage snapshot:', {
-			length: localStorage.length,
-			keys: Object.keys(localStorage),
-		});
+// 		try {
+// 			const url = `${process.env.NEXT_PUBLIC_BACKEND_URL}/users/me`;
 
-		if (!token) {
-			console.log('❌ NO TOKEN FOUND → setting unauthenticated');
-			setUser(null);
-			setStatus('unauthenticated');
-			return;
-		}
+// 			console.log('🌐 calling /users/me with cookies');
 
-		console.log('🌐 calling /users/me...');
+// 			const res = await fetch(url, {
+// 				method: 'GET',
+// 				credentials: 'include',
+// 			});
 
-		const url = `${process.env.NEXT_PUBLIC_BACKEND_URL}/users/me`;
+// 			console.log('📡 RESPONSE STATUS:', res.status);
+// 			console.log('📡 RESPONSE OK:', res.ok);
 
-		try {
-			const res = await fetch(url, {
-				method: 'GET',
-				headers: {
-					Authorization: `Bearer ${token}`,
-				},
-			});
+// 			if (!res.ok) {
+// 				throw new Error(`HTTP ${res.status}`);
+// 			}
 
-			console.log('📡 RESPONSE STATUS:', res.status);
-			console.log('📡 RESPONSE OK:', res.ok);
+// 			const data: SessionUser = await res.json();
 
-			const text = await res.text();
-			console.log('📨 RAW RESPONSE TEXT:', text);
+// 			console.log('✅ SESSION USER:', data);
 
-			if (!res.ok) {
-				throw new Error(`HTTP ${res.status}`);
-			}
+// 			setUser(data);
+// 			setStatus('authenticated');
+// 		} catch (err) {
+// 			console.error('💥 SESSION LOAD FAILED:', err);
 
-			const data = JSON.parse(text);
+// 			setUser(null);
+// 			setStatus('unauthenticated');
+// 		}
+// 	};
 
-			console.log('✅ PARSED USER:', data);
+// 	const logout = async () => {
+// 		try {
+// 			await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/auth/logout`, {
+// 				method: 'POST',
+// 				credentials: 'include',
+// 			});
+// 		} catch (err) {
+// 			console.error('Logout request failed:', err);
+// 		}
 
-			setUser(data);
-			setStatus('authenticated');
-		} catch (err) {
-			console.log('💥 FETCH ERROR:', err);
-			console.error('Auth failed but keeping token for debug', err);
-			//localStorage.removeItem('jwt');
+// 		setUser(null);
+// 		setStatus('unauthenticated');
+// 	};
 
-			setUser(null);
-			setStatus('unauthenticated');
-		}
-	};
+// 	useEffect(() => {
+// 		console.log('🧠 useSession mounted');
 
-	useEffect(() => {
-		console.log('🧠 useSession mounted');
+// 		loadSession('initial-mount');
 
-		loadSession('initial-mount');
+// 		const onAuthChange = () => {
+// 			console.log('🔔 auth-change event fired');
+// 			loadSession('event:auth-change');
+// 		};
 
-		const onAuthChange = () => {
-			console.log('🔔 auth-change event fired');
-			loadSession('event:auth-change');
-		};
+// 		window.addEventListener('auth-change', onAuthChange);
 
-		const onStorage = (e: StorageEvent) => {
-			console.log('🧲 storage event:', {
-				key: e.key,
-				oldValue: e.oldValue,
-				newValue: e.newValue,
-			});
+// 		return () => {
+// 			window.removeEventListener('auth-change', onAuthChange);
+// 		};
+// 	}, []);
 
-			if (e.key === 'jwt') {
-				loadSession('event:storage');
-			}
-		};
+// 	console.log('🔁 render state:', {
+// 		status,
+// 		hasUser: !!user,
+// 	});
 
-		window.addEventListener('auth-change', onAuthChange);
-		window.addEventListener('storage', onStorage);
-
-		return () => {
-			window.removeEventListener('auth-change', onAuthChange);
-			window.removeEventListener('storage', onStorage);
-		};
-	}, []);
-
-	console.log('🔁 render state:', { status, hasUser: !!user });
-
-	return { user, status, refresh: () => loadSession('manual-refresh') };
-}
+// 	return {
+// 		user,
+// 		status,
+// 		refresh: () => loadSession('manual-refresh'),
+// 		logout,
+// 	};
+// }

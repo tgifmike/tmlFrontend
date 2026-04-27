@@ -7,10 +7,12 @@ import {
 	SelectTrigger,
 } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { AccessRole, User } from '@/app/types';
+import { AccessRole, SessionUser, User } from '@/app/types';
 import { updateUserAccessRole } from '@/app/api/userApI';
 import { toast } from 'sonner';
-import { useSession } from '@/lib/auth/useSession';
+import { useSession } from '@/lib/auth/session-context';
+
+
 
 
 type Props = {
@@ -19,12 +21,15 @@ type Props = {
 };
 
 export const AccessRoleSelectOrBadge = ({ user, onRoleChange }: Props) => {
+
 	
 
 	//session
-	const { user: sessionUser} = useSession();
+	const { user: userSession, loading, logout } = useSession();
+	
+	if (!user) return null;
 
-	const sessionUserRole = sessionUser?.appRole;
+	const sessionUserRole = userSession?.appRole;
 	const isManager = sessionUserRole === 'MANAGER';
 
 
@@ -32,7 +37,7 @@ export const AccessRoleSelectOrBadge = ({ user, onRoleChange }: Props) => {
 		// Manager can change role
 		return (
 			<Select
-				defaultValue={user.accessRole ?? undefined}
+				defaultValue={user?.accessRole ?? undefined}
 				onValueChange={async (value) => {
 					if (!user.id) return;
 

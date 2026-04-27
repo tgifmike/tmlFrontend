@@ -28,7 +28,8 @@ import {
 } from '../ui/form';
 import { Input } from '../ui/input';
 import { Icons } from '../../lib/icon';
-import { useSession } from '@/lib/auth/useSession';
+import { useSession } from '@/lib/auth/session-context';
+
 
 
 type CreateAccountDialogProps = {
@@ -63,7 +64,7 @@ export default function CreateAccountDialog({
 	const [open, setOpen] = useState(false);
 	
 	//get user id from session
-	const { user, status } = useSession();
+	const { user, loading, logout } = useSession();
 	const userId = user?.id || '';
     
 

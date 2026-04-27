@@ -14,15 +14,16 @@ import {
 import TimeOfDayGreeting from '@/components/login/TimeOfDayGreeting';
 import { getAccountsForUser } from '../../api/accountApi';
 import { Account } from '../../types';
-import { useSession } from '@/lib/auth/useSession';
+import { useSession } from '@/lib/auth/session-context';
+
 
 const Dashboard = () => {
-	const { user } = useSession();
+	const { user, loading, logout } = useSession();
 
 	const [accounts, setAccounts] = useState<Account[]>([]);
-	const [loading, setLoading] = useState(true);
+	// const [loading, setLoading] = useState(true);
 
-	const isSRAdmin = user?.accessRole === 'SRADMIN';
+	const isSRAdmin = user?.accessRole?.toUpperCase() === 'SRADMIN';
 	const displayName = user?.name?.split(' ')[0] ?? 'You';
 
 	useEffect(() => {
@@ -32,20 +33,18 @@ const Dashboard = () => {
 			try {
 				const res = await getAccountsForUser(user.id);
 				setAccounts(res.data ?? []);
-			} finally {
-				setLoading(false);
+			} catch (err) {
+				console.error('Failed to load accounts', err);
 			}
 		};
 
 		load();
 	}, [user?.id]);
 
-	if (loading) {
-		return <div className="p-6">Loading accounts...</div>;
-	}
+
 
 	return (
-		<main className="space-y-8">
+		<main className="space-y-8 p-4">
 			<TimeOfDayGreeting name={user?.name} />
 
 			{/* ADMIN */}

@@ -28,7 +28,8 @@ import { Icons } from '@/lib/icon';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import StationHistoryFeed from '@/components/tableComponents/StationHistoryFeed';
 import { CloneStationDialog } from '@/components/cloneStation/CloneStationDialog';
-import { useSession } from '@/lib/auth/useSession';
+import { useSession } from '@/lib/auth/session-context';
+
 
 
 interface CreateStationDialogProps {
@@ -46,7 +47,7 @@ const LocationStationsPage = () => {
 		const UpDownIcon = Icons.sort;
 
 	//session
-	const { user, status } = useSession();
+	const { user, loading, logout } = useSession();
 	const params = useParams<{ accountId: string; locationId: string }>();
 	const accountIdParam = params.accountId;
 	const locationIdParam = params.locationId;
@@ -78,7 +79,7 @@ const LocationStationsPage = () => {
 
 	useEffect(() => {
 		if (
-			status !== 'authenticated' ||
+			loading ||
 			!user?.id ||
 			!accountIdParam ||
 			!locationIdParam
@@ -124,22 +125,6 @@ const LocationStationsPage = () => {
 				const stationRes = await getStationsByLocation(locationIdParam);
 				const fetchedStations = stationRes.data ?? [];
 				setStations(fetchedStations);
-
-				// const stationRes = await getStationsByLocation(locationIdParam);
-				// const fetchedStations: StationDto[] = stationRes.data ?? [];
-
-				// // Map DTO → full Station
-				// const mappedStations: Station[] = fetchedStations.map((dto) => ({
-				// 	id: dto.id,
-				// 	stationName: dto.stationName,
-				// 	sortOrder: dto.sortOrder ?? 0,
-				// 	stationActive: dto.stationActive ?? true, // default true
-				// 	locationId: locationIdParam, // attach location
-				// 	description: '', // optional default
-				// }));
-
-				//setStations(mappedStations);
-
 				setHasAccess(true);
 				setAccountName(account.accountName);
 				setAccountImage(account.imageBase64 || null);
@@ -153,7 +138,7 @@ const LocationStationsPage = () => {
 		};
 
 		verifyAccess();
-	}, [status, user, accountIdParam, locationIdParam, hasAccess, router]);
+	}, [loading, user, accountIdParam, locationIdParam, hasAccess, router]);
 
 	//toggle station active
 	const handleToggleActive = async (stationId: string, checked: boolean) => {
@@ -285,15 +270,6 @@ const hanldeStationDelete = async (stationId: string) => {
 				toast.error('Failed to save new station order.');
 			}
 		};
-
-	if (status === 'loading' || loadingAccess || !currentUserId) {
-		return (
-			<div className="flex justify-center items-center py-40 text-chart-3 text-xl">
-				<Spinner />
-				<span className="ml-4">Loading Stations…</span>
-			</div>
-		);
-	}
 
 	return (
 		<main className="flex min-h-screen overflow-hidden ">
