@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { loginWithBackend } from '@/lib/auth/login';
 import { emitAuthChange } from '@/lib/auth/authEvents';
-import { getAppleIdToken } from '@/lib/auth/apple';
+
 
 type Provider = 'google' | 'apple' | 'passkey' | null;
 
@@ -37,31 +37,36 @@ export function useAuthLogin() {
 	/**
 	 * APPLE LOGIN
 	 */
-	const loginApple = async () => {
-		try {
-			setLoading('apple');
-			setErrors((p) => ({ ...p, apple: undefined }));
 
-			const idToken = await getAppleIdToken();
-
-			const result = await loginWithBackend('apple', idToken);
-
-			setUserPreview(result.user ?? null);
-
-			// localStorage.setItem('jwt', result.token);
-			await loginWithBackend('apple', idToken);
-			emitAuthChange();
-
-			router.push('/dashboard');
-		} catch {
-			setErrors((p) => ({
-				...p,
-				apple: 'Apple sign-in failed. Please try again.',
-			}));
-		} finally {
-			setLoading(null);
-		}
+	const loginApple = () => {
+		window.location.href = `${process.env.NEXT_PUBLIC_BACKEND_URL}/auth/apple/login`;
 	};
+
+	// const loginApple = async () => {
+	// 	try {
+	// 		setLoading('apple');
+	// 		setErrors((p) => ({ ...p, apple: undefined }));
+
+	// 		const idToken = await getAppleIdToken();
+
+	// 		const result = await loginWithBackend('apple', idToken);
+
+	// 		setUserPreview(result.user ?? null);
+
+	// 		// localStorage.setItem('jwt', result.token);
+	// 		await loginWithBackend('apple', idToken);
+	// 		emitAuthChange();
+
+	// 		router.push('/dashboard');
+	// 	} catch {
+	// 		setErrors((p) => ({
+	// 			...p,
+	// 			apple: 'Apple sign-in failed. Please try again.',
+	// 		}));
+	// 	} finally {
+	// 		setLoading(null);
+	// 	}
+	// };
 
 	/**
 	 * PASSKEY (future)

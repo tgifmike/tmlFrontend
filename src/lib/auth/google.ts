@@ -1,8 +1,8 @@
-import { loginWithBackend } from './login';
+// import { loginWithBackend } from './login';
 
-export async function signInWithGoogle(idToken: string) {
-	return loginWithBackend('google', idToken);
-}
+// export async function signInWithGoogle(idToken: string) {
+// 	return loginWithBackend('google', idToken);
+// }
 
 // export function getGoogleIdToken(): Promise<string> {
 // 	return new Promise((resolve, reject) => {
