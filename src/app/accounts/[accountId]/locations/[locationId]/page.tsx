@@ -9,7 +9,8 @@ import TimeOfDayGreeting from '@/components/login/TimeOfDayGreeting';
 import LocationNav from '@/components/navBar/LocationNav';
 import MobileDrawerNav from '@/components/navBar/MoibileDrawerNav';
 import Spinner from '@/components/spinner/Spinner';
-import { useSession } from '@/lib/auth/useSession';
+import { useSession } from '@/lib/auth/session-context';
+
 import { useParams, useRouter } from 'next/navigation';
 
 import React, { useEffect, useState } from 'react'
@@ -21,7 +22,7 @@ const LocationPage = () => {
 	//icons
 
 	//session
-	const { user, status } = useSession();
+	const { user } = useSession();
 	const currentUser = user as User | undefined;
 	const sessionUserRole = user?.appRole;
 	const canToggle = currentUser?.appRole === AppRole.MANAGER;
@@ -151,7 +152,7 @@ const LocationPage = () => {
 			{/* main content */}
 			<section className="flex-1 flex flex-col">
 				{/* Header */}
-				<header className="flex justify-between items-center px-4 py-3 border-b  backdrop-blur-md sticky top-0 z-20">
+				<header className="flex justify-start gap-2 items-center px-4 py-3 border-b  backdrop-blur-md sticky top-0 z-20">
 					{/* Left */}
 					<div className="flex gap-8">
 						{/* Mobile Drawer */}
@@ -170,10 +171,11 @@ const LocationPage = () => {
 						</MobileDrawerNav>
 						<h1 className="text-3xl font-bold mb-4">{locationName}</h1>
 					</div>
-					<TimeOfDayGreeting name={user?.name} />
+				
+						<TimeOfDayGreeting name={user?.name} />
+					
 				</header>
 				<div className="flex flex-col justify-between p-2 gap-3">
-				
 					<div>
 						<RobustLineCheckDashboard
 							locationId={locationIdParam!}

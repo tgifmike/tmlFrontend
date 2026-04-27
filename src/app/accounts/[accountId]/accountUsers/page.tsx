@@ -18,7 +18,7 @@ import { StatusSwitchOrBadge } from '@/components/tableComponents/StatusSwitchOr
 import { UserControls } from '@/components/tableComponents/UserControls';
 import { UserStatusSwitchOrBadge } from '@/components/tableComponents/UserStatusSwitch';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { useSession } from '@/lib/auth/useSession';
+import { useSession } from '@/lib/auth/session-context';
 import { Icons } from '@/lib/icon';
 import { useParams } from 'next/navigation';
 import router from 'next/router';
@@ -30,7 +30,7 @@ const AccountUsersPage = () => {
 		const UserIcon = Icons.user;
 
 	//session
-	const { user, status } = useSession();
+	const { user, loading, logout } = useSession();
 	const currentUser = user as User | undefined;
 	const sessionUserRole = user?.appRole;
 	const canToggle = currentUser?.appRole === AppRole.MANAGER;
@@ -51,7 +51,7 @@ const AccountUsersPage = () => {
 	const [drawerOpen, setDrawerOpen] = useState(false);
 
 	useEffect(() => {
-		if (status !== 'authenticated' || !user?.id || !accountIdParam)
+		if (loading || !user?.id || !accountIdParam)
 			return;
 		if (hasAccess) return; // prevent rerun
 
@@ -88,7 +88,7 @@ const AccountUsersPage = () => {
 		};
 
 		verifyAccess();
-	}, [status, user, accountIdParam, hasAccess, router]);
+	}, [loading, user, accountIdParam, hasAccess, router]);
 
 	// Load pagination settings from localStorage safely
 		useEffect(() => {
@@ -225,15 +225,7 @@ const AccountUsersPage = () => {
 			currentPage * pageSize
 		);
 	
-		//show loadding state
-		if (loadingAccess || users == null)
-			return (
-				<div className="flex justify-center items-center py-40  text-chart-3 text-xl">
-					<Spinner />
-					<span className="ml-4">Loading Account Users…</span>
-				</div>
-			);
-	
+		
 	
 		
 	

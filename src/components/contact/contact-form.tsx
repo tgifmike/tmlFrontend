@@ -18,7 +18,8 @@ import {
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardTitle } from '@/components/ui/card';
-import { useSession } from '@/lib/auth/useSession';
+import { useSession } from '@/lib/auth/session-context';
+
 
 // Zod schema
 const formSchema = z.object({

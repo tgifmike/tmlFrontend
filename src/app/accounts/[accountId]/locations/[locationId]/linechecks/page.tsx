@@ -54,17 +54,18 @@ import {
 	PopoverTrigger,
 } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
-import { useSession } from '@/lib/auth/useSession';
+import { useSession } from '@/lib/auth/session-context';
+
 
 type SortMode = 'dateDesc' | 'dateAsc' | 'userAsc' | 'userDesc';
 
 const LocationLineChecksPage = () => {
-	const { user, status } = useSession();
+	const { user, loading, logout } = useSession();
 	const currentUser = user as User | undefined;
 	const params = useParams<{ accountId: string; locationId: string }>();
 	const router = useRouter();
 
-	const [loadingAccess, setLoadingAccess] = useState(true);
+
 	const [hasAccess, setHasAccess] = useState(false);
 
 	const [accountName, setAccountName] = useState<string | null>(null);
@@ -91,7 +92,7 @@ const LocationLineChecksPage = () => {
 			!user?.id ||
 			!accountIdParam ||
 			!locationIdParam ||
-			status !== 'authenticated'
+			loading
 		)
 			return;
 		if (hasAccess) return;
@@ -145,12 +146,12 @@ const LocationLineChecksPage = () => {
 				toast.error('You do not have access to this location.');
 				router.push('/accounts');
 			} finally {
-				setLoadingAccess(false);
+				// setLoadingAccess(false);
 			}
 		};
 
 		verifyAccess();
-	}, [status, user, accountIdParam, locationIdParam, hasAccess, router]);
+	}, [loading, user, accountIdParam, locationIdParam, hasAccess, router]);
 
 	// --- Fetch line checks ---
 	useEffect(() => {
@@ -236,14 +237,7 @@ const LocationLineChecksPage = () => {
 		return grouped;
 	}, [filteredAndSortedLineChecks]);
 
-	// if (loadingAccess) {
-	// 	return (
-	// 		<div className="flex justify-center items-center py-40 text-xl">
-	// 			<Spinner />
-	// 			<span className="ml-4">Loading Line Checks…</span>
-	// 		</div>
-	// 	);
-	// }
+
 
 	return (
 		<main className="flex min-h-screen overflow-hidden">

@@ -10,7 +10,8 @@ import { AppRole, User } from '@/app/types';
 import { updateUserAppRole } from '@/app/api/userApI';
 import { toast } from 'sonner';
 import { Badge } from '../ui/badge';
-import { useSession } from '@/lib/auth/useSession';
+import { useSession } from '@/lib/auth/session-context';
+
 
 
 type Props = {
@@ -21,7 +22,7 @@ type Props = {
 export const AppRoleSelect = ({ user, onRoleChange }: Props) => {
 
 	//session
-		const { user: userSession } = useSession();
+		const { user: userSession, loading, logout } = useSession();
 	
 		const sessionUserRole = userSession?.appRole;
 		const isManager = sessionUserRole === 'MANAGER';

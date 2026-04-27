@@ -46,10 +46,11 @@ import { Button } from '@/components/ui/button';
 import clsx from 'clsx';
 
 import OptionAuditFeed from '@/components/options/OptionAuditFeed';
-import { useSession } from '@/lib/auth/useSession';
+import { useSession } from '@/lib/auth/session-context';
+
 
 const OptionsPage = () => {
-	const { user, status } = useSession();
+	const { user, loading, logout } = useSession();
 	
 	const params = useParams<{ accountId: string; locationId: string }>();
 	const accountIdParam = params.accountId;
@@ -83,7 +84,7 @@ const OptionsPage = () => {
 
 	// Fetch options and verify access
 	useEffect(() => {
-		if (!user?.id) return;
+		if (!user) return;
 		if (!accountIdParam) return;
 
 		const verifyAccess = async () => {
@@ -95,8 +96,8 @@ const OptionsPage = () => {
 				);
 
 				if (!account) {
-					toast.error('Access denied to this account.');
-					router.push('/accounts');
+					// toast.error('Access denied to this account.');
+					// router.push('/accounts');
 					return;
 				}
 
@@ -140,7 +141,7 @@ const OptionsPage = () => {
 		};
 
 		verifyAccess();
-	}, [user?.id, accountIdParam, locationIdParam]);
+	}, [user?.userId, accountIdParam, locationIdParam]);
 
 	// Toggle active status
 	const handleToggleActive = async (optionId: string, checked: boolean) => {
@@ -238,16 +239,6 @@ const OptionsPage = () => {
 				toast.error('Failed to save new order.');
 			}
 		};
-
-
-	// if (status === 'loading' || loadingAccess) {
-	// 	return (
-	// 		<div className="flex justify-center items-center py-40 text-xl">
-	// 			<Spinner />
-	// 			<span className="ml-4">Loading options…</span>
-	// 		</div>
-	// 	);
-	// }
 
 	const filteredOptions = options.filter(
 		(o) =>

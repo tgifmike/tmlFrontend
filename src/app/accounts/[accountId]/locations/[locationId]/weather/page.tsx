@@ -4,13 +4,13 @@ import React, { useEffect, useState } from 'react';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
 import { getUserLocationAccess, getWeather } from '@/app/api/locationApi';
 import { useParams, useRouter } from 'next/navigation';
-import Spinner from '@/components/spinner/Spinner';
 import { getAccountsForUser } from '@/app/api/accountApi';
 import { toast } from 'sonner';
 import LocationNav from '@/components/navBar/LocationNav';
 import MobileDrawerNav from '@/components/navBar/MoibileDrawerNav';
 import Image from 'next/image';
-import { useSession } from '@/lib/auth/useSession';
+import { useSession } from '@/lib/auth/session-context';
+
 
 
 interface WeatherResponse {
@@ -35,14 +35,14 @@ const iconMapping: Record<string, string> = {
 };
 
 const ExtendedForecastPage = () => {
-    const { user, status } = useSession();
+    const { user, loading, logout } = useSession();
     const sessionUserRole = user?.appRole;
 	const params = useParams<{ accountId: string; locationId: string }>();
 	const accountIdParam = params.accountId;
 	const locationIdParam = params.locationId;
 	const router = useRouter();
 
-	const [loadingAccess, setLoadingAccess] = useState(true);
+
 	const [hasAccess, setHasAccess] = useState(false);
 	const [currentLocation, setCurrentLocation] = useState<any>();
     const [weather, setWeather] = useState<WeatherResponse | null>(null);
@@ -53,7 +53,7 @@ const ExtendedForecastPage = () => {
 
 	useEffect(() => {
 		if (
-			status !== 'authenticated' ||
+			loading ||
 			!user?.id ||
 			!accountIdParam ||
 			!locationIdParam
@@ -101,12 +101,12 @@ const ExtendedForecastPage = () => {
 				toast.error('Unable to fetch weather data.');
 				router.push('/accounts');
 			} finally {
-				setLoadingAccess(false);
+				
 			}
 		};
 
 		verifyAccess();
-	}, [status, user?.id, accountIdParam, locationIdParam, hasAccess]);
+	}, [loading, user?.id, accountIdParam, locationIdParam, hasAccess]);
 
     const dailyForecast = weather?.forecast?.properties?.periods || [];
 
@@ -145,13 +145,6 @@ const ExtendedForecastPage = () => {
 		return 'bg-gradient-to-br from-gray-300 to-gray-100';
 	};
 
-	// if (loadingAccess)
-	// 	return (
-	// 		<div className="flex justify-center items-center py-40 text-chart-3 text-xl">
-	// 			{' '}
-	// 			<Spinner /> <span className="ml-4">Loading Weather…</span>{' '}
-	// 		</div>
-	// 	);
 
 	
 

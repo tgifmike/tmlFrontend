@@ -408,7 +408,9 @@ export interface RankedItemDto {
 
 export type SessionUser = {
 	userId: string;
+	id: string;
 	email: string;
+	name?: string;
 	appRole: AppRole;
 	accessRole: AccessRole;
 	accounts: any[];

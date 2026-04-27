@@ -1,65 +1,66 @@
 'use client';
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
-
 import { fetchMe } from './session-api';
-import { SessionState } from '@/app/types';
+import { SessionUser } from '@/app/types';
 
 type Ctx = {
-	session: SessionState;
+	user: SessionUser | null;
+	loading: boolean;
 	refreshSession: () => Promise<void>;
-	logout: () => void;
+	logout: () => Promise<void>;
 };
 
 const SessionContext = createContext<Ctx | null>(null);
 
 export function SessionProvider({ children }: { children: React.ReactNode }) {
-	const [session, setSession] = useState<SessionState>({
-		user: null,
-		loading: true,
-	});
+	const [user, setUser] = useState<SessionUser | null>(null);
+	const [loading, setLoading] = useState(true);
 
 	const refreshSession = async () => {
 		try {
-			setSession((s) => ({ ...s, loading: true }));
-
-			const user = await fetchMe();
-
-			setSession({
-				user,
-				loading: false,
-			});
+			setLoading(true);
+			const me = await fetchMe();
+			setUser(me);
 		} catch {
-			setSession({
-				user: null,
-				loading: false,
-			});
+			setUser(null);
+		} finally {
+			setLoading(false);
 		}
 	};
 
-	const logout = () => {
-		localStorage.removeItem('jwt');
-		setSession({ user: null, loading: false });
+	const logout = async () => {
+		try {
+			await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/auth/logout`, {
+				method: 'POST',
+				credentials: 'include',
+			});
+		} finally {
+			setUser(null);
+			setLoading(false);
+			window.dispatchEvent(new Event('auth-change'));
+		}
 	};
 
 	useEffect(() => {
-		const token = localStorage.getItem('jwt');
-
-		if (!token) {
-			setSession({ user: null, loading: false });
-			return;
-		}
-
 		refreshSession();
 	}, []);
 
+	useEffect(() => {
+		const onAuthChange = () => {
+			refreshSession();
+		};
+
+		window.addEventListener('auth-change', onAuthChange);
+		return () => window.removeEventListener('auth-change', onAuthChange);
+	}, [refreshSession]);
+
 	return (
-		<SessionContext.Provider value={{ session, refreshSession, logout }}>
+		<SessionContext.Provider value={{ user, loading, refreshSession, logout }}>
 			{children}
 		</SessionContext.Provider>
 	);
 }
-
 export function useSession() {
 	const ctx = useContext(SessionContext);
 	if (!ctx) throw new Error('useSession must be used inside SessionProvider');

@@ -41,29 +41,14 @@ const TimeOfDayGreeting: React.FC<TimeOfDayGreetingProps> = ({ name }) => {
 	const displayName = name?.split(' ')[0] ?? 'You';
 
 	return (
-		<Card className="w-full max-w-md mx-auto border-0 shadow-none outline-0 ">
-			{' '}
-			<CardContent className="p-0 flex items-center gap-4">
-				<p className="text-2xl md:text-3xl font-semibold">
-					{emoji} {timeOfDayText}{' '}
-					{/* <span className="text-chart-3 italic">{displayName},</span>{' '} */}
-				</p>{' '}
-				{/* <motion.span
-					className="text-4xl"
-					animate={{ y: [0, -5, 0] }}
-					transition={{ repeat: Infinity, duration: 1.5 }}
-				>
-					{emoji}
-				</motion.span>{' '} */}
-				{/* <p className="text-2xl md:text-3xl font-semibold">
-					{timeOfDayText}{' '}
-					<span className="text-chart-3 italic">{displayName},</span>{' '}
-				</p>{' '} */}
-				{/* <span className="text-3xl">{emoji}</span> */}
+		<Card className="w-fit border-0 shadow-none bg-transparent">
+			<CardContent className="!p-0 flex items-center gap-2">
+				<p className="text-2xl md:text-3xl font-semibold">{timeOfDayText}</p>
+
 				<span className="text-2xl md:text-3xl font-semibold text-chart-3 italic">
 					{displayName},
-				</span>{' '}
-			</CardContent>{' '}
+				</span>
+			</CardContent>
 		</Card>
 	);
 };

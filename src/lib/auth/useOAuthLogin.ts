@@ -48,7 +48,8 @@ export function useAuthLogin() {
 
 			setUserPreview(result.user ?? null);
 
-			localStorage.setItem('jwt', result.token);
+			// localStorage.setItem('jwt', result.token);
+			await loginWithBackend('apple', idToken);
 			emitAuthChange();
 
 			router.push('/dashboard');

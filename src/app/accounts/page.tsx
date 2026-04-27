@@ -19,14 +19,15 @@ import CreateAccountDialog from '@/components/tableComponents/CreateAccountForm'
 import { DataCard } from '@/components/cards/DataCard';
 import Link from 'next/link';
 import AccountHistoryFeed from '@/components/tableComponents/AccountHistoryFeed';
-import { useSession } from '@/lib/auth/useSession';
+import { useSession } from '@/lib/auth/session-context';
+
 
 
 const MainAccountPage = () => {
 	//icons
 
 	//session
-	const { user, status } = useSession();
+	const { user, loading, logout } = useSession();
 	const currentUser = user as User | undefined;
 	const sessionUserRole = user?.appRole;
 	const canToggle = currentUser?.appRole === AppRole.MANAGER;
@@ -34,7 +35,6 @@ const MainAccountPage = () => {
 
 	//set state
 	const [accounts, setAccounts] = useState<Account[]>([]);
-	const [loading, setLoading] = useState(true);
 	const [showActiveOnly, setShowActiveOnly] = useState(true);
 	const [searchTerm, setSearchTerm] = useState('');
 	const [currentPage, setCurrentPage] = useState(1);
@@ -46,7 +46,7 @@ const MainAccountPage = () => {
 
 	useEffect(() => {
 		// Only fetch if session is loaded and user id exists
-		if (status === 'authenticated' && user?.id) {
+		if (user?.id) {
 			const fetchAccounts = async () => {
 				try {
 					const response = await getAccountsForUser(user.id);
@@ -54,15 +54,15 @@ const MainAccountPage = () => {
 				} catch (error: any) {
 					toast.error('Failed to fetch accounts: ' + (error.message || error));
 				} finally {
-					setLoading(false);
+					// setLoading(false);
 				}
 			};
 			fetchAccounts();
-		} else if (status !== 'loading') {
+		} else if (loading) {
 			// Session failed or no user
-			setLoading(false);
+			// setLoading(false);
 		}
-	}, [status, user]);
+	}, [loading, user]);
 
 	const handleAccountUpdated = (updated: AccountHistory) => {
 		setAccountHistoryUpdates((prev) => [updated, ...prev]);
@@ -165,14 +165,7 @@ const MainAccountPage = () => {
 		currentPage * pageSize
 	);
 
-	//show loadding state
-	if (loading || accounts == null)
-		return (
-			<div className="flex justify-center items-center py-40  text-chart-3 text-xl">
-				<Spinner />
-				<span className="ml-4">Loading Accounts…</span>
-			</div>
-		);
+	
 
 	return (
 		<div className="pt-3">

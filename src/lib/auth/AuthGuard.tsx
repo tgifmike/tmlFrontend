@@ -2,21 +2,21 @@
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useSession } from '@/lib/auth/useSession';
 import Spinner from '@/components/spinner/Spinner';
+import { useSession } from './session-context';
 
 export default function AuthGuard({ children }: { children: React.ReactNode }) {
 	const router = useRouter();
-	const { status } = useSession();
+	const { user, loading, logout } = useSession();
 
 	useEffect(() => {
-		if (status === 'unauthenticated') {
+		if (!loading && !user) {
 			router.replace('/login');
 		}
-	}, [status, router]);
+	}, [user, loading, router]);
 
 	// IMPORTANT FIX ↓↓↓
-	if (status === 'loading') {
+	if (loading) {
 		return (
 			<div className="flex items-center justify-center h-screen gap-3">
 				<Spinner />
@@ -26,7 +26,7 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
 	}
 
 	// don't render anything until decision is made
-	if (status === 'unauthenticated') {
+	if (!user) {
 		return null;
 	}
 

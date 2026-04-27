@@ -26,21 +26,22 @@ import { UserControls } from '@/components/tableComponents/UserControls';
 import { Icons } from '@/lib/icon';
 import { StatusSwitchOrBadge } from '@/components/tableComponents/StatusSwitchOrBadge';
 import { DeleteConfirmButton } from '@/components/tableComponents/DeleteConfirmButton';
-import { useSession } from '@/lib/auth/useSession';
+import { useSession } from '@/lib/auth/session-context';
+
 
 const Page = () => {
 	//icons
 	const UserIcon = Icons.user;
 
 	//session
-	const { user, status } = useSession();
+	const { user, loading, logout } = useSession();
 	const currentUser = user as User | undefined;
 	const sessionUserRole = user?.appRole;
 	const canToggle = currentUser?.appRole === AppRole.MANAGER;
 
 	//set state
 	const [users, setUsers] = useState<User[]>([]);
-	const [loading, setLoading] = useState(true);
+	
 	const [showActiveOnly, setShowActiveOnly] = useState(false);
 	const [searchTerm, setSearchTerm] = useState('');
 	const [currentPage, setCurrentPage] = useState(1);
@@ -80,7 +81,7 @@ const Page = () => {
 			} catch (error: any) {
 				toast.error('Failed to fetch users: ' + (error.message || error));
 			} finally {
-				setLoading(false);
+				// setLoading(false);
 			}
 		};
 		fetchUsers();
@@ -96,11 +97,7 @@ const Page = () => {
 			);
 
 			const updatedUser = users.find((u) => u.id === userId);
-			// toast.success(
-			// 	`User:  ${updatedUser?.userName ?? 'unknown'} is now ${
-			// 		checked ? 'active' : 'inactive'
-			// 	}`
-			// );
+		
 		} catch (error: any) {
 			toast.error('Failed to update user status: ' + error.message);
 		}
@@ -197,14 +194,6 @@ const Page = () => {
 		currentPage * pageSize
 	);
 
-	//show loadding state
-	if (loading || users == null)
-		return (
-			<div className="flex justify-center items-center py-40  text-chart-3 text-xl">
-				<Spinner />
-				<span className="ml-4">Loading Users…</span>
-			</div>
-		);
 
 	return (
 		<main className="pt-4">
