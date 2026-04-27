@@ -14,6 +14,10 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ModeToggle } from '../theme/ModeToggle';
 import { emitAuthChange } from '@/lib/auth/authEvents';
+import { log } from 'console';
+import { useSession } from '@/lib/auth/session-context';
+import { refresh } from 'next/cache';
+
 
 
 type User = {
@@ -36,10 +40,12 @@ const UserAccountNav: React.FC<UserAccountNavProps> = ({ user }) => {
 
 	const [open, setOpen] = useState(false);
 	const router = useRouter();
+	const { logout, refreshSession } = useSession();
 
-	const handleLogout = () => {
-		localStorage.removeItem('jwt');
-		emitAuthChange();
+	const handleLogout = async () => {
+		await logout(); // assuming logout is an async function that clears the session
+		// emitAuthChange();
+		await refreshSession();
 		setOpen(false);
 		router.push('/login');
 	};

@@ -1,12 +1,17 @@
-import { SessionUser } from "@/app/types";
+import { SessionUser } from '@/app/types';
 
-
-export async function fetchMe(): Promise<SessionUser> {
+export async function fetchMe(): Promise<SessionUser | null> {
 	const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/users/me`, {
-		credentials: 'include', // ✅ KEY
+		credentials: 'include',
 	});
 
-	if (!res.ok) throw new Error('Not authenticated');
+	if (res.status === 401) {
+		return null;
+	}
+
+	if (!res.ok) {
+		throw new Error('Failed to fetch session');
+	}
 
 	return res.json();
 }
