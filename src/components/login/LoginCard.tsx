@@ -34,33 +34,6 @@ export default function LoginCard() {
 	const { resolvedTheme } = useTheme();
 	const isDark = resolvedTheme === 'dark';
 
-	/**
-	 * future: hydrate biometrics / last user session
-	 */
-	// useEffect(() => {
-	// 	initGoogle();
-
-	// 	const google = window.google;
-	// 	if (!google?.accounts?.id) return;
-
-	// 	const el = document.getElementById('googleBtn');
-
-	// 	if (el) {
-	// 		google.accounts.id.renderButton(el, {
-	// 			type: 'standard',
-	// 			theme: 'filled_black',
-	// 			size: 'large',
-	// 			shape: 'pill',
-	// 			text: 'signin_with',
-	// 			width: 320,
-	// 		});
-	// 	}
-    // }, [initGoogle]);
-    
-    // const loginWithGoogle = () => {
-	// 		window.location.href = `${process.env.NEXT_PUBLIC_API_URL}/auth/google/login`;
-	// 	};
-
 	const lastUser = userPreview; // 👈 biometric-first hook
 
 	return (
@@ -114,35 +87,6 @@ export default function LoginCard() {
 							<AlertDescription>{errors.google}</AlertDescription>
 						</Alert>
 					)}
-
-					{/* GOOGLE */}
-					{/* <OAuthButton
-						onClick={startGoogleLogin}
-						loading={loading === 'google'}
-					>
-						<FcGoogle className="text-2xl" />
-						Continue with Google
-					</OAuthButton> */}
-
-					{/* <div className="flex justify-center w-full min-h-[48px]">
-						<div id="googleBtn" />
-					</div>
-
-					<div className="relative">
-						<OAuthButton
-							onClick={() =>
-								document
-									.querySelector('#googleHiddenBtn div[role=button]')
-									?.dispatchEvent(new MouseEvent('click', { bubbles: true }))
-							}
-							loading={loading === 'google'}
-						>
-							<FcGoogle className="text-2xl" />
-							Continue with Google
-						</OAuthButton>
-
-						<div id="googleHiddenBtn" className="absolute inset-0 opacity-0" />
-					</div> */}
 
 					<OAuthButton onClick={loginGoogle}>
 						<FcGoogle className="text-2xl" />
