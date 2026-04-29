@@ -1,15 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-/**
- * Production-grade middleware
- * 3-cookie architecture
- *
- * Cookies expected:
- * - accessToken   (httpOnly auth cookie)
- * - userRole      (ADMIN / SRADMIN / USER)
- * - userAppRole   (MEMBER / MANAGER / OWNER ...)
- */
-
 const PUBLIC_ROUTES = ['/', '/pricing', '/privacy', '/terms'];
 const AUTH_ROUTES = ['/login', '/register'];
 
@@ -25,18 +15,27 @@ const PROTECTED_ROUTES = [
 const ADMIN_ROUTES = ['/admin'];
 
 function matches(path: string, routes: string[]) {
-	return routes.some((route) => path === route || path.startsWith(route + '/'));
+	return routes.some((r) => path === r || path.startsWith(r + '/'));
+}
+
+function normalizeRole(role?: string) {
+	return role?.toUpperCase();
 }
 
 function isAdmin(role?: string) {
-	return role === 'ADMIN' || role === 'SRADMIN';
+	const r = normalizeRole(role);
+	return r === 'ADMIN' || r === 'SRADMIN';
+}
+
+function isLoggedIn(token?: string) {
+	return !!token; // IMPORTANT: middleware does NOT validate JWT signature
 }
 
 export function middleware(request: NextRequest) {
 	const { pathname } = request.nextUrl;
 
 	// -----------------------------------
-	// Skip static / internals
+	// Skip static files
 	// -----------------------------------
 	if (
 		pathname.startsWith('/_next') ||
@@ -47,23 +46,21 @@ export function middleware(request: NextRequest) {
 	}
 
 	// -----------------------------------
-	// Read cookies
+	// Cookies
 	// -----------------------------------
 	const token = request.cookies.get('accessToken')?.value;
 	const accessRole = request.cookies.get('userRole')?.value;
 	const appRole = request.cookies.get('userAppRole')?.value;
 
-	const loggedIn = !!token;
+	const loggedIn = isLoggedIn(token);
 
 	// -----------------------------------
 	// AUTH ROUTES
-	// Logged in users should not see login
 	// -----------------------------------
 	if (matches(pathname, AUTH_ROUTES)) {
 		if (loggedIn) {
 			return NextResponse.redirect(new URL('/dashboard', request.url));
 		}
-
 		return NextResponse.next();
 	}
 
@@ -91,26 +88,20 @@ export function middleware(request: NextRequest) {
 
 	// -----------------------------------
 	// PROTECTED ROUTES
-	// Future appRole checks can go here
 	// -----------------------------------
 	if (matches(pathname, PROTECTED_ROUTES)) {
 		if (!loggedIn) {
 			return NextResponse.redirect(new URL('/login', request.url));
 		}
 
-		// Example future:
-		// if (pathname.startsWith('/metrics') && appRole !== 'MANAGER') {
-		//   return NextResponse.redirect(
-		//     new URL('/unauthorized', request.url)
-		//   );
+		// Future appRole gating example:
+		// if (pathname.startsWith('/metrics') && normalizeRole(appRole) !== 'MANAGER') {
+		// 	return NextResponse.redirect(new URL('/unauthorized', request.url));
 		// }
 
 		return NextResponse.next();
 	}
 
-	// -----------------------------------
-	// DEFAULT
-	// -----------------------------------
 	return NextResponse.next();
 }
 

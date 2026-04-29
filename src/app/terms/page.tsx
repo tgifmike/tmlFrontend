@@ -1,112 +1,184 @@
-import React from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+
+export const metadata = {
+	title: 'Terms & Conditions | The Manager Life',
+	description:
+		'How The Manager Life Terms & Conditions apply to the application.',
+};
 
 const TermsPage = () => {
 	return (
-		<main className="px-6 py-12">
-			<div className="max-w-3xl mx-auto space-y-10">
-				<header className="space-y-2">
-					<h1 className="text-4xl font-semibold tracking-tight">
+		<main className="min-h-screen bg-background py-16 px-6">
+			<div className="max-w-3xl mx-auto space-y-6">
+				{/* Header */}
+				<div className="space-y-2">
+					<h1 className="text-3xl font-bold tracking-tight">
 						Terms & Conditions
 					</h1>
 					<p className="text-muted-foreground text-sm">
-						Effective date: December 8, 2025
+						Effective date: April 29, 2026
 					</p>
-				</header>
+				</div>
 
-				<section className="space-y-4 text-base leading-relaxed text-muted-foreground">
-					<p>
-						These Terms & Conditions apply to The Manager Life mobile
-						application (“Application”) provided by The Manager Life (“Service
-						Provider”). By downloading or using the Application, you agree to
-						the terms outlined below.
-					</p>
-				</section>
+				{/* Intro */}
+				<Card>
+					<CardContent className="pt-6 text-sm text-muted-foreground leading-relaxed">
+						<p>
+							These Terms & Conditions apply to The Manager Life web application
+							(“Application”) provided by The Manager Life (“Service Provider”).
+							By accessing or using the Application, you agree to be bound by
+							these Terms.
+						</p>
+					</CardContent>
+				</Card>
 
-				<section className="space-y-4">
-					<h2 className="text-xl font-semibold">Intellectual Property</h2>
+				{/* Intellectual Property */}
+				<Card>
+					<CardHeader>
+						<CardTitle>1. Intellectual Property</CardTitle>
+					</CardHeader>
+					<CardContent className="text-sm text-muted-foreground space-y-2">
+						<p>
+							All content, branding, code, design, and functionality within the
+							Application are the intellectual property of the Service Provider.
+						</p>
+						<p>
+							Unauthorized copying, modification, reverse engineering, or
+							creation of derivative works is strictly prohibited.
+						</p>
+					</CardContent>
+				</Card>
 
-					<p className="text-muted-foreground">
-						Unauthorized copying, modification, translation, reverse
-						engineering, or derivative works based on the Application are
-						strictly prohibited. All trademarks, copyrights, database rights,
-						and intellectual property remain the property of the Service
-						Provider.
-					</p>
-				</section>
+				{/* Service Availability */}
+				<Card>
+					<CardHeader>
+						<CardTitle>2. Service Availability & Changes</CardTitle>
+					</CardHeader>
+					<CardContent className="text-sm text-muted-foreground space-y-2">
+						<p>
+							We may update, modify, or discontinue features of the Application
+							at any time without prior notice.
+						</p>
+						<p>
+							If paid features are introduced in the future, they will be
+							clearly communicated before activation.
+						</p>
+					</CardContent>
+				</Card>
 
-				<section className="space-y-4">
-					<h2 className="text-xl font-semibold">
-						Service Availability & Changes
-					</h2>
+				{/* Accounts */}
+				<Card>
+					<CardHeader>
+						<CardTitle>3. Authentication & Accounts</CardTitle>
+					</CardHeader>
+					<CardContent className="text-sm text-muted-foreground space-y-2">
+						<p>
+							The Application uses Google OAuth (via NextAuth) for
+							authentication.
+						</p>
+						<p>
+							You are responsible for maintaining the security of your account.
+							We are not responsible for unauthorized access resulting from
+							compromised credentials.
+						</p>
+					</CardContent>
+				</Card>
 
-					<p className="text-muted-foreground">
-						The Service Provider may update, modify, or discontinue features of
-						the Application at any time. If charges are introduced in the
-						future, they will be clearly communicated beforehand.
-					</p>
-				</section>
+				{/* Device Responsibility */}
+				<Card>
+					<CardHeader>
+						<CardTitle>4. Device Responsibility</CardTitle>
+					</CardHeader>
+					<CardContent className="text-sm text-muted-foreground">
+						<p>
+							You are responsible for maintaining the security and integrity of
+							your device. Modifying your device (e.g., jailbreaking or rooting)
+							may affect Application performance and security.
+						</p>
+					</CardContent>
+				</Card>
 
-				<section className="space-y-4">
-					<h2 className="text-xl font-semibold">Device Responsibility</h2>
+				{/* Connectivity */}
+				<Card>
+					<CardHeader>
+						<CardTitle>5. Network Connectivity</CardTitle>
+					</CardHeader>
+					<CardContent className="text-sm text-muted-foreground space-y-2">
+						<p>
+							Some features require an active internet connection. We are not
+							responsible for limitations caused by network availability or
+							third-party providers.
+						</p>
+						<p>
+							You are responsible for any data or carrier charges incurred while
+							using the Application.
+						</p>
+					</CardContent>
+				</Card>
 
-					<p className="text-muted-foreground">
-						You are responsible for maintaining the security of your device and
-						access to the Application. Jailbreaking or rooting your device may
-						compromise functionality and security and is not recommended.
-					</p>
-				</section>
+				{/* Updates */}
+				<Card>
+					<CardHeader>
+						<CardTitle>6. Application Updates</CardTitle>
+					</CardHeader>
+					<CardContent className="text-sm text-muted-foreground space-y-2">
+						<p>
+							The Application may be updated periodically to improve
+							performance, security, or functionality.
+						</p>
+						<p>
+							Continued use may require installing updates. We may discontinue
+							the Application at any time.
+						</p>
+					</CardContent>
+				</Card>
 
-				<section className="space-y-4">
-					<h2 className="text-xl font-semibold">Network Connectivity</h2>
+				{/* Third Party */}
+				<Card>
+					<CardHeader>
+						<CardTitle>7. Third-Party Services</CardTitle>
+					</CardHeader>
+					<CardContent className="text-sm text-muted-foreground">
+						<p>
+							The Application relies on third-party services such as Google
+							OAuth and backend infrastructure providers. We are not responsible
+							for failures caused by these services.
+						</p>
+					</CardContent>
+				</Card>
 
-					<p className="text-muted-foreground">
-						Some Application features require an active internet connection. The
-						Service Provider is not responsible for reduced functionality caused
-						by connectivity limitations or data restrictions imposed by your
-						mobile provider.
-					</p>
+				{/* Liability */}
+				<Card>
+					<CardHeader>
+						<CardTitle>8. Limitation of Liability</CardTitle>
+					</CardHeader>
+					<CardContent className="text-sm text-muted-foreground">
+						<p>
+							To the maximum extent permitted by law, the Service Provider is
+							not liable for indirect, incidental, or consequential damages,
+							including data loss or service interruptions.
+						</p>
+					</CardContent>
+				</Card>
 
-					<p className="text-muted-foreground">
-						You remain responsible for any data charges incurred while using the
-						Application, including roaming charges where applicable.
-					</p>
-				</section>
+				{/* Changes */}
+				<Card>
+					<CardHeader>
+						<CardTitle>9. Changes to These Terms</CardTitle>
+					</CardHeader>
+					<CardContent className="text-sm text-muted-foreground">
+						<p>
+							We may update these Terms periodically. Continued use of the
+							Application after changes constitutes acceptance of the revised
+							Terms.
+						</p>
+					</CardContent>
+				</Card>
 
-				<section className="space-y-4">
-					<h2 className="text-xl font-semibold">Application Updates</h2>
-
-					<p className="text-muted-foreground">
-						The Application may be updated periodically to maintain performance
-						and compatibility. Continued use may require installing updates
-						provided through your platform’s app marketplace.
-					</p>
-
-					<p className="text-muted-foreground">
-						The Service Provider reserves the right to discontinue the
-						Application at any time without prior notice. Upon termination, your
-						rights to use the Application will end and you must stop using it.
-					</p>
-				</section>
-
-				<section className="space-y-4">
-					<h2 className="text-xl font-semibold">Third-Party Dependencies</h2>
-
-					<p className="text-muted-foreground">
-						Some functionality depends on third-party services. The Service
-						Provider is not liable for losses resulting from reliance on data
-						supplied by those services.
-					</p>
-				</section>
-
-				<section className="space-y-4">
-					<h2 className="text-xl font-semibold">Changes to These Terms</h2>
-
-					<p className="text-muted-foreground">
-						These Terms & Conditions may be updated periodically. Continued use
-						of the Application after updates indicates acceptance of the revised
-						terms.
-					</p>
-				</section>
+				{/* Footer */}
+				<p className="text-center text-xs text-muted-foreground pt-6">
+					© 2026 The Manager Life
+				</p>
 			</div>
 		</main>
 	);
