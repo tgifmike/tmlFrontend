@@ -2,6 +2,7 @@ import axios, { AxiosRequestConfig } from "axios";
 import { User } from "../types";
 import api, { request } from "./axios";
 import { toast } from "sonner";
+import { access } from "fs";
 
 
 export const getAllUsers = async () => {
@@ -147,17 +148,31 @@ export const getUsersForAccount = async (accountId: string) => {
 	})
 }
 
-
-//helper for invite
-export async function apiFetch(url: string, options: RequestInit = {}) {
-	const token = localStorage.getItem('jwt');
-
-	return fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}${url}`, {
-		...options,
-		headers: {
-			'Content-Type': 'application/json',
-			...(options.headers || {}),
-			Authorization: token ? `Bearer ${token}` : '',
+//invite user to account
+export const inviteUserToAccount = async (accountId: string, email: string) => {
+	return request({
+		method: 'POST',
+		url: '/users/invite',
+		data: {
+			email,
+			accountId,
+			appRole: 'MEMBER',
+			accessRole: 'USER',
 		},
 	});
-}
+};
+
+
+//helper for invite
+// export async function apiFetch(url: string, options: RequestInit = {}) {
+// 	const token = localStorage.getItem('jwt');
+
+// 	return fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}${url}`, {
+// 		...options,
+// 		headers: {
+// 			'Content-Type': 'application/json',
+// 			...(options.headers || {}),
+// 			Authorization: token ? `Bearer ${token}` : '',
+// 		},
+// 	});
+// }
