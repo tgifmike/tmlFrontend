@@ -1,48 +1,31 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+/**
+ * Production-grade middleware
+ * 3-cookie architecture
+ *
+ * Cookies expected:
+ * - accessToken   (httpOnly auth cookie)
+ * - userRole      (ADMIN / SRADMIN / USER)
+ * - userAppRole   (MEMBER / MANAGER / OWNER ...)
+ */
+
 const PUBLIC_ROUTES = ['/', '/pricing', '/privacy', '/terms'];
 const AUTH_ROUTES = ['/login', '/register'];
-const PROTECTED_ROUTES = ['/dashboard', '/accounts', '/locations', '/metrics'];
+
+const PROTECTED_ROUTES = [
+	'/dashboard',
+	'/accounts',
+	'/locations',
+	'/metrics',
+	'/profile',
+	'/settings',
+];
+
 const ADMIN_ROUTES = ['/admin'];
 
-type JwtPayload = {
-	accessRole?: string;
-	exp?: number;
-};
-
 function matches(path: string, routes: string[]) {
-	return routes.some((r) => path === r || path.startsWith(r + '/'));
-}
-
-function decodeJwt(token?: string): JwtPayload | null {
-	if (!token) return null;
-
-	try {
-		const parts = token.split('.');
-		if (parts.length !== 3) return null;
-
-		let payload = parts[1].replace(/-/g, '+').replace(/_/g, '/');
-
-		while (payload.length % 4 !== 0) {
-			payload += '=';
-		}
-
-		return JSON.parse(atob(payload));
-	} catch {
-		return null;
-	}
-}
-
-function isValidToken(token?: string) {
-	const decoded = decodeJwt(token);
-
-	if (!decoded?.exp) return false;
-
-	return decoded.exp > Math.floor(Date.now() / 1000);
-}
-
-function getRole(token?: string) {
-	return decodeJwt(token)?.accessRole;
+	return routes.some((route) => path === route || path.startsWith(route + '/'));
 }
 
 function isAdmin(role?: string) {
@@ -52,6 +35,9 @@ function isAdmin(role?: string) {
 export function middleware(request: NextRequest) {
 	const { pathname } = request.nextUrl;
 
+	// -----------------------------------
+	// Skip static / internals
+	// -----------------------------------
 	if (
 		pathname.startsWith('/_next') ||
 		pathname.startsWith('/favicon.ico') ||
@@ -60,46 +46,71 @@ export function middleware(request: NextRequest) {
 		return NextResponse.next();
 	}
 
+	// -----------------------------------
+	// Read cookies
+	// -----------------------------------
 	const token = request.cookies.get('accessToken')?.value;
+	const accessRole = request.cookies.get('userRole')?.value;
+	const appRole = request.cookies.get('userAppRole')?.value;
 
-	const loggedIn = isValidToken(token);
-	const role = getRole(token);
+	const loggedIn = !!token;
 
-	// auth routes
+	// -----------------------------------
+	// AUTH ROUTES
+	// Logged in users should not see login
+	// -----------------------------------
 	if (matches(pathname, AUTH_ROUTES)) {
 		if (loggedIn) {
 			return NextResponse.redirect(new URL('/dashboard', request.url));
 		}
+
 		return NextResponse.next();
 	}
 
-	// public
+	// -----------------------------------
+	// PUBLIC ROUTES
+	// -----------------------------------
 	if (matches(pathname, PUBLIC_ROUTES)) {
 		return NextResponse.next();
 	}
 
-	// admin
+	// -----------------------------------
+	// ADMIN ROUTES
+	// -----------------------------------
 	if (matches(pathname, ADMIN_ROUTES)) {
 		if (!loggedIn) {
 			return NextResponse.redirect(new URL('/login', request.url));
 		}
 
-		if (!isAdmin(role)) {
+		if (!isAdmin(accessRole)) {
 			return NextResponse.redirect(new URL('/unauthorized', request.url));
 		}
 
 		return NextResponse.next();
 	}
 
-	// protected
+	// -----------------------------------
+	// PROTECTED ROUTES
+	// Future appRole checks can go here
+	// -----------------------------------
 	if (matches(pathname, PROTECTED_ROUTES)) {
 		if (!loggedIn) {
 			return NextResponse.redirect(new URL('/login', request.url));
 		}
 
+		// Example future:
+		// if (pathname.startsWith('/metrics') && appRole !== 'MANAGER') {
+		//   return NextResponse.redirect(
+		//     new URL('/unauthorized', request.url)
+		//   );
+		// }
+
 		return NextResponse.next();
 	}
 
+	// -----------------------------------
+	// DEFAULT
+	// -----------------------------------
 	return NextResponse.next();
 }
 
