@@ -1,137 +1,130 @@
-import React from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
-const PrivacyPage = () => {
+export const metadata = {
+	title: 'Privacy Policy | The Manager Life',
+	description:
+		'How The Manager Life handles user data and Google OAuth information.',
+};
+
+export default function PrivacyPolicyPage() {
 	return (
-		<main className="px-6 py-12">
-			<div className="max-w-3xl mx-auto space-y-10">
-				<header className="space-y-2">
-					<h1 className="text-4xl font-semibold tracking-tight">
-						Privacy Policy
-					</h1>
-					<p className="text-muted-foreground text-sm">
-						Effective date: December 8, 2025
-					</p>
-				</header>
-
-				<section className="space-y-4 text-base leading-relaxed text-muted-foreground">
-					<p>
-						This Privacy Policy applies to The Manager Life mobile application
-						(“Application”) provided by The Manager Life (“Service Provider”).
-						The Application is provided as a free service and is intended for
-						use as-is.
-					</p>
-				</section>
-
-				<section className="space-y-4">
-					<h2 className="text-xl font-semibold">
-						Information Collection and Use
-					</h2>
-
+		<main className="min-h-screen bg-background py-16 px-6">
+			<div className="max-w-3xl mx-auto space-y-6">
+				{/* Header */}
+				<div className="space-y-2">
+					<h1 className="text-3xl font-bold tracking-tight">Privacy Policy</h1>
 					<p className="text-muted-foreground">
-						The Application collects certain information automatically when
-						downloaded and used. This may include:
+						Effective Date: April 29, 2026
 					</p>
+				</div>
 
-					<ul className="list-disc list-inside text-muted-foreground space-y-1">
-						<li>Device model</li>
-						<li>IP address</li>
-						<li>Pages visited within the Application</li>
-						<li>Time and date of usage</li>
-						<li>Total time spent in the Application</li>
-						<li>Mobile operating system</li>
-					</ul>
+				{/* Sections */}
+				<Card>
+					<CardHeader>
+						<CardTitle>1. Information We Collect</CardTitle>
+					</CardHeader>
+					<CardContent className="text-sm text-muted-foreground space-y-2">
+						<p>
+							When you sign in using Google OAuth (via NextAuth), we may receive
+							basic account information including your name, email address,
+							profile image, and Google user ID.
+						</p>
+					</CardContent>
+				</Card>
 
-					<p className="text-muted-foreground">
-						The Application does not collect precise location data.
-					</p>
+				<Card>
+					<CardHeader>
+						<CardTitle>2. How We Use Your Information</CardTitle>
+					</CardHeader>
+					<CardContent className="text-sm text-muted-foreground">
+						<p>
+							We use this information strictly for authentication, account
+							creation, and maintaining user sessions. We do not use Google user
+							data for advertising, marketing, profiling, or automated
+							decision-making.
+						</p>
+					</CardContent>
+				</Card>
 
-					<p className="text-muted-foreground">
-						Approximate location information may be used for:
-					</p>
+				<Card>
+					<CardHeader>
+						<CardTitle>3. Data Storage</CardTitle>
+					</CardHeader>
+					<CardContent className="text-sm text-muted-foreground">
+						<p>
+							We store only the minimum required user data needed to operate the
+							application. Authentication is managed using secure tokens via
+							NextAuth and our backend service.
+						</p>
+					</CardContent>
+				</Card>
 
-					<ul className="list-disc list-inside text-muted-foreground space-y-1">
-						<li>Providing location-aware features</li>
-						<li>Improving product performance and analytics</li>
-						<li>Enhancing service quality via trusted third-party tools</li>
-					</ul>
-				</section>
+				<Card>
+					<CardHeader>
+						<CardTitle>4. Data Sharing</CardTitle>
+					</CardHeader>
+					<CardContent className="text-sm text-muted-foreground">
+						<p>
+							We do not sell, rent, or share your personal data or Google user
+							data with third parties.
+						</p>
+					</CardContent>
+				</Card>
 
-				<section className="space-y-4">
-					<h2 className="text-xl font-semibold">Third-Party Access</h2>
+				<Card>
+					<CardHeader>
+						<CardTitle>5. Data Deletion</CardTitle>
+					</CardHeader>
+					<CardContent className="text-sm text-muted-foreground">
+						<p>
+							You may request deletion of your account and associated data at
+							any time by contacting{' '}
+							<span className="font-medium text-foreground">
+								admin@themanagerlife.com
+							</span>
+							.
+						</p>
+					</CardContent>
+				</Card>
 
-					<p className="text-muted-foreground">
-						Only aggregated, anonymized data may be shared with external
-						services to help improve the Application.
-					</p>
+				<Card>
+					<CardHeader>
+						<CardTitle>6. Security</CardTitle>
+					</CardHeader>
+					<CardContent className="text-sm text-muted-foreground">
+						<p>
+							We use secure authentication (NextAuth + Spring Boot), HTTPS
+							encryption, and restricted database access to protect your data.
+						</p>
+					</CardContent>
+				</Card>
 
-					<ul className="list-disc list-inside text-muted-foreground space-y-1">
-						<li>When required by law</li>
-						<li>To protect user safety and prevent fraud</li>
-						<li>With trusted service providers supporting operations</li>
-					</ul>
-				</section>
+				<Card>
+					<CardHeader>
+						<CardTitle>7. Third-Party Services</CardTitle>
+					</CardHeader>
+					<CardContent className="text-sm text-muted-foreground">
+						<p>We use Google OAuth only for authentication purposes.</p>
+					</CardContent>
+				</Card>
 
-				<section className="space-y-4">
-					<h2 className="text-xl font-semibold">Opt-Out Rights</h2>
+				<Card>
+					<CardHeader>
+						<CardTitle>8. Changes</CardTitle>
+					</CardHeader>
+					<CardContent className="text-sm text-muted-foreground">
+						<p>
+							This policy may be updated periodically. Continued use of the
+							application indicates acceptance of changes.
+						</p>
+					</CardContent>
+				</Card>
 
-					<p className="text-muted-foreground">
-						You may stop all information collection by uninstalling the
-						Application using your device’s standard uninstall process.
-					</p>
-				</section>
-
-				<section className="space-y-4">
-					<h2 className="text-xl font-semibold">Data Retention</h2>
-
-					<p className="text-muted-foreground">
-						Data is retained only while you actively use the Application and for
-						a reasonable time afterward. To request deletion of your data,
-						contact:
-					</p>
-
-					<p className="font-medium">admin@themanagerlife.com</p>
-				</section>
-
-				<section className="space-y-4">
-					<h2 className="text-xl font-semibold">Children’s Privacy</h2>
-
-					<p className="text-muted-foreground">
-						The Application is not intended for children under age 13, and the
-						Service Provider does not knowingly collect personal information
-						from children.
-					</p>
-				</section>
-
-				<section className="space-y-4">
-					<h2 className="text-xl font-semibold">Security</h2>
-
-					<p className="text-muted-foreground">
-						The Service Provider maintains physical, electronic, and procedural
-						safeguards to protect user data.
-					</p>
-				</section>
-
-				<section className="space-y-4">
-					<h2 className="text-xl font-semibold">Changes to This Policy</h2>
-
-					<p className="text-muted-foreground">
-						This Privacy Policy may be updated periodically. Continued use of
-						the Application after updates indicates acceptance of the revised
-						policy.
-					</p>
-				</section>
-
-				<section className="space-y-4">
-					<h2 className="text-xl font-semibold">Your Consent</h2>
-
-					<p className="text-muted-foreground">
-						By using the Application, you consent to the collection and use of
-						information as described in this Privacy Policy.
-					</p>
-				</section>
+				{/* Footer */}
+				<p className="text-center text-xs text-muted-foreground pt-6">
+					© 2026 The Manager Life
+				</p>
 			</div>
 		</main>
 	);
-};
-
-export default PrivacyPage;
+}
