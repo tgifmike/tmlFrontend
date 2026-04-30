@@ -32,7 +32,20 @@ function isLoggedIn(token?: string) {
 }
 
 export function middleware(request: NextRequest) {
-    const { pathname } = request.nextUrl;
+
+     const { pathname } = request.nextUrl;
+     const cookieHeader = request.headers.get('cookie');
+
+			console.log('PATH:', request.nextUrl.pathname);
+    console.log('COOKIE HEADER RAW:', cookieHeader);
+    
+  
+
+			const token = request.cookies.get('accessToken')?.value;
+
+			console.log('PARSED TOKEN:', token);
+
+   
     
     console.log('COOKIE HEADER:', request.headers.get('cookie'));
 
@@ -50,11 +63,18 @@ export function middleware(request: NextRequest) {
 	// -----------------------------------
 	// Cookies
 	// -----------------------------------
-	const token = request.cookies.get('accessToken')?.value;
+	//const token = request.cookies.get('accessToken')?.value;
 	const accessRole = request.cookies.get('userRole')?.value;
 	const appRole = request.cookies.get('userAppRole')?.value;
 
-	const loggedIn = !!token;
+    const loggedIn = Boolean(token);
+    
+    console.log({
+			pathname,
+			hasCookie: !!cookieHeader,
+			hasToken: !!token,
+			tokenPreview: token?.slice(0, 20),
+		});
 
 	// -----------------------------------
 	// AUTH ROUTES
