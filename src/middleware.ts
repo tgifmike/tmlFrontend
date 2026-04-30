@@ -52,15 +52,18 @@ export function middleware(request: NextRequest) {
 	const accessRole = request.cookies.get('userRole')?.value;
 	const appRole = request.cookies.get('userAppRole')?.value;
 
-	const loggedIn = isLoggedIn(token);
+	const loggedIn = !!token;
 
 	// -----------------------------------
 	// AUTH ROUTES
 	// -----------------------------------
 	if (matches(pathname, AUTH_ROUTES)) {
-		if (loggedIn) {
-			return NextResponse.redirect(new URL('/dashboard', request.url));
-		}
+        if (loggedIn) {
+					console.log('PATH:', pathname);
+					console.log('COOKIE HEADER:', request.headers.get('cookie'));
+					console.log('ACCESS TOKEN:', token);
+					return NextResponse.redirect(new URL('/dashboard', request.url));
+				}
 		return NextResponse.next();
 	}
 
