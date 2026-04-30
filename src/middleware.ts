@@ -32,7 +32,9 @@ function isLoggedIn(token?: string) {
 }
 
 export function middleware(request: NextRequest) {
-	const { pathname } = request.nextUrl;
+    const { pathname } = request.nextUrl;
+    
+    console.log('COOKIE HEADER:', request.headers.get('cookie'));
 
 	// -----------------------------------
 	// Skip static files
