@@ -231,9 +231,9 @@ const AccountUsersPage = () => {
 	
 
 	return (
-		<div className="flex flex-1 min-w-0">
+		<div className="flex">
 			{/* Desktop Sidebar */}
-			<aside className="hidden md:block w-1/6 border-r h-screen bg-ring shrink-0">
+			<aside className="hidden md:block md:w-10 lg:w-72 border-r h-screen bg-ring shrink-0">
 				<LeftNav
 					accountName={accountName}
 					accountImage={accountImage}
@@ -243,9 +243,9 @@ const AccountUsersPage = () => {
 			</aside>
 
 			{/* Main Content */}
-			<section className="flex-1 flex flex-col">
+			<section className="flex-1 min-w-0 flex flex-col">
 				{/* Header */}
-				<header className="flex justify-between items-center px-4 py-3 border-b bg-background/70 backdrop-blur-md sticky top-0 z-20">
+				<header className="flex flex-wrap gap-3 justify-between items-center px-4 py-3 border-b">
 					{/* Left */}
 					<div className="flex">
 						{/* Mobile Drawer */}
@@ -273,7 +273,7 @@ const AccountUsersPage = () => {
 				</header>
 
 				{/* Controls */}
-				<div className="w-full mx-auto flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 px-4 mt-4">
+				<div className="w-full mx-auto flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 px-2 mt-4">
 					<UserControls
 						showActiveOnly={showActiveOnly}
 						setShowActiveOnly={setShowActiveOnly}
@@ -282,113 +282,117 @@ const AccountUsersPage = () => {
 					/>
 				</div>
 				{/* Desktop Table */}
-				<div className="hidden md:block mt-8 bg-accent p-4 rounded-2xl text-chart-3  mx-auto">
-					<ReusableTable
-						data={paginatedUsers}
-						rowKey={(u) => u.id!}
-						columns={[
-							{
-								header: '',
-								render: (u) => (
-									<Avatar>
-										<AvatarImage src={u.userImage ?? undefined} />
-										<AvatarFallback>
-											<UserIcon className="h-6 w-6" />
-										</AvatarFallback>
-									</Avatar>
-								),
-							},
-							{ header: 'User Name', render: (u) => u.userName },
-							{ header: 'Email', render: (u) => u.userEmail },
-							{
-								header: 'Status',
-								className: 'text-center ',
-								render: (u) => (
-									<StatusSwitchOrBadge
-										entity={{
-											id: u.id!,
-											active: u.userActive!,
-										}}
-										getLabel={() => `User: ${u.userName}`}
-										onToggle={handleToggleActive}
-										canToggle={canToggle}
-									/>
-								),
-							},
-							{
-								header: 'Access Role',
-								className: 'text-center',
-								render: (u) => (
-									<AccessRoleSelectOrBadge
-										user={u}
-										onRoleChange={(id, role) =>
-											setUsers((prev) =>
-												prev.map((user) =>
-													user.id === id ? { ...user, accessRole: role } : user,
-												),
-											)
-										}
-									/>
-								),
-							},
-							{
-								header: 'App Role',
-								render: (u) => (
-									<AppRoleSelect
-										user={u}
-										onRoleChange={(id, role) =>
-											setUsers((prev) =>
-												prev.map((user) =>
-													user.id === id ? { ...user, appRole: role } : user,
-												),
-											)
-										}
-									/>
-								),
-							},
-							{
-								header: 'Actions',
-								className: 'text-center',
-								render: (u) =>
-									sessionUserRole === 'MANAGER' ? (
-										<div className="flex justify-center gap-4 items-center">
-											<EditUserDialog
-												users={users}
-												user={u}
-												onUpdate={(id, name, email) =>
-													setUsers((prev) =>
-														prev.map((user) =>
-															user.id === id
-																? {
-																		...user,
-																		userName: name,
-																		userEmail: email,
-																	}
-																: user,
-														),
-													)
-												}
-											/>
-											{u.id && (
-												<DeleteConfirmButton
-													item={{ id: u.id }}
-													entityLabel="user"
-													onDelete={async (id) => {
-														await deleteUser(id);
-														setUsers((prev) =>
-															prev.filter((user) => user.id !== id),
-														);
-													}}
-													getItemName={() => u.userName ?? 'Unknown'} // guarantee a string
-												/>
-											)}
-										</div>
-									) : (
-										<span className="text-ring">No Actions</span>
+				<div className="hidden md:block mt-8 px-2">
+					<div className="bg-accent p-2 rounded-2xl text-chart-3 overflow-x-auto">
+						<ReusableTable
+							data={paginatedUsers}
+							rowKey={(u) => u.id!}
+							columns={[
+								{
+									header: '',
+									render: (u) => (
+										<Avatar>
+											<AvatarImage src={u.userImage ?? undefined} />
+											<AvatarFallback>
+												<UserIcon className="h-6 w-6" />
+											</AvatarFallback>
+										</Avatar>
 									),
-							},
-						]}
-					/>
+								},
+								{ header: 'User Name', render: (u) => u.userName },
+								{ header: 'Email', render: (u) => u.userEmail },
+								{
+									header: 'Status',
+									className: 'text-center ',
+									render: (u) => (
+										<StatusSwitchOrBadge
+											entity={{
+												id: u.id!,
+												active: u.userActive!,
+											}}
+											getLabel={() => `User: ${u.userName}`}
+											onToggle={handleToggleActive}
+											canToggle={canToggle}
+										/>
+									),
+								},
+								{
+									header: 'Access Role',
+									className: 'text-center',
+									render: (u) => (
+										<AccessRoleSelectOrBadge
+											user={u}
+											onRoleChange={(id, role) =>
+												setUsers((prev) =>
+													prev.map((user) =>
+														user.id === id
+															? { ...user, accessRole: role }
+															: user,
+													),
+												)
+											}
+										/>
+									),
+								},
+								{
+									header: 'App Role',
+									render: (u) => (
+										<AppRoleSelect
+											user={u}
+											onRoleChange={(id, role) =>
+												setUsers((prev) =>
+													prev.map((user) =>
+														user.id === id ? { ...user, appRole: role } : user,
+													),
+												)
+											}
+										/>
+									),
+								},
+								{
+									header: 'Actions',
+									className: 'text-center',
+									render: (u) =>
+										sessionUserRole === 'MANAGER' ? (
+											<div className="flex justify-center gap-4 items-center">
+												<EditUserDialog
+													users={users}
+													user={u}
+													onUpdate={(id, name, email) =>
+														setUsers((prev) =>
+															prev.map((user) =>
+																user.id === id
+																	? {
+																			...user,
+																			userName: name,
+																			userEmail: email,
+																		}
+																	: user,
+															),
+														)
+													}
+												/>
+												{u.id && (
+													<DeleteConfirmButton
+														item={{ id: u.id }}
+														entityLabel="user"
+														onDelete={async (id) => {
+															await deleteUser(id);
+															setUsers((prev) =>
+																prev.filter((user) => user.id !== id),
+															);
+														}}
+														getItemName={() => u.userName ?? 'Unknown'} // guarantee a string
+													/>
+												)}
+											</div>
+										) : (
+											<span className="text-ring">No Actions</span>
+										),
+								},
+							]}
+						/>
+					</div>
 				</div>
 
 				{/* Mobile Cards */}
@@ -493,7 +497,7 @@ const AccountUsersPage = () => {
 				</div>
 
 				{/* pagination page size selector */}
-				<div className="w-full mx-auto flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 px-4 mt-4">
+				<div className="w-full mx-auto flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 px-2 mt-4">
 					<Pagination
 						currentPage={currentPage}
 						setCurrentPage={setCurrentPage}

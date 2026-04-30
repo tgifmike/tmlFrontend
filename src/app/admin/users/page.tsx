@@ -197,14 +197,14 @@ const Page = () => {
 
 	return (
 		<main className="pt-4">
-			<div className="w-3/4 flex mx-auto">
+			<div className="flex mx-auto p-4">
 				<h1 className="text-3xl font-bold text-center mb-4">
 					Admin Users Page
 				</h1>
 			</div>
 
 			{/* table header */}
-			<div className="w-full md:w-3/4 mx-auto flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 px-4 mt-4">
+			<div className="w-full mx-auto flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 px-4 mt-4">
 				<UserControls
 					showActiveOnly={showActiveOnly}
 					setShowActiveOnly={setShowActiveOnly}
@@ -214,7 +214,7 @@ const Page = () => {
 			</div>
 
 			{/* Desktop Table */}
-			<div className="hidden md:block mt-8 bg-accent p-4 rounded-2xl text-chart-3 w-3/4 mx-auto">
+			<div className="hidden md:block mt-8 bg-accent p-2 m-4 rounded-2xl shadow-2xl text-chart-3">
 				<ReusableTable
 					data={paginatedUsers}
 					rowKey={(u) => u.id!}
@@ -421,7 +421,7 @@ const Page = () => {
 			</div>
 
 			{/* pagination page size selector */}
-			<div className="w-full md:w-3/4 mx-auto flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 px-4 mt-4">
+			<div className="w-full mx-auto flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 px-4 mt-4">
 				<Pagination
 					currentPage={currentPage}
 					setCurrentPage={setCurrentPage}
