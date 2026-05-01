@@ -1,32 +1,35 @@
-import axios, { AxiosRequestConfig } from "axios";
-import { User } from "../types";
-import api, { request } from "./axios";
-import { toast } from "sonner";
-import { access } from "fs";
-
+import axios, { AxiosRequestConfig } from 'axios';
+import { User, UserHistory } from '../types';
+import api, { request } from './axios';
+import { toast } from 'sonner';
+import { access } from 'fs';
 
 export const getAllUsers = async () => {
 	return request<User[]>({ method: 'GET', url: '/users/all' });
 };
 
-
 //toggle active flag
 export const toggleUserActive = async (id: string, active: boolean) => {
-    return request<User>({ method: 'PATCH', url: `/users/${id}/active?active=${active}` });
-}
+	return request<User>({
+		method: 'PATCH',
+		url: `/users/${id}/active?active=${active}`,
+	});
+};
 
 //update user access role
 export const updateUserAccessRole = async (id: string, accessRole: string) => {
 	return request<User>({
 		method: 'PATCH',
-		url: `/users/${id}/accessRole?role=${accessRole}`, 
+		url: `/users/${id}/accessRole?role=${accessRole}`,
 	});
 };
 
 //update user app role
 export const updateUserAppRole = async (id: string, appRole: string) => {
-    return request<User>({ method: 'PATCH', url: `/users/${id}/appRole?role=${appRole}` });
-
+	return request<User>({
+		method: 'PATCH',
+		url: `/users/${id}/appRole?role=${appRole}`,
+	});
 };
 
 //delete user
@@ -53,7 +56,7 @@ export const updateUser = async (userId: string, data: UpdateUserPayload) => {
 				image: data.image,
 				appRole: data.appRole,
 				acccessRole: data.accessRole,
-			}
+			},
 			// optional config as third argument
 		);
 		return response.data;
@@ -70,8 +73,6 @@ export const updateUser = async (userId: string, data: UpdateUserPayload) => {
 	}
 };
 
-
-
 // create a user
 type CreateUserPayload = {
 	userName: string;
@@ -86,13 +87,10 @@ type CreateUserPayload = {
 };
 
 export const createUser = async (
-	data: CreateUserPayload
+	data: CreateUserPayload,
 ): Promise<User | null> => {
 	try {
-		const response = await api.post<User>(
-			'/users/create',
-			data
-		);
+		const response = await api.post<User>('/users/create', data);
 		//toast.success(`User ${data.userName} was created successfully`);
 		return response.data;
 	} catch (error: any) {
@@ -113,7 +111,7 @@ export const createUser = async (
 //server safe version
 //used for google to sign in and save to db
 export const createUserServer = async (
-	data: CreateUserPayload
+	data: CreateUserPayload,
 ): Promise<User | null> => {
 	try {
 		const response = await api.post<User>(
@@ -122,7 +120,7 @@ export const createUserServer = async (
 			{
 				headers: { 'Content-Type': 'application/json' },
 				timeout: 5000, // optional safeguard
-			}
+			},
 		);
 
 		return response.data;
@@ -138,15 +136,13 @@ export const createUserServer = async (
 	}
 };
 
-
-
 //get users attaced to account
 export const getUsersForAccount = async (accountId: string) => {
 	return request<User[]>({
 		method: 'GET',
-		url: `/user-access/${accountId}/getUsersForAccount`
-	})
-}
+		url: `/user-access/${accountId}/getUsersForAccount`,
+	});
+};
 
 //invite user to account
 export const inviteUserToAccount = async (accountId: string, email: string) => {
@@ -162,17 +158,12 @@ export const inviteUserToAccount = async (accountId: string, email: string) => {
 	});
 };
 
+//get user history
+export const getAllUserHistory = async (): Promise<UserHistory[]> => {
+	const response = await request<UserHistory[]>({
+		method: 'GET',
+		url: '/users/history',
+	});
 
-//helper for invite
-// export async function apiFetch(url: string, options: RequestInit = {}) {
-// 	const token = localStorage.getItem('jwt');
-
-// 	return fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}${url}`, {
-// 		...options,
-// 		headers: {
-// 			'Content-Type': 'application/json',
-// 			...(options.headers || {}),
-// 			Authorization: token ? `Bearer ${token}` : '',
-// 		},
-// 	});
-// }
+	return (response as { data: UserHistory[] }).data;
+};

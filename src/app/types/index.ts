@@ -420,3 +420,32 @@ export type SessionState = {
 	user: SessionUser | null;
 	loading: boolean;
 };
+
+export type UserHistory = {
+	id: string;
+
+	userId: string;
+	userName: string;
+	userEmail: string;
+
+	userActive: boolean;
+	accessRole: string;
+	appRole: string;
+
+	changeAt: string; // ISO date string
+	changedBy: string;
+	changedByName: string;
+
+	changeType:
+		| 'CREATED'
+		| 'UPDATED'
+		| 'DELETED'
+		| 'ROLE_CHANGED'
+		| 'ACTIVATED'
+		| 'DEACTIVATED'
+		| 'INVITED'
+		| 'RESTORED'
+		| 'LOGIN_PROVIDER_LINKED';
+
+	oldValues?: Record<string, string>;
+};
