@@ -12,7 +12,7 @@ import {
 	updateUserAppRole,
 } from '@/app/api/userApI';
 import { toast } from 'sonner';
-import { AccessRole, AppRole, User } from '@/app/types';
+import { AccessRole, AppRole, User, UserHistory } from '@/app/types';
 import { UserStatusSwitchOrBadge } from '@/components/tableComponents/UserStatusSwitch';
 import { AccessRoleSelectOrBadge } from '@/components/tableComponents/AccessRoleSelect';
 import { AppRoleSelect } from '@/components/tableComponents/AppRoleSelect';
@@ -27,6 +27,8 @@ import { Icons } from '@/lib/icon';
 import { StatusSwitchOrBadge } from '@/components/tableComponents/StatusSwitchOrBadge';
 import { DeleteConfirmButton } from '@/components/tableComponents/DeleteConfirmButton';
 import { useSession } from '@/lib/auth/session-context';
+import UserHistoryFeed from '@/components/tableComponents/UserHistoryFeed';
+
 
 
 const Page = () => {
@@ -37,6 +39,7 @@ const Page = () => {
 	const { user, loading, logout } = useSession();
 	const currentUser = user as User | undefined;
 	const sessionUserRole = user?.appRole;
+	const SRADMIN = currentUser?.accessRole === AccessRole.SRADMIN;
 	const canToggle = currentUser?.appRole === AppRole.MANAGER;
 
 	//set state
@@ -46,6 +49,9 @@ const Page = () => {
 	const [searchTerm, setSearchTerm] = useState('');
 	const [currentPage, setCurrentPage] = useState(1);
 	const [pageSize, setPageSize] = useState(10);
+	const [userHistoryUpdates, setUserHistoryUpdates] = useState<
+			UserHistory[]
+		>([]);
 
 	// Load pagination settings from localStorage safely
 	useEffect(() => {
@@ -86,6 +92,10 @@ const Page = () => {
 		};
 		fetchUsers();
 	}, []);
+
+	const handleUserHistoryUpdated = (updated: UserHistory) => {
+		setUserHistoryUpdates((prev) => [updated, ...prev]);
+	};
 
 	//toggle user active status
 	const handleToggleActive = async (userId: string, checked: boolean) => {
@@ -256,8 +266,8 @@ const Page = () => {
 									onRoleChange={(id, role) =>
 										setUsers((prev) =>
 											prev.map((user) =>
-												user.id === id ? { ...user, accessRole: role } : user
-											)
+												user.id === id ? { ...user, accessRole: role } : user,
+											),
 										)
 									}
 								/>
@@ -271,8 +281,8 @@ const Page = () => {
 									onRoleChange={(id, role) =>
 										setUsers((prev) =>
 											prev.map((user) =>
-												user.id === id ? { ...user, appRole: role } : user
-											)
+												user.id === id ? { ...user, appRole: role } : user,
+											),
 										)
 									}
 								/>
@@ -292,8 +302,8 @@ const Page = () => {
 													prev.map((user) =>
 														user.id === id
 															? { ...user, userName: name, userEmail: email }
-															: user
-													)
+															: user,
+													),
 												)
 											}
 										/>
@@ -304,7 +314,7 @@ const Page = () => {
 												onDelete={async (id) => {
 													await deleteUser(id);
 													setUsers((prev) =>
-														prev.filter((user) => user.id !== id)
+														prev.filter((user) => user.id !== id),
 													);
 												}}
 												getItemName={() => u.userName ?? 'Unknown'} // guarantee a string
@@ -345,8 +355,8 @@ const Page = () => {
 												prev.map((user) =>
 													user.id === id
 														? { ...user, userActive: checked }
-														: user
-												)
+														: user,
+												),
 											)
 										}
 									/>
@@ -360,8 +370,8 @@ const Page = () => {
 										onRoleChange={(id, role) =>
 											setUsers((prev) =>
 												prev.map((u) =>
-													u.id === id ? { ...u, accessRole: role } : u
-												)
+													u.id === id ? { ...u, accessRole: role } : u,
+												),
 											)
 										}
 									/>
@@ -375,8 +385,8 @@ const Page = () => {
 										onRoleChange={(id, role) =>
 											setUsers((prev) =>
 												prev.map((u) =>
-													u.id === id ? { ...u, appRole: role } : u
-												)
+													u.id === id ? { ...u, appRole: role } : u,
+												),
 											)
 										}
 									/>
@@ -395,8 +405,8 @@ const Page = () => {
 												prev.map((user) =>
 													user.id === id
 														? { ...user, userName: name, userEmail: email }
-														: user
-												)
+														: user,
+												),
 											)
 										}
 									/>
@@ -429,6 +439,10 @@ const Page = () => {
 					setPageSize={setPageSize}
 					totalItems={filteredUsers.length}
 				/>
+			</div>
+
+			<div className="flex justify-center items-center">
+				{SRADMIN && <UserHistoryFeed  />}
 			</div>
 		</main>
 	);
