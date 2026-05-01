@@ -1,5 +1,16 @@
 // src/constants/usConstants.ts
 
+
+export const DAYS = [
+	'MONDAY',
+	'TUESDAY',
+	'WEDNESDAY',
+	'THURSDAY',
+	'FRIDAY',
+	'SATURDAY',
+	'SUNDAY',
+] as const;
+
 export const US_STATES = [
 	'AL',
 	'AK',

@@ -29,6 +29,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Separator } from '@/components/ui/separator';
 import { useSession } from '@/lib/auth/session-context';
 
 import { US_STATES, US_TIME_ZONES } from '@/lib/constants/usConstants';
@@ -341,9 +342,9 @@ const LocationSettingsPage = () => {
 					</div>
 					<p className="text-3xl font-bold mb-4">Location Settings</p>
 				</header>
-				<div className="flex">
-					<Card className="w-2/3 mx-auto m-4 bg-accent">
-						<CardHeader>
+				<div className="flex flex-col items-center">
+					<Card className="w-2/3 mx-auto m-4 rounded-3xl border border-white/20 bg-accent backdrop-blur-2xl shadow-xl">
+						<CardHeader className="pb-2">
 							<CardTitle className="text-2xl">Location Information</CardTitle>
 							<CardDescription>You can update fields here</CardDescription>
 							<CardAction>
@@ -367,225 +368,286 @@ const LocationSettingsPage = () => {
 										control={form.control}
 										name="locationName"
 										render={({ field }) => (
-											<FormItem className="flex gap-5">
-												<FormLabel className="text-lg">
-													Location Name:
-												</FormLabel>
-												<FormControl>
-													<Input
-														placeholder="Location Name"
-														className="w-1/2 bg-background"
-														disabled={!isManager}
-														{...field}
-													/>
-												</FormControl>
-												<FormMessage />
+											<FormItem className="rounded-2xl border border-border/60 bg-background/80 px-4 py-4 shadow-sm">
+												<div className="flex items-center justify-between gap-6">
+													<div className="space-y-1 min-w-[180px]">
+														<FormLabel className="text-sm font-medium text-muted-foreground">
+															Location Name
+														</FormLabel>
+														<p className="text-xs text-muted-foreground">
+															Display name for this location
+														</p>
+													</div>
+
+													<div className="w-1/2">
+														<FormControl>
+															<Input
+																placeholder="Enter location name"
+																className="w-56 border-0 bg-transparent shadow-none text-right focus-visible:ring-0"
+																disabled={!isManager}
+																{...field}
+															/>
+														</FormControl>
+													</div>
+												</div>
+
+												<FormMessage className="pt-2 text-right" />
 											</FormItem>
 										)}
 									/>
 
-									<div className="space-y-2 border p-4 rounded-2xl">
-										<p className="text-xl">Address:</p>
+									<div className="space-y-3">
+										<p className="text-sm font-medium text-muted-foreground px-1">
+											Address
+										</p>
 
-										<FormField
-											control={form.control}
-											name="locationStreet"
-											render={({ field }) => (
-												<FormItem className="flex gap-4">
-													<FormLabel>Street</FormLabel>
-													<FormControl>
-														<Input
-															placeholder="Enter street"
-															className="w-1/2 bg-background"
-															disabled={!isManager}
-															{...field}
-														/>
-													</FormControl>
-													<FormMessage />
-												</FormItem>
-											)}
-										/>
-										<div className="flex gap-16 items-center">
-											<FormField
-												control={form.control}
-												name="locationTown"
-												render={({ field }) => (
-													<FormItem className="flex gap-5">
-														<FormLabel>Town</FormLabel>
-														<FormControl>
-															<Input
-																placeholder="Enter town"
-																className="w-3/4 bg-background"
-																disabled={!isManager}
-																{...field}
-															/>
-														</FormControl>
-														<FormMessage />
-													</FormItem>
-												)}
-											/>
+										<div className="rounded-2xl border overflow-hidden">
+											<div className="px-4 py-3">
+												<FormField
+													control={form.control}
+													name="locationStreet"
+													render={({ field }) => (
+														<FormItem className="flex justify-between items-center">
+															<FormLabel>Street</FormLabel>
+															<FormControl>
+																<Input
+																	placeholder="Enter street address"
+																	className="w-56 border-0 bg-transparent shadow-none text-right focus-visible:ring-0"
+																	disabled={!isManager}
+																	{...field}
+																/>
+															</FormControl>
+															<FormMessage />
+														</FormItem>
+													)}
+												/>
+											</div>
 
-											<FormField
-												control={form.control}
-												name="locationState"
-												render={({ field }) => (
-													<FormItem className="flex gap-5">
-														<FormLabel>State</FormLabel>
-														<FormControl>
-															<Select
-																key={field.value}
-																onValueChange={field.onChange}
-																value={field.value ?? ''}
-																disabled={!isManager}
-															>
-																<SelectTrigger className="bg-background">
-																	<SelectValue placeholder="Select a state" />
-																</SelectTrigger>
-																<SelectContent className="max-h-60 overflow-y-auto ">
-																	{US_STATES.map((state) => (
-																		<SelectItem key={state} value={state}>
-																			{state}
-																		</SelectItem>
-																	))}
-																</SelectContent>
-															</Select>
-														</FormControl>
-														<FormMessage />
-													</FormItem>
-												)}
-											/>
+											<Separator />
 
-											<FormField
-												control={form.control}
-												name="locationZipCode"
-												render={({ field }) => (
-													<FormItem className="flex gap-5">
-														<FormLabel className="">ZIP Code</FormLabel>
-														<FormControl>
-															<Input
-																placeholder="Enter ZIP code"
-																className="w-1/2 bg-background"
-																disabled={!isManager}
-																{...field}
-															/>
-														</FormControl>
-														<FormMessage />
-													</FormItem>
-												)}
-											/>
+											<div className="px-4 py-3">
+												<FormField
+													control={form.control}
+													name="locationTown"
+													render={({ field }) => (
+														<FormItem className="flex justify-between items-center">
+															<FormLabel>Town</FormLabel>
+															<FormControl>
+																<Input
+																	placeholder="Enter town"
+																	className="w-56 border-0 bg-transparent shadow-none text-right focus-visible:ring-0"
+																	disabled={!isManager}
+																	{...field}
+																/>
+															</FormControl>
+															<FormMessage />
+														</FormItem>
+													)}
+												/>
+											</div>
+
+											<Separator />
+
+											<div className="px-4 py-3">
+												<FormField
+													control={form.control}
+													name="locationState"
+													render={({ field }) => (
+														<FormItem className="flex justify-between items-center">
+															<FormLabel>State</FormLabel>
+															<FormControl>
+																<Select
+																	key={field.value}
+																	onValueChange={field.onChange}
+																	value={field.value ?? ''}
+																	disabled={!isManager}
+																>
+																	<SelectTrigger className="w-56 border-0 bg-transparent shadow-none justify-end">
+																		<SelectValue placeholder="Select a state" />
+																	</SelectTrigger>
+																	<SelectContent
+																		position="popper"
+																		sideOffset={8}
+																		className="w-1/2 rounded-2xl border border-black/5 bg-white/90 backdrop-blur-xl shadow-2xl"
+																	>
+																		{US_STATES.map((state) => (
+																			<SelectItem key={state} value={state}>
+																				{state}
+																			</SelectItem>
+																		))}
+																	</SelectContent>
+																</Select>
+															</FormControl>
+															<FormMessage />
+														</FormItem>
+													)}
+												/>
+											</div>
+
+											<Separator />
+
+											<div className="px-4 py-3">
+												<FormField
+													control={form.control}
+													name="locationZipCode"
+													render={({ field }) => (
+														<FormItem className="flex justify-between items-center">
+															<FormLabel className="w-1/2">ZIP Code</FormLabel>
+															<FormControl>
+																<Input
+																	placeholder="Enter ZIP code"
+																	className="w-56 border-0 bg-transparent shadow-none text-right focus-visible:ring-0"
+																	disabled={!isManager}
+																	{...field}
+																/>
+															</FormControl>
+															<FormMessage />
+														</FormItem>
+													)}
+												/>
+											</div>
+
+											<Separator />
+
+											<div className="px-4 py-3">
+												<FormField
+													control={form.control}
+													name="locationTimeZone"
+													render={({ field }) => (
+														<FormItem className="flex justify-between items-center">
+															<FormLabel>Time Zone</FormLabel>
+															<FormControl>
+																<Select
+																	key={field.value}
+																	onValueChange={field.onChange}
+																	value={field.value}
+																	disabled={!isManager}
+																>
+																	<SelectTrigger className="w-56 border-0 bg-transparent shadow-none justify-end">
+																		<SelectValue placeholder="Select a time zone" />
+																	</SelectTrigger>
+																	<SelectContent>
+																		{US_TIME_ZONES.map((tz) => (
+																			<SelectItem key={tz} value={tz}>
+																				{tz}
+																			</SelectItem>
+																		))}
+																	</SelectContent>
+																</Select>
+															</FormControl>
+															<FormMessage />
+														</FormItem>
+													)}
+												/>
+											</div>
 										</div>
-
-										<FormField
-											control={form.control}
-											name="locationTimeZone"
-											render={({ field }) => (
-												<FormItem className="flex gap-5">
-													<FormLabel>Time Zone</FormLabel>
-													<FormControl>
-														<Select
-															key={field.value}
-															onValueChange={field.onChange}
-															value={field.value}
-															disabled={!isManager}
-														>
-															<SelectTrigger className="border rounded-md p-2 bg-background">
-																<SelectValue placeholder="Select a time zone" />
-															</SelectTrigger>
-															<SelectContent>
-																{US_TIME_ZONES.map((tz) => (
-																	<SelectItem key={tz} value={tz}>
-																		{tz}
-																	</SelectItem>
-																))}
-															</SelectContent>
-														</Select>
-													</FormControl>
-													<FormMessage />
-												</FormItem>
-											)}
-										/>
 									</div>
 								</form>
 							</Form>
 						</CardContent>
 					</Card>
 
-					<div className="flex flex-col w-1/3">
-						{/* coordinates */}
-						<Card className=" mx-auto m-4 bg-accent">
-							<CardHeader>
-								<CardTitle className="text-xl">
-									Geo Synced Coordinates
-								</CardTitle>
-								<CardDescription>
-									These coordinates come from your address, if address is not
-									found the zipcode will be used for fallback but is not as
-									accurate
-								</CardDescription>
-							</CardHeader>
-							<CardContent className="">
-								<div className="pb-3">
-									{currentLocation?.geocodedFromZipFallback ? (
-										<Badge className="text-lg" variant="destructive">
-											<BadgeQuestionMarkIcon className="w-5! h-5!" />
-											Failed back on ZIP Code
-										</Badge>
-									) : (
-										<Badge
-											className="bg-chart-3 text-background text-lg"
-											variant="secondary"
-										>
-											<BadgeCheckMarkIcon className="w-5! h-5!" />
-											Verified
-										</Badge>
-									)}
-								</div>
-								<div className="flex gap-8">
-									<Label className="text-xl">Longitude:</Label>
-									<Label className="text-xl">
-										{currentLocation?.locationLongitude ?? 'N/A'}
-									</Label>
-								</div>
-								<div className="flex gap-8">
-									<Label className="text-xl">Latitude:</Label>
-									<Label className="text-xl">
-										{currentLocation?.locationLatitude ?? 'N/A'}
-									</Label>
-								</div>
-							</CardContent>
-						</Card>
+					{/* status */}
+					<Card className="w-2/3 mx-auto m-4 rounded-2xl border border-border/40 bg-accent shadow-xl">
+						<CardHeader className="pb-3">
+							<CardTitle className="text-lg font-semibold">
+								Location Status
+							</CardTitle>
+							<CardDescription className="text-sm text-muted-foreground">
+								Controls whether this location is active in the system
+							</CardDescription>
+						</CardHeader>
 
-						{/* status */}
-						<Card className="mx-auto m-4 bg-accent">
-							<CardHeader>
-								<CardTitle>Location Status</CardTitle>
-								<CardDescription>
-									This will show if location is active
-								</CardDescription>
-							</CardHeader>
-							<CardContent>
-								<div className="flex items-center gap-4">
-									<Label className="text-xl">Status:</Label>
-									<StatusSwitchOrBadge
-										entity={{
-											id: currentLocation?.id!,
-											active: currentLocation?.locationActive!,
-										}}
-										getLabel={() =>
-											`Location: ${currentLocation?.locationName}`
-										}
-										onToggle={handleToggleActive}
-										canToggle={canToggle}
-									/>
+						<CardContent className="flex items-center justify-between py-4">
+							{/* LEFT SIDE (context) */}
+							<div className="space-y-1">
+								<p className="text-sm font-medium">Active Status</p>
+								<p className="text-xs text-muted-foreground">
+									Inactive locations will be hidden from users
+								</p>
+							</div>
+
+							{/* RIGHT SIDE (control) */}
+							<StatusSwitchOrBadge
+								entity={{
+									id: currentLocation?.id!,
+									active: currentLocation?.locationActive!,
+								}}
+								getLabel={() => `Location: ${currentLocation?.locationName}`}
+								onToggle={handleToggleActive}
+								canToggle={canToggle}
+							/>
+						</CardContent>
+					</Card>
+
+					{/* coordinates */}
+					<Card className="w-2/3 mx-auto m-4 rounded-2xl border border-border/40 bg-accent shadow-xl">
+						<CardHeader className="pb-3">
+							<CardTitle className="text-lg font-semibold">
+								Geo Synced Coordinates
+							</CardTitle>
+							<CardDescription className="text-sm text-muted-foreground">
+								Coordinates are derived from the address. If unavailable, ZIP
+								code fallback is used (less accurate).
+							</CardDescription>
+						</CardHeader>
+
+						<CardContent className="space-y-6">
+							{/* STATUS ROW */}
+							<div className="flex items-center justify-between">
+								<div className="space-y-1">
+									<p className="text-sm font-medium">Geocoding Status</p>
+									<p className="text-xs text-muted-foreground">
+										Indicates how coordinates were resolved
+									</p>
 								</div>
-							</CardContent>
-						</Card>
-					</div>
+
+								{currentLocation?.geocodedFromZipFallback ? (
+									<Badge variant="destructive" className="gap-2">
+										<BadgeQuestionMarkIcon className="w-4 h-4" />
+										Fallback (ZIP)
+									</Badge>
+								) : (
+									<Badge
+										variant="secondary"
+										className="gap-2 bg-chart-3 text-background"
+									>
+										<BadgeCheckMarkIcon className="w-4 h-4" />
+										Verified
+									</Badge>
+								)}
+							</div>
+
+							{/* COORDINATES SECTION */}
+							<div className="rounded-xl border border-border/30 divide-y divide-border/20 overflow-hidden">
+								<div className="flex items-center justify-between px-4 py-3">
+									<span className="text-sm text-muted-foreground">
+										Latitude
+									</span>
+									<span className="text-sm font-medium">
+										{currentLocation?.locationLatitude ?? 'N/A'}
+									</span>
+								</div>
+
+								<div className="flex items-center justify-between px-4 py-3">
+									<span className="text-sm text-muted-foreground">
+										Longitude
+									</span>
+									<span className="text-sm font-medium">
+										{currentLocation?.locationLongitude ?? 'N/A'}
+									</span>
+								</div>
+							</div>
+						</CardContent>
+					</Card>
 				</div>
-				<LineCheckSettingsForm
-					locationId={locationIdParam}
-					userId={user?.userId}
-				/>
+
+				<div className="flex w-2/3 mx-auto">
+					<LineCheckSettingsForm
+						locationId={locationIdParam}
+						userId={user?.userId}
+					/>
+				</div>
 
 				<div className="flex justify-center items-center">
 					{(SRADMIN || MANAGER) && (
