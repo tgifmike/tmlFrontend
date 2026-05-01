@@ -113,14 +113,16 @@
 }
 
 @layer base {
-  html,
-  body {
-    height: 100%;
-  }
+ html,
+
+body {
+  overflow-y: scroll;
+}
 
   html {
     scroll-behavior: smooth;
     scroll-padding-top: 80px;
+    scrollbar-gutter: stable;
   }
 
   [id] {

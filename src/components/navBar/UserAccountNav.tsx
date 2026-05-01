@@ -12,12 +12,12 @@ import UserAvatar from './UserAvatar';
 import { Icons } from '../../lib/icon';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { ModeToggle } from '../theme/ModeToggle';
 import { emitAuthChange } from '@/lib/auth/authEvents';
 import { log } from 'console';
 import { useSession } from '@/lib/auth/session-context';
 import { refresh } from 'next/cache';
-
+import { IoCog } from 'react-icons/io5';
+import { ImExit } from 'react-icons/im';
 
 
 type User = {
@@ -112,10 +112,10 @@ const UserAccountNav: React.FC<UserAccountNavProps> = ({ user }) => {
 				</DropdownMenuItem>
 
 				{/* light/dark mode */}
-				<DropdownMenuItem asChild className="flex justify-between items-center">
-					<Link href="/accounts">
-						<p className="text-lg">Light Mode</p>
-						<ModeToggle />
+				<DropdownMenuItem asChild>
+					<Link href="/settings">
+						<IoCog className='ml-2'/>
+						<p className="text-lg">Settings</p>
 					</Link>
 				</DropdownMenuItem>
 
@@ -123,7 +123,8 @@ const UserAccountNav: React.FC<UserAccountNavProps> = ({ user }) => {
 
 				{/* sign out link */}
 				<DropdownMenuItem onClick={handleLogout}>
-					<p className="text-xl">Logout</p>
+					<ImExit className='ml-2 text-destructive'/>
+					<p className="text-lg text-destructive">Logout</p>
 				</DropdownMenuItem>
 			</DropdownMenuContent>
 		</DropdownMenu>
