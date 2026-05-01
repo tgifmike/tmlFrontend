@@ -18,6 +18,7 @@ import { useSession } from '@/lib/auth/session-context';
 import { refresh } from 'next/cache';
 import { IoCog } from 'react-icons/io5';
 import { ImExit } from 'react-icons/im';
+import { CiMail } from 'react-icons/ci';
 
 
 type User = {
@@ -87,10 +88,17 @@ const UserAccountNav: React.FC<UserAccountNavProps> = ({ user }) => {
 
 			<DropdownMenuContent align="end" className="w-64 rounded-2xl">
 				<div className="px-3 py-2 text-chart-3">
-					<p className="text-lg font-medium leading-none truncate">
-						{user.name}
-					</p>
-					<p className="text-sm truncate">{user.email}</p>
+					<span className="flex items-center gap-2">
+						{/* <UserAvatar user={user} /> */}
+						<p className="text-lg font-medium leading-none truncate">
+							{user.name}
+						</p>
+					</span>
+					
+					<span className="flex items-center gap-2">
+						<CiMail />
+						<p className="text-sm truncate">{user.email}</p>
+					</span>
 				</div>
 
 				<DropdownMenuSeparator />
@@ -114,7 +122,7 @@ const UserAccountNav: React.FC<UserAccountNavProps> = ({ user }) => {
 				{/* light/dark mode */}
 				<DropdownMenuItem asChild>
 					<Link href="/settings">
-						<IoCog className='ml-2'/>
+						<IoCog className="ml-2" />
 						<p className="text-lg">Settings</p>
 					</Link>
 				</DropdownMenuItem>
@@ -123,7 +131,7 @@ const UserAccountNav: React.FC<UserAccountNavProps> = ({ user }) => {
 
 				{/* sign out link */}
 				<DropdownMenuItem onClick={handleLogout}>
-					<ImExit className='ml-2 text-destructive'/>
+					<ImExit className="ml-2 text-destructive" />
 					<p className="text-lg text-destructive">Logout</p>
 				</DropdownMenuItem>
 			</DropdownMenuContent>

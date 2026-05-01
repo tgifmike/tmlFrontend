@@ -23,6 +23,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { getLineCheckSettings, updateLineCheckSettings } from '@/app/api/locationApi';
 import { toast } from 'sonner';
+import { DAYS } from '@/lib/constants/usConstants';
 
 export const lineCheckSchema = z.object({
 	dayOfWeek: z.enum([
@@ -124,74 +125,99 @@ export default function LineCheckSettingsForm({
 	};
 
 	return (
-		<Card className="w-1/3 ml-4 mt-1 bg-accent">
+		<Card className="w-full flex mx-auto rounded-2xl border border-border/40 bg-accent shadow-xl">
 			<CardHeader>
-				<CardTitle className="text-2xl">Line Check Settings</CardTitle>
+				<CardTitle className="text-lg font-semibold">
+					Line Check Settings
+				</CardTitle>
 			</CardHeader>
 
 			<form onSubmit={handleSubmit(onSubmit)}>
-				<CardContent className="flex-col gap-6">
-					{/* Day of Week */}
-					<div className="flex justify-between items-center py-2">
-						<Label>Start Day of Week</Label>
-						<Select
-							value={watch('dayOfWeek')} // <-- use the current form value
-							onValueChange={(value) =>
-								setValue(
-									'dayOfWeek',
-									value as LineCheckFormValues['dayOfWeek'],
-									{
-										shouldDirty: true,
-									}
-								)
-							}
-							disabled={loading}
-						>
-							<SelectTrigger className="border rounded-md p-2 bg-background">
-								<SelectValue placeholder="Select a day" />
-							</SelectTrigger>
-							<SelectContent>
-								<SelectItem value="MONDAY">Monday</SelectItem>
-								<SelectItem value="TUESDAY">Tuesday</SelectItem>
-								<SelectItem value="WEDNESDAY">Wednesday</SelectItem>
-								<SelectItem value="THURSDAY">Thursday</SelectItem>
-								<SelectItem value="FRIDAY">Friday</SelectItem>
-								<SelectItem value="SATURDAY">Saturday</SelectItem>
-								<SelectItem value="SUNDAY">Sunday</SelectItem>
-							</SelectContent>
-						</Select>
+				<CardContent className="space-y-2">
+					{/* DAY OF WEEK */}
+					<div className="grid grid-cols-[1fr_auto] items-center gap-6 py-4 border-b border-border/20">
+						{/* LEFT SIDE */}
+						<div className="space-y-1">
+							<Label className="text-sm font-medium text-muted-foreground">
+								Start Day
+							</Label>
+							<p className="text-xs text-muted-foreground">
+								Defines the starting day for line check tracking
+							</p>
+						</div>
+
+						{/* RIGHT SIDE */}
+						<div className="flex justify-end">
+							<Select
+								value={watch('dayOfWeek')}
+								onValueChange={(value) =>
+									setValue(
+										'dayOfWeek',
+										value as LineCheckFormValues['dayOfWeek'],
+										{
+											shouldDirty: true,
+										},
+									)
+								}
+								disabled={loading}
+							>
+								<SelectTrigger className="w-56 border-0 bg-transparent shadow-none justify-end">
+									<SelectValue placeholder="Select a day" />
+								</SelectTrigger>
+
+								<SelectContent>
+									{DAYS.map((d) => (
+										<SelectItem key={d} value={d}>
+											{d}
+										</SelectItem>
+									))}
+								</SelectContent>
+							</Select>
+						</div>
 
 						{errors.dayOfWeek && (
-							<p className="text-sm text-destructive">
+							<p className="col-span-2 text-xs text-destructive pt-1">
 								{errors.dayOfWeek.message}
 							</p>
 						)}
 					</div>
 
-					{/* Daily Goal */}
-					<div className="flex justify-between items-center py-2">
-						<Label className="w-60">Daily Line Check Goal</Label>
-						<Input
-							type="number"
-							min={1}
-							{...register('dailyGoal', { valueAsNumber: true })}
-							value={watch('dailyGoal')} // <-- make it controlled
-							placeholder="Enter daily goal"
-							className="flex-1 bg-background"
-							disabled={loading}
-						/>
+					{/* DAILY GOAL */}
+					<div className="grid grid-cols-[1fr_auto] items-center gap-6 py-4">
+						{/* LEFT SIDE */}
+						<div className="space-y-1">
+							<Label className="text-sm font-medium text-muted-foreground">
+								Daily Goal
+							</Label>
+							<p className="text-xs text-muted-foreground">
+								Number of line checks required per day
+							</p>
+						</div>
+
+						{/* RIGHT SIDE */}
+						<div className="flex justify-end">
+							<Input
+								type="number"
+								min={1}
+								{...register('dailyGoal', { valueAsNumber: true })}
+								value={watch('dailyGoal')}
+								disabled={loading}
+								className="w-56 border-0 bg-transparent shadow-none text-right focus-visible:ring-0"
+							/>
+						</div>
+
 						{errors.dailyGoal && (
-							<p className="text-sm text-destructive">
+							<p className="col-span-2 text-xs text-destructive pt-1">
 								{errors.dailyGoal.message}
 							</p>
 						)}
 					</div>
 				</CardContent>
 
-				<CardFooter className="pt-3">
+				<CardFooter>
 					<Button
 						type="submit"
-						className="w-full"
+						className="w-full rounded-xl"
 						disabled={!isDirty || loading}
 					>
 						{loading ? 'Saving...' : 'Save Settings'}
