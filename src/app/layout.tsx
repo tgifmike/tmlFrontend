@@ -82,12 +82,7 @@ export default function RootLayout({
 			>
 				{/* GLOBAL PROVIDERS ONLY */}
 				<SessionProvider>
-					<ThemeProvider
-						attribute="class"
-						defaultTheme="system"
-						enableSystem
-						disableTransitionOnChange
-					>
+					<ThemeProvider>
 						<TooltipProvider>
 							{/* PUBLIC SITE */}
 							<NavBar />

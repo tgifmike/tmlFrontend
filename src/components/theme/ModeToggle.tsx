@@ -1,40 +1,72 @@
 'use client';
 
-import * as React from 'react';
-import { Moon, Sun } from 'lucide-react';
 import { useTheme } from 'next-themes';
-
+import { useEffect, useState } from 'react';
+import { Sun, Moon, Monitor } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import {
-	DropdownMenu,
-	DropdownMenuContent,
-	DropdownMenuItem,
-	DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 
-export function ModeToggle() {
-	const { setTheme } = useTheme();
+export function ThemeSelect() {
+	const { theme, setTheme } = useTheme();
+	const [mounted, setMounted] = useState(false);
+
+	useEffect(() => {
+		setMounted(true);
+	}, []);
+
+	if (!mounted) {
+		return (
+			<div className="w-52 h-10 rounded-md border bg-muted animate-pulse" />
+		);
+	}
+
+	const base =
+		'flex items-center gap-2 px-3 py-1.5 text-sm rounded-md transition-all';
+
+	const isActive = (value: string) => theme === value;
 
 	return (
-		<DropdownMenu>
-			<DropdownMenuTrigger asChild>
-				<Button variant="outline" size="icon">
-					<Sun className="h-[1.2rem] w-[1.2rem] scale-100 rotate-0 transition-all dark:scale-0 dark:-rotate-90" />
-					<Moon className="absolute h-[1.2rem] w-[1.2rem] scale-0 rotate-90 transition-all dark:scale-100 dark:rotate-0" />
-					<span className="sr-only">Toggle theme</span>
-				</Button>
-			</DropdownMenuTrigger>
-			<DropdownMenuContent align="end">
-				<DropdownMenuItem onClick={() => setTheme('light')}>
-					Light
-				</DropdownMenuItem>
-				<DropdownMenuItem onClick={() => setTheme('dark')}>
-					Dark
-				</DropdownMenuItem>
-				<DropdownMenuItem onClick={() => setTheme('system')}>
-					System
-				</DropdownMenuItem>
-			</DropdownMenuContent>
-		</DropdownMenu>
+		<div className="flex items-center p-1 rounded-lg border bg-background w-fit shadow-sm">
+			<Button
+				type="button"
+				variant="ghost"
+				onClick={() => setTheme('light')}
+				className={`${base} ${
+					isActive('light')
+						? 'bg-primary text-primary-foreground shadow-sm'
+						: 'hover:bg-muted'
+				}`}
+			>
+				<Sun className="h-4 w-4" />
+				Light
+			</Button>
+
+			<Button
+				type="button"
+				variant="ghost"
+				onClick={() => setTheme('dark')}
+				className={`${base} ${
+					isActive('dark')
+						? 'bg-primary text-primary-foreground shadow-sm'
+						: 'hover:bg-muted'
+				}`}
+			>
+				<Moon className="h-4 w-4" />
+				Dark
+			</Button>
+
+			<Button
+				type="button"
+				variant="ghost"
+				onClick={() => setTheme('system')}
+				className={`${base} ${
+					isActive('system')
+						? 'bg-primary text-primary-foreground shadow-sm'
+						: 'hover:bg-muted'
+				}`}
+			>
+				<Monitor className="h-4 w-4" />
+				System
+			</Button>
+		</div>
 	);
 }
