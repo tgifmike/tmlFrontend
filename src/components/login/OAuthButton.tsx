@@ -9,6 +9,7 @@ type Props = {
 	onClick?: () => void;
 	loading?: boolean;
 	variant?: 'default' | 'dark' | 'light';
+	className?: string;
 };
 
 export function OAuthButton({
@@ -16,6 +17,7 @@ export function OAuthButton({
 	onClick,
 	loading,
 	variant = 'default',
+	className
 }: Props) {
 	return (
 		<motion.button
@@ -29,6 +31,7 @@ export function OAuthButton({
 				variant === 'light' && 'bg-white text-black border',
 				variant === 'default' && 'bg-primary text-primary-foreground',
 				loading && 'opacity-70 cursor-not-allowed',
+				className
 			)}
 		>
 			<AnimatePresence mode="wait">
