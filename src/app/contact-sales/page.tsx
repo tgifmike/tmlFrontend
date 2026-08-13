@@ -24,10 +24,15 @@ import { useSession } from '@/lib/auth/session-context';
 // Zod schema
 const formSchema = z.object({
 	name: z.string().min(2, 'Name required'),
-	restaurant: z.string().min(2, 'Restaurant/group name required'),
+	restaurant: z.string().min(0, 'Please include restaurant/group name'),
 	email: z.string().email('Valid email required'),
-	locations: z.number().min(1, 'Must be at least 1 location'),
-	message: z.string().min(10, 'Please include rollout details'),
+	locations: z.number().min(0, 'Please include number of locations'),
+	message: z
+		.string()
+		.min(
+			10,
+			'Message must be at least 10 characters, and please include rollout details',
+		),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -40,6 +45,7 @@ export default function ContactSalesPage() {
 
 	const form = useForm<FormValues>({
 		resolver: zodResolver(formSchema),
+		mode: 'onChange',
 		defaultValues: {
 			name: '',
 			restaurant: '',
