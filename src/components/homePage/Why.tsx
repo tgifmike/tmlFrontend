@@ -65,7 +65,7 @@ const Why = () => {
 					<h3 className="text-4xl md:text-5xl font-bold text-primary">
 						Why Line Checks Matter
 					</h3>
-					<p className="text-lg md:text-xl text-forground mt-4 max-w-3xl mx-auto">
+					<p className="text-lg md:text-xl text-background mt-4 max-w-3xl mx-auto">
 						Consistent line checks are one of the simplest ways to improve food
 						safety, maintain quality, and protect your restaurant's reputation.
 					</p>

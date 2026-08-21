@@ -135,6 +135,18 @@ export interface LineCheck {
 	items: LineCheckItem[];
 }
 
+export interface LineCheckPhoto {
+	id: string;
+	s3Key: string;
+	originalFileName: string;
+	contentType: string;
+	photoType: string;
+	notes?: string | null;
+	createdAt: string;
+	createdBy?: unknown;
+	url: string;
+}
+
 interface LineCheckItem {
 	id: string;
 	itemName: string;

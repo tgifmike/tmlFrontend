@@ -7,7 +7,7 @@ const links = [
 	{ label: 'Features', href: '#features' },
 	{ label: 'Dashboard', href: '#dashboard' },
 	{ label: 'Pricing', href: '#pricing' },
-	{ label: 'Benefits', href: '#headlines' },
+	{ label: 'Get Started', href: '#headlines' },
 ];
 
 export default function SectionNav() {

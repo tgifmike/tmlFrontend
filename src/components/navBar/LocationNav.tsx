@@ -41,7 +41,7 @@ const LocationNav = ({ accountName, accountImage, accountId, sessionUserRole, lo
 	const pathname = usePathname();
 
 	return (
-		<nav className="sticky left-0 top-[10px] bg-ring h-[calc(100vh-104px)] overflow-y-auto">
+		<nav className="sticky left-0 top-0 h-[calc(100vh-80px)] overflow-y-auto bg-ring">
 			<div className="flex justify-center mt-6">
 				<p className="text-sm md:text-2xl text-chart-3 font-bold text-center">
 					{accountName}
