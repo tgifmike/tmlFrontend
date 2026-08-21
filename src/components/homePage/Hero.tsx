@@ -1,5 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
+import { ArrowRight, CirclePlay } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 const Hero = () => {
@@ -41,23 +42,29 @@ const Hero = () => {
 							>
 								<Link href="/free-trial?plan=starter-trial">
 									Start Free Trial
+									<ArrowRight aria-hidden="true" />
 								</Link>
 							</Button>
 
-							{/* <Button
+							<Button
 								size="lg"
 								variant="outline"
 								asChild
 								className="hover:bg-muted transition"
 							>
-								<Link href="#demo">Watch 30s Demo</Link>
-							</Button> */}
+								<Link href="#features">
+									See How It Works
+									<CirclePlay aria-hidden="true" />
+								</Link>
+							</Button>
 						</div>
 
 						{/* trust line */}
 						<p className="mt-6 text-sm text-muted-foreground">
-							Trusted by operators managing{' '}
-							<span className="text-primary font-semibold">multi locations</span>
+							Built for independent restaurants and{' '}
+							<span className="text-primary font-semibold">
+								multi-location teams
+							</span>
 						</p>
 					</div>
 
@@ -96,7 +103,9 @@ const Hero = () => {
 								muted
 								loop
 								playsInline
-								controls
+								preload="metadata"
+								poster="/iPadLineCheckScreenShot.png"
+								aria-label="The Manager Life line-check workflow demonstration"
 								className="w-full h-auto"
 							>
 								<source src="/videos/iPadDemo.mp4" type="video/mp4" />

@@ -7,7 +7,10 @@ import { PDFDownloadLink } from '@react-pdf/renderer';
 import { getAccountsForUser } from '@/app/api/accountApi';
 import { getUserLocationAccess } from '@/app/api/locationApi';
 import { getStationsByLocation } from '@/app/api/stationApi';
-import { getCompletedLineChecksByLocationApi } from '@/app/api/linecheckApi';
+import {
+	getCompletedLineChecksByLocationApi,
+	getLineCheckItemPhotosApi,
+} from '@/app/api/linecheckApi';
 
 import {
 	AppRole,
@@ -16,6 +19,7 @@ import {
 	Station,
 	User,
 	Item,
+	LineCheckPhoto,
 } from '@/app/types';
 
 import LineCheckPdf from '@/components/locaitons/LineCheckPdf';
@@ -58,6 +62,124 @@ import { useSession } from '@/lib/auth/session-context';
 
 
 type SortMode = 'dateDesc' | 'dateAsc' | 'userAsc' | 'userDesc';
+
+const ItemPhotos = ({ itemId, itemName }: { itemId?: string; itemName: string }) => {
+	const [photos, setPhotos] = useState<LineCheckPhoto[]>([]);
+	const [loadingPhotos, setLoadingPhotos] = useState(false);
+
+	useEffect(() => {
+		if (!itemId) return;
+
+		let cancelled = false;
+
+		const fetchPhotos = async () => {
+			setLoadingPhotos(true);
+			const response = await getLineCheckItemPhotosApi(itemId);
+
+			if (!cancelled) {
+				setPhotos(response.data ?? []);
+				setLoadingPhotos(false);
+			}
+		};
+
+		fetchPhotos();
+
+		return () => {
+			cancelled = true;
+		};
+	}, [itemId]);
+
+	if (!itemId) return <span className="text-muted-foreground">-</span>;
+	if (loadingPhotos) {
+		return <span className="text-xs text-muted-foreground">Loading…</span>;
+	}
+	if (photos.length === 0) {
+		return <span className="text-muted-foreground">-</span>;
+	}
+
+	return (
+		<div className="flex min-w-24 flex-wrap gap-2">
+			{photos.map((photo) => {
+				const photoLabel = photo.photoType
+					.toLowerCase()
+					.replaceAll('_', ' ')
+					.replace(/^\w/, (character) => character.toUpperCase());
+
+				return (
+					<a
+						key={photo.id}
+						href={photo.url}
+						target="_blank"
+						rel="noreferrer"
+						title={photo.notes || `View ${photoLabel} photo`}
+						className="group block space-y-1 text-center"
+					>
+						{/* Presigned S3 hosts are dynamic, so Next Image cannot whitelist them. */}
+						{/* eslint-disable-next-line @next/next/no-img-element */}
+						<img
+							src={photo.url}
+							alt={`${itemName} ${photoLabel} photo`}
+							className="h-16 w-16 rounded-md border object-cover transition-transform group-hover:scale-105"
+						/>
+						<span
+							className={`block rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${
+								photo.photoType.toUpperCase() === 'CORRECTED'
+									? 'bg-green-100 text-green-800 dark:bg-green-950 dark:text-green-300'
+									: 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300'
+							}`}
+						>
+							{photoLabel}
+						</span>
+					</a>
+				);
+			})}
+		</div>
+	);
+};
+
+const ItemIssues = ({ item }: { item: Item }) => {
+	const issues: string[] = [];
+	const hasTemperature = item.tempTaken || item.isTempTaken;
+	const recordedTemperature = item.temperature;
+
+	if (item.isMissing) {
+		issues.push('Missing');
+	}
+
+	if (hasTemperature) {
+		if (recordedTemperature == null) {
+			issues.push('Missing temp');
+		} else if (
+			item.minTemp != null &&
+			item.maxTemp != null &&
+			(recordedTemperature < item.minTemp ||
+				recordedTemperature > item.maxTemp)
+		) {
+			issues.push('Out of temp');
+		}
+	}
+
+	if (!item.isMissing && !hasTemperature && item.itemChecked === false) {
+		issues.push('Prepped wrong');
+	}
+
+	if (issues.length === 0) {
+		return <span className="text-muted-foreground">-</span>;
+	}
+
+	return (
+		<div className="flex min-w-28 flex-wrap gap-1.5">
+			{issues.map((issue) => (
+				<span
+					key={issue}
+					className="whitespace-nowrap rounded-full bg-red-100 px-2 py-1 text-xs font-semibold text-red-800 dark:bg-red-950 dark:text-red-300"
+				>
+					{issue}
+				</span>
+			))}
+		</div>
+	);
+};
 
 const LocationLineChecksPage = () => {
 	const { user, loading, logout } = useSession();
@@ -387,8 +509,10 @@ const LocationLineChecksPage = () => {
 																				<TableHead>Tool</TableHead>
 																				<TableHead>Portion Size</TableHead>
 																				<TableHead>Notes</TableHead>
-																				<TableHead>Temp / Checked</TableHead>
-																				<TableHead>Observations</TableHead>
+														<TableHead>Temp / Checked</TableHead>
+														<TableHead>Issues</TableHead>
+														<TableHead>Observations</TableHead>
+														<TableHead>Photos</TableHead>
 																			</TableRow>
 																		</TableHeader>
 																		<TableBody>
@@ -448,10 +572,19 @@ const LocationLineChecksPage = () => {
 																								{item.itemChecked ? '✓' : '✘'}
 																							</span>
 																						)}
-																					</TableCell>
-																					<TableCell>
-																						{item.observations || '-'}
-																					</TableCell>
+															</TableCell>
+															<TableCell>
+																<ItemIssues item={item} />
+															</TableCell>
+															<TableCell>
+																{item.observations || '-'}
+															</TableCell>
+															<TableCell>
+																<ItemPhotos
+																	itemId={item.id}
+																	itemName={item.itemName}
+																/>
+															</TableCell>
 																				</TableRow>
 																			))}
 																		</TableBody>
@@ -502,5 +635,3 @@ const LocationLineChecksPage = () => {
 };
 
 export default LocationLineChecksPage;
-
-

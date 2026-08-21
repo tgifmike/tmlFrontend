@@ -4,7 +4,7 @@ import Image from 'next/image';
 import { CircleCheck } from 'lucide-react';
 import Lightbox from 'yet-another-react-lightbox';
 // import 'yet-another-react-lightbox/styles.css';
-import { motion, useInView } from 'framer-motion';
+import { motion, useInView, useReducedMotion } from 'framer-motion';
 import { useRef } from 'react';
 
 export default function Does() {
@@ -30,6 +30,7 @@ export default function Does() {
 
 	const carouselRef = useRef(null);
 	const isCarouselVisible = useInView(carouselRef, { margin: '-120px' });
+	const reduceMotion = useReducedMotion();
 
 	//set state
 	const [open, setOpen] = useState(false);
@@ -61,15 +62,15 @@ export default function Does() {
 	];
 
 	//useeffect to auto-cycle through carousel screenshots every 3.5 seconds
-useEffect(() => {
-	if (!isCarouselVisible) return;
+	useEffect(() => {
+	if (!isCarouselVisible || reduceMotion) return;
 
 	const interval = setInterval(() => {
 		setCarouselIndex((prev) => (prev + 1) % carouselScreenshots.length);
 	}, 3500);
 
 	return () => clearInterval(interval);
-}, [isCarouselVisible]);
+	}, [isCarouselVisible, reduceMotion]);
 
 	return (
 		<section className="py-24">
@@ -96,12 +97,18 @@ useEffect(() => {
 						className="relative flex justify-center bg-accent/40 backdrop-blur-lg rounded-3xl shadow-xl p-10"
 					>
 						{/* Tablet */}
-						<motion.div
-							animate={{ y: [0, -8, 0] }}
+						<motion.button
+							type="button"
+							aria-label="Open the tablet line-check preview"
+							animate={reduceMotion ? undefined : { y: [0, -8, 0] }}
 							transition={{
 								duration: 5,
 								repeat: Infinity,
 								ease: 'easeInOut',
+							}}
+							onClick={() => {
+								setIndex(0);
+								setOpen(true);
 							}}
 						>
 							<Image
@@ -109,59 +116,59 @@ useEffect(() => {
 								alt="Tablet dashboard showing kitchen line check reporting interface"
 								width={440}
 								height={320}
-								onClick={() => {
-									setIndex(0);
-									setOpen(true);
-								}}
 								className="rounded-2xl shadow-2xl cursor-zoom-in hover:scale-[1.02]"
 							/>
-						</motion.div>
+						</motion.button>
 
 						{/* Right Phone */}
-						<motion.div
-							animate={{ y: [0, 10, 0] }}
+						<motion.button
+							type="button"
+							aria-label="Open the mobile line-check preview"
+							animate={reduceMotion ? undefined : { y: [0, 10, 0] }}
 							transition={{
 								duration: 4,
 								repeat: Infinity,
 								ease: 'easeInOut',
 							}}
 							className="absolute -right-12 bottom-[-25px]"
+							onClick={() => {
+								setIndex(2);
+								setOpen(true);
+							}}
 						>
 							<Image
 								src="/iPhoneLineCheckScreenShot.png"
 								alt="Mobile kitchen line check checklist interface"
 								width={190}
 								height={380}
-								onClick={() => {
-									setIndex(1);
-									setOpen(true);
-								}}
 								className="rounded-2xl shadow-2xl border border-gray-200 cursor-zoom-in hover:scale-[1.02]"
 							/>
-						</motion.div>
+						</motion.button>
 
 						{/* Left Phone */}
-						<motion.div
-							animate={{ y: [0, -12, 0] }}
+						<motion.button
+							type="button"
+							aria-label="Open the mobile temperature-check preview"
+							animate={reduceMotion ? undefined : { y: [0, -12, 0] }}
 							transition={{
 								duration: 4.5,
 								repeat: Infinity,
 								ease: 'easeInOut',
 							}}
 							className="absolute -left-12 top-[-25px]"
+							onClick={() => {
+								setIndex(4);
+								setOpen(true);
+							}}
 						>
 							<Image
 								src="/iPhoneLineCheckTempCheckScreenShot.png"
 								alt="Mobile temperature logging screen"
 								width={190}
 								height={380}
-								onClick={() => {
-									setIndex(2);
-									setOpen(true);
-								}}
 								className="rounded-2xl shadow-2xl border border-gray-200 cursor-zoom-in hover:scale-[1.02]"
 							/>
-						</motion.div>
+						</motion.button>
 					</motion.div>
 
 					{/* Features Section */}
@@ -250,7 +257,7 @@ useEffect(() => {
 							transition={{ duration: 0.5 }}
 							className="cursor-zoom-in"
 							onClick={() => {
-								setIndex(carouselIndex + 3);
+								setIndex(carouselIndex);
 								setOpen(true);
 							}}
 						>
@@ -284,6 +291,9 @@ useEffect(() => {
 						{carouselScreenshots.map((_, i) => (
 							<button
 								key={i}
+								type="button"
+								aria-label={`Show workflow screenshot ${i + 1}`}
+								aria-current={carouselIndex === i ? 'true' : undefined}
 								onClick={() => setCarouselIndex(i)}
 								className={`h-2.5 w-2.5 rounded-full transition-all ${
 									carouselIndex === i ? 'bg-destructive scale-125' : 'bg-muted'

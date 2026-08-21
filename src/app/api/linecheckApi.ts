@@ -1,4 +1,4 @@
-import { DashboardMetrics, LineCheck } from "../types";
+import { DashboardMetrics, LineCheck, LineCheckPhoto } from "../types";
 import { request } from './axios';
 
 //create linecheck
@@ -47,6 +47,15 @@ export const getCompletedLineChecksByLocationApi = async (
 	});
 };
 
+// Fetch photos captured for a completed line-check item. The returned S3 URL
+// is presigned by the backend and expires after 15 minutes.
+export const getLineCheckItemPhotosApi = async (lineCheckItemId: string) => {
+	return request<LineCheckPhoto[]>({
+		method: 'GET',
+		url: `/api/line-check-items/${lineCheckItemId}/photos`,
+	});
+};
+
 //get linecheck that complted and by user
 // get linecheck metrics by location
 export const getDashboardMetrics = async (locationId: string) => {
@@ -55,5 +64,4 @@ export const getDashboardMetrics = async (locationId: string) => {
     url: `/line-checks/dashboard/${locationId}`, // ✅ updated path
   });
 };
-
 

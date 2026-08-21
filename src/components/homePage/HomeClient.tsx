@@ -4,7 +4,7 @@ import Hero from '@/components/homePage/Hero';
 import Why from '@/components/homePage/Why';
 import Does from '@/components/homePage/Does';
 import Headlines from '@/components/homePage/Headlines';
-import { motion } from 'framer-motion';
+import { motion, MotionConfig } from 'framer-motion';
 import Pricing from './Pricing';
 import DashboardPreview from './DashboardPreview';
 import { useEffect } from 'react';
@@ -31,7 +31,8 @@ export default function Home() {
 	}, [pathname]);
 
 	return (
-		<div className="w-full mx-auto max-w-7xl">
+		<MotionConfig reducedMotion="user">
+		<div className="w-full">
 			{/* Hero */}
 			<motion.div
 				id="hero"
@@ -101,5 +102,6 @@ export default function Home() {
 				<Headlines />
 			</motion.div>
 		</div>
+		</MotionConfig>
 	);
 }

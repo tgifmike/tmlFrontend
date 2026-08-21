@@ -1,15 +1,16 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { CircleCheck } from 'lucide-react';
+import { ArrowRight, CircleCheck, MessageCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 
 export default function Pricing() {
-const plans = [
+	const plans = [
 	{
 		name: 'Starter Trial',
 		price: 'Free for 30 days',
+		billingNote: '',
 		description: 'Full access for one kitchen to try everything risk-free.',
 		features: [
 			'1 location',
@@ -23,7 +24,8 @@ const plans = [
 	},
 	{
 		name: 'Pro',
-		price: '$19.99/month or $199/year',
+		price: '$19.99 / month',
+		billingNote: 'or $199 billed annually',
 		description: 'Best for restaurants running daily line checks.',
 		features: [
 			'Unlimited line check stations',
@@ -38,6 +40,7 @@ const plans = [
 	{
 		name: 'Enterprise',
 		price: 'Custom',
+		billingNote: 'Talk with us about your locations',
 		description: 'For multi-location restaurant groups.',
 		features: [
 			'Unlimited locations',
@@ -49,7 +52,7 @@ const plans = [
 		cta: 'Contact Sales',
 		highlight: false,
 	},
-];
+	];
 
 	return (
 		<section className="py-28 bg-accent/30">
@@ -100,10 +103,11 @@ const plans = [
 
 								<div className="mt-6 mb-8">
 									<span className="text-4xl font-bold">{plan.price}</span>
-
-									{/* {plan.price !== 'Free' && plan.price !== 'Custom' && (
-										<span className="text-muted-foreground">/month</span>
-									)} */}
+									{plan.billingNote && (
+										<p className="mt-2 text-sm text-muted-foreground">
+											{plan.billingNote}
+										</p>
+									)}
 								</div>
 
 								<ul className="space-y-3">
@@ -135,6 +139,11 @@ const plans = [
 									}
 								>
 									{plan.cta}
+									{plan.name === 'Enterprise' ? (
+										<MessageCircle aria-hidden="true" />
+									) : (
+										<ArrowRight aria-hidden="true" />
+									)}
 								</Link>
 							</Button>
 						</motion.div>

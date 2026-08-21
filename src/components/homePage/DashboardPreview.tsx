@@ -2,7 +2,12 @@
 
 import Image from 'next/image';
 import { BarChart3, X } from 'lucide-react';
-import { motion, AnimatePresence, easeInOut } from 'framer-motion';
+import {
+	motion,
+	AnimatePresence,
+	easeInOut,
+	useReducedMotion,
+} from 'framer-motion';
 import { useEffect, useState } from 'react';
 
 const dashboardImages = [
@@ -23,6 +28,7 @@ export default function DashboardPreview() {
 	const [index, setIndex] = useState(0);
 	const [paused, setPaused] = useState(false);
 	const [lightboxOpen, setLightboxOpen] = useState(false);
+	const reduceMotion = useReducedMotion();
 
 	const next = () => setIndex((prev) => (prev + 1) % dashboardImages.length);
 
@@ -31,14 +37,14 @@ export default function DashboardPreview() {
 
 	// Auto rotate
 	useEffect(() => {
-		if (paused) return;
+		if (paused || reduceMotion) return;
 
 		const interval = setInterval(() => {
 			setIndex((prev) => (prev + 1) % dashboardImages.length);
 		}, 5000);
 
 		return () => clearInterval(interval);
-	}, [paused]);
+	}, [paused, reduceMotion]);
 
 	// ESC closes lightbox
 	useEffect(() => {
@@ -83,7 +89,9 @@ export default function DashboardPreview() {
 						onMouseEnter={() => setPaused(true)}
 						onMouseLeave={() => setPaused(false)}
 					>
-						<div
+						<button
+							type="button"
+							aria-label="Open the current dashboard screenshot"
 							className="relative rounded-3xl overflow-hidden shadow-2xl border bg-background cursor-zoom-in"
 							onClick={() => setLightboxOpen(true)}
 						>
@@ -103,15 +111,16 @@ export default function DashboardPreview() {
 										width={900}
 										height={520}
 										className="object-cover w-full h-auto"
-										priority
 									/>
 								</motion.div>
 							</AnimatePresence>
-						</div>
+						</button>
 
 						{/* Controls */}
 						<div className="flex justify-center gap-4 mt-4">
 							<button
+								type="button"
+								aria-label="Show previous dashboard screenshot"
 								onClick={() => {
 									prev();
 									setPaused(true);
@@ -122,6 +131,8 @@ export default function DashboardPreview() {
 							</button>
 
 							<button
+								type="button"
+								aria-label="Show next dashboard screenshot"
 								onClick={() => {
 									next();
 									setPaused(true);
@@ -135,8 +146,15 @@ export default function DashboardPreview() {
 						{/* Indicator dots */}
 						<div className="flex justify-center gap-2 mt-3">
 							{dashboardImages.map((_, i) => (
-								<div
+								<button
 									key={i}
+									type="button"
+									aria-label={`Show dashboard screenshot ${i + 1}`}
+									aria-current={i === index ? 'true' : undefined}
+									onClick={() => {
+										setIndex(i);
+										setPaused(true);
+									}}
 									className={`h-2.5 w-2.5 rounded-full transition ${
 										i === index ? 'bg-primary' : 'bg-muted-foreground/30'
 									}`}
@@ -147,6 +165,9 @@ export default function DashboardPreview() {
 
 					{/* Feature List */}
 					<motion.div
+						role="dialog"
+						aria-modal="true"
+						aria-label="Dashboard screenshot preview"
 						className="flex-1"
 						initial={{ opacity: 0, y: 20 }}
 						whileInView={{ opacity: 1, y: 0 }}
@@ -193,6 +214,8 @@ export default function DashboardPreview() {
 							className="relative max-w-6xl w-full"
 						>
 							<button
+								type="button"
+								aria-label="Close dashboard screenshot preview"
 								className="absolute top-4 right-4 bg-background rounded-full p-2 shadow"
 								onClick={() => setLightboxOpen(false)}
 							>
