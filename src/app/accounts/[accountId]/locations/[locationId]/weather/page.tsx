@@ -7,7 +7,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { getAccountsForUser } from '@/app/api/accountApi';
 import { toast } from 'sonner';
 import LocationNav from '@/components/navBar/LocationNav';
-import MobileDrawerNav from '@/components/navBar/MoibileDrawerNav';
+import LocationPageHeader from '@/components/navBar/LocationPageHeader';
 import Image from 'next/image';
 import { useSession } from '@/lib/auth/session-context';
 
@@ -49,7 +49,7 @@ const ExtendedForecastPage = () => {
     const [drawerOpen, setDrawerOpen] = useState(false);
     const [accountName, setAccountName] = useState<string | null>(null);
     const [accountImage, setAccountImage] = useState<string | null>(null);
-    const [locationName, setLocationName] = useState<String | null>(null);
+    const [locationName, setLocationName] = useState<string | null>(null);
 
 	useEffect(() => {
 		if (
@@ -87,7 +87,7 @@ const ExtendedForecastPage = () => {
 
 				setHasAccess(true);
 				setAccountName(account.accountName);
-				setAccountImage(account.imageBase64 || null);
+				setAccountImage(account.imageBase64 || account.accountImage || null);
 				setLocationName(location.locationName);
                 setCurrentLocation(location);
 
@@ -152,7 +152,7 @@ const ExtendedForecastPage = () => {
 			<main className="flex min-h-screen overflow-hidden">
 				{/* Desktop Sidebar */}
 				{/* left nav */}
-				<aside className="hidden md:block w-1/6 border-r bg-ring overflow-y-auto">
+				<aside className="hidden w-1/6 shrink-0 self-stretch border-r bg-ring md:block">
 					<LocationNav
 						accountName={accountName}
 						accountImage={accountImage}
@@ -164,28 +164,19 @@ const ExtendedForecastPage = () => {
 
 				{/* main content */}
 				<section className="flex-1 flex flex-col">
-					{/* Header */}
-					<header className="flex justify-between items-center px-4 py-3 border-b bg-background/70 backdrop-blur-md sticky top-0 z-20">
-						{/* Left */}
-						<div className="flex gap-8">
-							{/* Mobile Drawer */}
-							<MobileDrawerNav
-								open={drawerOpen}
-								setOpen={setDrawerOpen}
-								title="Menu"
-							>
-								<LocationNav
-									accountName={accountName}
-									accountImage={accountImage}
-									accountId={accountIdParam}
-									locationId={locationIdParam}
-									sessionUserRole={sessionUserRole}
-								/>
-							</MobileDrawerNav>
-							<h1 className="text-3xl font-bold mb-4">{locationName} Home</h1>
-						</div>
+					<LocationPageHeader
+						accountId={accountIdParam}
+						locationId={locationIdParam}
+						accountName={accountName}
+						accountImage={accountImage}
+						locationName={locationName}
+						pageName="Weather"
+						sessionUserRole={sessionUserRole}
+						drawerOpen={drawerOpen}
+						setDrawerOpen={setDrawerOpen}
+					>
 						<p className="text-xl font-semibold">Extended Forecast</p>
-					</header>
+					</LocationPageHeader>
 
 					<div>
 						{dailyForecast.map((day: any) => (

@@ -7,11 +7,12 @@ type Props = {
 };
 
 const links = [
-	{ label: 'Why', href: '#why' },
-	{ label: 'Features', href: '#features' },
-	{ label: 'Dashboard', href: '#dashboard' },
-	{ label: 'Pricing', href: '#pricing' },
-	{ label: 'Benefits', href: '#headlines' },
+	{ label: 'Why', href: '/#why' },
+	{ label: 'Features', href: '/#features' },
+	{ label: 'Dashboard', href: '/#dashboard' },
+	{ label: 'Pricing', href: '/#pricing' },
+	{ label: 'Blog', href: '/blog' },
+	{ label: 'Benefits', href: '/#headlines' },
 ];
 
 export default function LandingSectionLinks({ onNavigate }: Props) {
@@ -20,7 +21,7 @@ export default function LandingSectionLinks({ onNavigate }: Props) {
 			{links.map((link) => (
 				<Link
 					key={link.href}
-					href={`/${link.href}`}
+					href={link.href}
 					onClick={onNavigate}
 					className="text-muted-foreground hover:text-foreground transition-colors"
 				>

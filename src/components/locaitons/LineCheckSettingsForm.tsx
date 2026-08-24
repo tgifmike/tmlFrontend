@@ -14,6 +14,7 @@ import {
 import {
 	Card,
 	CardContent,
+	CardDescription,
 	CardFooter,
 	CardHeader,
 	CardTitle,
@@ -24,6 +25,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { getLineCheckSettings, updateLineCheckSettings } from '@/app/api/locationApi';
 import { toast } from 'sonner';
 import { DAYS } from '@/lib/constants/usConstants';
+import { ClipboardCheck } from 'lucide-react';
 
 export const lineCheckSchema = z.object({
 	dayOfWeek: z.enum([
@@ -125,17 +127,21 @@ export default function LineCheckSettingsForm({
 	};
 
 	return (
-		<Card className="w-full flex mx-auto rounded-2xl border border-border/40 bg-accent shadow-xl">
-			<CardHeader>
-				<CardTitle className="text-lg font-semibold">
-					Line Check Settings
+		<Card className="w-full rounded-2xl border-border/60 bg-card shadow-sm">
+			<CardHeader className="border-b border-border/50">
+				<CardTitle className="flex items-center gap-2 text-xl">
+					<ClipboardCheck className="size-5 text-primary" aria-hidden="true" />
+					Line check settings
 				</CardTitle>
+				<CardDescription>
+					Set the weekly reporting cycle and daily completion target.
+				</CardDescription>
 			</CardHeader>
 
 			<form onSubmit={handleSubmit(onSubmit)}>
-				<CardContent className="space-y-2">
+				<CardContent className="space-y-2 pt-6">
 					{/* DAY OF WEEK */}
-					<div className="grid grid-cols-[1fr_auto] items-center gap-6 py-4 border-b border-border/20">
+					<div className="grid gap-4 border-b border-border/50 py-4 sm:grid-cols-[minmax(0,1fr)_minmax(14rem,1fr)] sm:items-center">
 						{/* LEFT SIDE */}
 						<div className="space-y-1">
 							<Label className="text-sm font-medium text-muted-foreground">
@@ -147,7 +153,7 @@ export default function LineCheckSettingsForm({
 						</div>
 
 						{/* RIGHT SIDE */}
-						<div className="flex justify-end">
+						<div className="flex sm:justify-end">
 							<Select
 								value={watch('dayOfWeek')}
 								onValueChange={(value) =>
@@ -161,7 +167,7 @@ export default function LineCheckSettingsForm({
 								}
 								disabled={loading}
 							>
-								<SelectTrigger className="w-56 border-0 bg-transparent shadow-none justify-end">
+							<SelectTrigger className="w-full bg-background sm:max-w-64 sm:justify-end">
 									<SelectValue placeholder="Select a day" />
 								</SelectTrigger>
 
@@ -183,7 +189,7 @@ export default function LineCheckSettingsForm({
 					</div>
 
 					{/* DAILY GOAL */}
-					<div className="grid grid-cols-[1fr_auto] items-center gap-6 py-4">
+					<div className="grid gap-4 py-4 sm:grid-cols-[minmax(0,1fr)_minmax(14rem,1fr)] sm:items-center">
 						{/* LEFT SIDE */}
 						<div className="space-y-1">
 							<Label className="text-sm font-medium text-muted-foreground">
@@ -195,14 +201,14 @@ export default function LineCheckSettingsForm({
 						</div>
 
 						{/* RIGHT SIDE */}
-						<div className="flex justify-end">
+						<div className="flex sm:justify-end">
 							<Input
 								type="number"
 								min={1}
 								{...register('dailyGoal', { valueAsNumber: true })}
 								value={watch('dailyGoal')}
 								disabled={loading}
-								className="w-56 border-0 bg-transparent shadow-none text-right focus-visible:ring-0"
+								className="w-full bg-background sm:max-w-64 sm:text-right"
 							/>
 						</div>
 
@@ -214,10 +220,9 @@ export default function LineCheckSettingsForm({
 					</div>
 				</CardContent>
 
-				<CardFooter>
+				<CardFooter className="justify-end border-t border-border/50 pt-6">
 					<Button
 						type="submit"
-						className="w-full rounded-xl"
 						disabled={!isDirty || loading}
 					>
 						{loading ? 'Saving...' : 'Save Settings'}
@@ -227,5 +232,4 @@ export default function LineCheckSettingsForm({
 		</Card>
 	);
 }
-
 

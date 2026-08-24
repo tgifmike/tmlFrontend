@@ -4,8 +4,9 @@ import { getAccountsForUser } from '@/app/api/accountApi';
 import { getUserLocationAccess, toggleLocationActive, updateLocation } from '@/app/api/locationApi';
 import { AccessRole, AppRole, Locations, User } from '@/app/types';
 import LineCheckSettingsForm from '@/components/locaitons/LineCheckSettingsForm';
+import TemperatureCategorySettings from '@/components/settings/TemperatureCategorySettings';
 import LocationNav from '@/components/navBar/LocationNav';
-import MobileDrawerNav from '@/components/navBar/MoibileDrawerNav';
+import LocationPageHeader from '@/components/navBar/LocationPageHeader';
 import LocationHistoryFeed from '@/components/tableComponents/LocationHistoryFeed';
 import { StatusSwitchOrBadge } from '@/components/tableComponents/StatusSwitchOrBadge';
 import { Badge } from '@/components/ui/badge';
@@ -27,7 +28,6 @@ import {
 	FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { useSession } from '@/lib/auth/session-context';
@@ -35,10 +35,9 @@ import { useSession } from '@/lib/auth/session-context';
 import { US_STATES, US_TIME_ZONES } from '@/lib/constants/usConstants';
 import { Icons } from '@/lib/icon';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { se } from 'date-fns/locale';
-import { useParams } from 'next/navigation';
-import router from 'next/router';
-import React, { useEffect, useMemo, useState } from 'react';
+import { Activity, MapPin, MapPinned } from 'lucide-react';
+import { useParams, useRouter } from 'next/navigation';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import z from 'zod';
@@ -49,16 +48,21 @@ const LocationSettingsPage = () => {
 	const BadgeQuestionMarkIcon = Icons.badgeQuestionMark;
 
 	//session
-	const { user, loading, logout } = useSession();
+	const { user } = useSession();
 	const currentUser = user as User | undefined;
 	const sessionUserRole = user?.appRole;
 	const MANAGER = currentUser?.appRole === AppRole.MANAGER;
 	const SRADMIN = currentUser?.accessRole === AccessRole.SRADMIN;
+	const canManageTemperatureCategories =
+		MANAGER ||
+		currentUser?.accessRole === AccessRole.ADMIN ||
+		currentUser?.accessRole === AccessRole.SRADMIN;
 	const canToggle = currentUser?.appRole === AppRole.MANAGER;
 	const isManager = user?.appRole === AppRole.MANAGER;
 	const params = useParams<{ accountId: string; locationId: string }>();
 	const accountIdParam = params.accountId;
 	const locationIdParam = params.locationId;
+	const router = useRouter();
 
 	// state
 	const [hasAccess, setHasAccess] = useState(false);
@@ -70,6 +74,11 @@ const LocationSettingsPage = () => {
 		null
 	);
 	const [drawerOpen, setDrawerOpen] = useState(false);
+	const [historyRefreshKey, setHistoryRefreshKey] = useState(0);
+	const refreshLocationHistory = useCallback(
+		() => setHistoryRefreshKey((current) => current + 1),
+		[],
+	);
 
 	// Zod schema with all fields and validations
 	const getSchema = (locations: Locations[] = [], currentLocationId: string) =>
@@ -142,7 +151,7 @@ const LocationSettingsPage = () => {
 
 				setHasAccess(true);
 				setAccountName(account.accountName);
-				setAccountImage(account.imageBase64 || null);
+				setAccountImage(account.imageBase64 || account.accountImage || null);
 				setLocationName(location.locationName);
 				setCurrentLocation(location);
 			} catch (err) {
@@ -154,7 +163,7 @@ const LocationSettingsPage = () => {
 		};
 
 		verifyAccess();
-	}, [user?.userId, accountIdParam, locationIdParam, hasAccess]);
+	}, [user?.id, accountIdParam, locationIdParam, hasAccess, router]);
 
 	const schema = useMemo(
 		() => getSchema(locations, locationIdParam),
@@ -281,12 +290,12 @@ const LocationSettingsPage = () => {
 		}
 
 		try {
-			if (!user?.userId) {
+			if (!user?.id) {
 				toast.error('You must be logged in to update a location.');
 				return;
 			}
 
-			await toggleLocationActive(locationId, checked, user.userId);
+			await toggleLocationActive(locationId, checked, user.id);
 		} catch (error: any) {
 			// Rollback both states
 			setLocations((prev) =>
@@ -308,7 +317,7 @@ const LocationSettingsPage = () => {
 		<main className="flex min-h-screen overflow-hidden">
 			{/* Desktop Sidebar */}
 			{/* left nav */}
-			<aside className="hidden md:block w-1/6 border-r h-screen bg-ring">
+			<aside className="hidden w-1/6 shrink-0 self-stretch border-r bg-ring md:block">
 				<LocationNav
 					accountName={accountName}
 					accountImage={accountImage}
@@ -319,34 +328,38 @@ const LocationSettingsPage = () => {
 			</aside>
 
 			{/* main content */}
-			<section className="flex-1 flex flex-col">
-				{/* Header */}
-				<header className="flex justify-between items-center px-4 py-3 border-b bg-background/70 backdrop-blur-md sticky top-0 z-20">
-					{/* Left */}
-					<div className="flex gap-8">
-						{/* Mobile Drawer */}
-						<MobileDrawerNav
-							open={drawerOpen}
-							setOpen={setDrawerOpen}
-							title="Menu"
-						>
-							<LocationNav
-								accountName={accountName}
-								accountImage={accountImage}
-								accountId={accountIdParam}
-								locationId={locationIdParam}
-								sessionUserRole={sessionUserRole}
-							/>
-						</MobileDrawerNav>
-						<h1 className="text-3xl font-bold mb-4">{locationName}</h1>
-					</div>
-					<p className="text-3xl font-bold mb-4">Location Settings</p>
-				</header>
-				<div className="flex flex-col items-center">
-					<Card className="w-2/3 mx-auto m-4 rounded-3xl border border-white/20 bg-accent backdrop-blur-2xl shadow-xl">
-						<CardHeader className="pb-2">
-							<CardTitle className="text-2xl">Location Information</CardTitle>
-							<CardDescription>You can update fields here</CardDescription>
+			<section className="flex min-w-0 flex-1 flex-col">
+				<LocationPageHeader
+					accountId={accountIdParam}
+					locationId={locationIdParam}
+					accountName={accountName}
+					accountImage={accountImage}
+					locationName={locationName}
+					pageName="Settings"
+					sessionUserRole={sessionUserRole}
+					drawerOpen={drawerOpen}
+					setDrawerOpen={setDrawerOpen}
+				/>
+				<div className="flex-1 overflow-y-auto bg-muted/20">
+					<div className="mx-auto w-full max-w-6xl space-y-6 px-4 py-6 sm:px-6 lg:px-8">
+						<div>
+							<h2 className="text-2xl font-semibold tracking-tight">Location settings</h2>
+							<p className="mt-1 text-sm text-muted-foreground">
+								Manage this location’s identity, operational targets, and compliance rules.
+							</p>
+						</div>
+
+						<Card className="rounded-2xl border-border/60 bg-card shadow-sm">
+							<CardHeader className="gap-4 border-b border-border/50 sm:flex sm:flex-row sm:items-start sm:justify-between">
+							<div>
+								<CardTitle className="flex items-center gap-2 text-xl">
+									<MapPin className="size-5 text-primary" aria-hidden="true" />
+									Location information
+								</CardTitle>
+								<CardDescription className="mt-2">
+									Update the location name, address, and operating time zone.
+								</CardDescription>
+							</div>
 							<CardAction>
 								<Button
 									type="submit"
@@ -356,8 +369,8 @@ const LocationSettingsPage = () => {
 									{form.formState.isSubmitting ? 'Saving...' : 'Save Changes'}
 								</Button>
 							</CardAction>
-						</CardHeader>
-						<CardContent>
+							</CardHeader>
+							<CardContent className="pt-6">
 							<Form {...form}>
 								<form
 									id="location-form"
@@ -368,9 +381,9 @@ const LocationSettingsPage = () => {
 										control={form.control}
 										name="locationName"
 										render={({ field }) => (
-											<FormItem className="rounded-2xl border border-border/60 bg-background/80 px-4 py-4 shadow-sm">
-												<div className="flex items-center justify-between gap-6">
-													<div className="space-y-1 min-w-[180px]">
+											<FormItem className="rounded-xl border border-border/60 bg-muted/15 px-4 py-4">
+												<div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_minmax(14rem,1fr)] sm:items-center">
+													<div className="space-y-1">
 														<FormLabel className="text-sm font-medium text-muted-foreground">
 															Location Name
 														</FormLabel>
@@ -379,11 +392,11 @@ const LocationSettingsPage = () => {
 														</p>
 													</div>
 
-													<div className="w-1/2">
+													<div>
 														<FormControl>
 															<Input
 																placeholder="Enter location name"
-																className="w-56 border-0 bg-transparent shadow-none text-right focus-visible:ring-0"
+															className="w-full bg-background sm:text-right"
 																disabled={!isManager}
 																{...field}
 															/>
@@ -401,18 +414,18 @@ const LocationSettingsPage = () => {
 											Address
 										</p>
 
-										<div className="rounded-2xl border overflow-hidden">
+										<div className="overflow-hidden rounded-xl border border-border/60 bg-muted/15">
 											<div className="px-4 py-3">
 												<FormField
 													control={form.control}
 													name="locationStreet"
 													render={({ field }) => (
-														<FormItem className="flex justify-between items-center">
+														<FormItem className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_minmax(14rem,1fr)] sm:items-center">
 															<FormLabel>Street</FormLabel>
 															<FormControl>
 																<Input
 																	placeholder="Enter street address"
-																	className="w-56 border-0 bg-transparent shadow-none text-right focus-visible:ring-0"
+																		className="w-full bg-background sm:text-right"
 																	disabled={!isManager}
 																	{...field}
 																/>
@@ -430,12 +443,12 @@ const LocationSettingsPage = () => {
 													control={form.control}
 													name="locationTown"
 													render={({ field }) => (
-														<FormItem className="flex justify-between items-center">
+														<FormItem className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_minmax(14rem,1fr)] sm:items-center">
 															<FormLabel>Town</FormLabel>
 															<FormControl>
 																<Input
 																	placeholder="Enter town"
-																	className="w-56 border-0 bg-transparent shadow-none text-right focus-visible:ring-0"
+																	className="w-full bg-background sm:text-right"
 																	disabled={!isManager}
 																	{...field}
 																/>
@@ -453,7 +466,7 @@ const LocationSettingsPage = () => {
 													control={form.control}
 													name="locationState"
 													render={({ field }) => (
-														<FormItem className="flex justify-between items-center">
+														<FormItem className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_minmax(14rem,1fr)] sm:items-center">
 															<FormLabel>State</FormLabel>
 															<FormControl>
 																<Select
@@ -462,7 +475,7 @@ const LocationSettingsPage = () => {
 																	value={field.value ?? ''}
 																	disabled={!isManager}
 																>
-																	<SelectTrigger className="w-56 border-0 bg-transparent shadow-none justify-end">
+																		<SelectTrigger className="w-full bg-background sm:justify-end">
 																		<SelectValue placeholder="Select a state" />
 																	</SelectTrigger>
 																	<SelectContent
@@ -491,12 +504,12 @@ const LocationSettingsPage = () => {
 													control={form.control}
 													name="locationZipCode"
 													render={({ field }) => (
-														<FormItem className="flex justify-between items-center">
+														<FormItem className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_minmax(14rem,1fr)] sm:items-center">
 															<FormLabel className="w-1/2">ZIP Code</FormLabel>
 															<FormControl>
 																<Input
 																	placeholder="Enter ZIP code"
-																	className="w-56 border-0 bg-transparent shadow-none text-right focus-visible:ring-0"
+																	className="w-full bg-background sm:text-right"
 																	disabled={!isManager}
 																	{...field}
 																/>
@@ -514,7 +527,7 @@ const LocationSettingsPage = () => {
 													control={form.control}
 													name="locationTimeZone"
 													render={({ field }) => (
-														<FormItem className="flex justify-between items-center">
+														<FormItem className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_minmax(14rem,1fr)] sm:items-center">
 															<FormLabel>Time Zone</FormLabel>
 															<FormControl>
 																<Select
@@ -523,7 +536,7 @@ const LocationSettingsPage = () => {
 																	value={field.value}
 																	disabled={!isManager}
 																>
-																	<SelectTrigger className="w-56 border-0 bg-transparent shadow-none justify-end">
+																		<SelectTrigger className="w-full bg-background sm:justify-end">
 																		<SelectValue placeholder="Select a time zone" />
 																	</SelectTrigger>
 																	<SelectContent>
@@ -544,115 +557,98 @@ const LocationSettingsPage = () => {
 									</div>
 								</form>
 							</Form>
-						</CardContent>
-					</Card>
+							</CardContent>
+						</Card>
 
-					{/* status */}
-					<Card className="w-2/3 mx-auto m-4 rounded-2xl border border-border/40 bg-accent shadow-xl">
-						<CardHeader className="pb-3">
-							<CardTitle className="text-lg font-semibold">
-								Location Status
-							</CardTitle>
-							<CardDescription className="text-sm text-muted-foreground">
-								Controls whether this location is active in the system
-							</CardDescription>
-						</CardHeader>
+						<div className="grid gap-6 lg:grid-cols-2">
+							<Card className="h-full rounded-2xl border-border/60 bg-card shadow-sm">
+								<CardHeader className="border-b border-border/50">
+									<CardTitle className="flex items-center gap-2 text-xl">
+										<Activity className="size-5 text-primary" aria-hidden="true" />
+										Location status
+									</CardTitle>
+									<CardDescription>
+										Control whether this location is available to its users.
+									</CardDescription>
+								</CardHeader>
+								<CardContent className="flex min-h-32 items-center justify-between gap-6 pt-6">
+									<div className="space-y-1">
+										<p className="text-sm font-medium">Active status</p>
+										<p className="text-xs text-muted-foreground">
+											Inactive locations are hidden from users.
+										</p>
+									</div>
+									<StatusSwitchOrBadge
+										entity={{
+											id: currentLocation?.id!,
+											active: currentLocation?.locationActive!,
+										}}
+										getLabel={() => `Location: ${currentLocation?.locationName}`}
+										onToggle={handleToggleActive}
+										canToggle={canToggle}
+									/>
+								</CardContent>
+							</Card>
 
-						<CardContent className="flex items-center justify-between py-4">
-							{/* LEFT SIDE (context) */}
-							<div className="space-y-1">
-								<p className="text-sm font-medium">Active Status</p>
-								<p className="text-xs text-muted-foreground">
-									Inactive locations will be hidden from users
-								</p>
-							</div>
+							<Card className="h-full rounded-2xl border-border/60 bg-card shadow-sm">
+								<CardHeader className="border-b border-border/50">
+									<CardTitle className="flex items-center gap-2 text-xl">
+										<MapPinned className="size-5 text-primary" aria-hidden="true" />
+										Geocoded coordinates
+									</CardTitle>
+									<CardDescription>
+										Coordinates are derived from the address, with ZIP fallback.
+									</CardDescription>
+								</CardHeader>
+								<CardContent className="space-y-4 pt-6">
+									<div className="flex items-center justify-between gap-4">
+										<p className="text-sm font-medium">Geocoding status</p>
+										{currentLocation?.geocodedFromZipFallback ? (
+											<Badge variant="destructive" className="gap-2">
+												<BadgeQuestionMarkIcon className="size-4" />
+												Fallback (ZIP)
+											</Badge>
+										) : (
+											<Badge variant="secondary" className="gap-2 bg-chart-3 text-background">
+												<BadgeCheckMarkIcon className="size-4" />
+												Verified
+											</Badge>
+										)}
+									</div>
+									<div className="divide-y overflow-hidden rounded-xl border border-border/60 bg-muted/15">
+										<div className="flex items-center justify-between px-4 py-3">
+											<span className="text-sm text-muted-foreground">Latitude</span>
+											<span className="text-sm font-medium tabular-nums">
+												{currentLocation?.locationLatitude ?? 'N/A'}
+											</span>
+										</div>
+										<div className="flex items-center justify-between px-4 py-3">
+											<span className="text-sm text-muted-foreground">Longitude</span>
+											<span className="text-sm font-medium tabular-nums">
+												{currentLocation?.locationLongitude ?? 'N/A'}
+											</span>
+										</div>
+									</div>
+								</CardContent>
+							</Card>
+						</div>
 
-							{/* RIGHT SIDE (control) */}
-							<StatusSwitchOrBadge
-								entity={{
-									id: currentLocation?.id!,
-									active: currentLocation?.locationActive!,
-								}}
-								getLabel={() => `Location: ${currentLocation?.locationName}`}
-								onToggle={handleToggleActive}
-								canToggle={canToggle}
+						<LineCheckSettingsForm locationId={locationIdParam} userId={user?.id} />
+
+						<TemperatureCategorySettings
+							locationId={locationIdParam}
+							userId={user?.id}
+							canManage={canManageTemperatureCategories}
+							onHistoryChange={refreshLocationHistory}
+						/>
+
+						{(SRADMIN || MANAGER) && (
+							<LocationHistoryFeed
+								locationId={locationIdParam}
+								refreshKey={historyRefreshKey}
 							/>
-						</CardContent>
-					</Card>
-
-					{/* coordinates */}
-					<Card className="w-2/3 mx-auto m-4 rounded-2xl border border-border/40 bg-accent shadow-xl">
-						<CardHeader className="pb-3">
-							<CardTitle className="text-lg font-semibold">
-								Geo Synced Coordinates
-							</CardTitle>
-							<CardDescription className="text-sm text-muted-foreground">
-								Coordinates are derived from the address. If unavailable, ZIP
-								code fallback is used (less accurate).
-							</CardDescription>
-						</CardHeader>
-
-						<CardContent className="space-y-6">
-							{/* STATUS ROW */}
-							<div className="flex items-center justify-between">
-								<div className="space-y-1">
-									<p className="text-sm font-medium">Geocoding Status</p>
-									<p className="text-xs text-muted-foreground">
-										Indicates how coordinates were resolved
-									</p>
-								</div>
-
-								{currentLocation?.geocodedFromZipFallback ? (
-									<Badge variant="destructive" className="gap-2">
-										<BadgeQuestionMarkIcon className="w-4 h-4" />
-										Fallback (ZIP)
-									</Badge>
-								) : (
-									<Badge
-										variant="secondary"
-										className="gap-2 bg-chart-3 text-background"
-									>
-										<BadgeCheckMarkIcon className="w-4 h-4" />
-										Verified
-									</Badge>
-								)}
-							</div>
-
-							{/* COORDINATES SECTION */}
-							<div className="rounded-xl border border-border/30 divide-y divide-border/20 overflow-hidden">
-								<div className="flex items-center justify-between px-4 py-3">
-									<span className="text-sm text-muted-foreground">
-										Latitude
-									</span>
-									<span className="text-sm font-medium">
-										{currentLocation?.locationLatitude ?? 'N/A'}
-									</span>
-								</div>
-
-								<div className="flex items-center justify-between px-4 py-3">
-									<span className="text-sm text-muted-foreground">
-										Longitude
-									</span>
-									<span className="text-sm font-medium">
-										{currentLocation?.locationLongitude ?? 'N/A'}
-									</span>
-								</div>
-							</div>
-						</CardContent>
-					</Card>
-				</div>
-
-				<div className="flex w-2/3 mx-auto">
-					<LineCheckSettingsForm
-						locationId={locationIdParam}
-						userId={user?.userId}
-					/>
-				</div>
-
-				<div className="flex justify-center items-center">
-					{(SRADMIN || MANAGER) && (
-						<LocationHistoryFeed accountId={accountIdParam} />
-					)}
+						)}
+					</div>
 				</div>
 			</section>
 		</main>

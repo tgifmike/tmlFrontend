@@ -12,14 +12,14 @@ import { ReusableTable } from '@/components/tableComponents/ReusableTableProps';
 import { StatusSwitchOrBadge } from '@/components/tableComponents/StatusSwitchOrBadge';
 import { EditAccountDialog } from '@/components/tableComponents/EditAccountDialog';
 import { DeleteConfirmButton } from '@/components/tableComponents/DeleteConfirmButton';
-import Spinner from '@/components/spinner/Spinner';
 import { UserControls } from '@/components/tableComponents/UserControls';
 import { Pagination } from '@/components/tableComponents/Pagination';
 import CreateAccountDialog from '@/components/tableComponents/CreateAccountForm';
-import { DataCard } from '@/components/cards/DataCard';
 import Link from 'next/link';
 import AccountHistoryFeed from '@/components/tableComponents/AccountHistoryFeed';
 import { useSession } from '@/lib/auth/session-context';
+import { Building2, ChevronRight } from 'lucide-react';
+import { Card } from '@/components/ui/card';
 
 
 
@@ -27,7 +27,7 @@ const MainAccountPage = () => {
 	//icons
 
 	//session
-	const { user, loading, logout } = useSession();
+	const { user, loading } = useSession();
 	const currentUser = user as User | undefined;
 	const sessionUserRole = user?.appRole;
 	const canToggle = currentUser?.appRole === AppRole.MANAGER;
@@ -63,11 +63,6 @@ const MainAccountPage = () => {
 			// setLoading(false);
 		}
 	}, [loading, user]);
-
-	const handleAccountUpdated = (updated: AccountHistory) => {
-		setAccountHistoryUpdates((prev) => [updated, ...prev]);
-	};
-
 
 	//toggle account active
 	const handleToggleActive = async (accountId: string, checked: boolean) => {
@@ -144,15 +139,13 @@ const MainAccountPage = () => {
 		}
 	}, [pageSize]);
 
-	//pagination
 	useEffect(() => {
-		localStorage.setItem('mainAccountCurrentPage', String(currentPage));
-	}, [currentPage]);
-
-	useEffect(() => {
-		localStorage.setItem('mainAccountPageSize', String(pageSize));
 		setCurrentPage(1); // reset to first page when pageSize changes
 	}, [pageSize]);
+
+	useEffect(() => {
+		setCurrentPage(1);
+	}, [searchTerm, showActiveOnly]);
 
 	const handleAccountCreated = (newAccount: Account) => {
 		setAccounts((prev) => [...prev, newAccount]);
@@ -168,8 +161,9 @@ const MainAccountPage = () => {
 	
 
 	return (
-		<div className="pt-3">
-			<div className="w-full max-w-5xl mx-auto flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 px-4">
+		<div className="px-4 py-8 sm:px-6 lg:px-8">
+			<div className="mx-auto w-full max-w-7xl">
+			<div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
 				<h1 className="text-2xl sm:text-3xl font-bold text-center sm:text-left">
 					Accounts
 				</h1>
@@ -180,44 +174,72 @@ const MainAccountPage = () => {
 			</div>
 
 			{/* table header */}
-			<div className="w-full md:w-3/4 mx-auto flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 px-4 mt-4">
+			<div className="mt-6 w-full">
 				<UserControls
 					showActiveOnly={showActiveOnly}
 					setShowActiveOnly={setShowActiveOnly}
 					searchTerm={searchTerm}
 					setSearchTerm={setSearchTerm}
+					searchPlaceholder="Search accounts"
 				/>
 			</div>
 
-			<div className="hidden md:block bg-accent p-4 rounded-2xl text-chart-3 w-3/4 mx-auto shadow-md mt-8">
+			<div className="mt-6 hidden overflow-hidden rounded-2xl border bg-card shadow-sm md:block">
 				<ReusableTable
 					data={paginatedAccounts}
 					rowKey={(a) => a.id!}
+					headerRowClassName="bg-muted/60 text-xs font-semibold uppercase tracking-[0.12em]"
+					rowClassName="h-20 text-base hover:bg-muted/40"
+					emptyMessage={
+						searchTerm
+							? `No accounts match “${searchTerm}”.`
+							: 'No accounts to display.'
+					}
 					columns={[
 						{
 							header: 'Account Name',
+							className: 'w-[60%] px-6',
 							render: (a) => (
-								<Link href={`/accounts/${a.id}`}>{a.accountName}</Link>
+								<Link
+									href={`/accounts/${a.id}`}
+									className="group inline-flex items-center gap-3 font-semibold text-foreground transition-colors hover:text-chart-3"
+								>
+									<span className="flex size-10 items-center justify-center rounded-xl bg-chart-3/10 text-chart-3">
+										<Building2 className="size-5" aria-hidden="true" />
+									</span>
+									<span>{a.accountName}</span>
+									<ChevronRight
+										className="size-4 opacity-0 transition-all group-hover:translate-x-0.5 group-hover:opacity-100"
+										aria-hidden="true"
+									/>
+								</Link>
 							),
 						},
 						{
 							header: 'Status',
-							className: 'text-center',
+							className: 'w-[20%] px-4 text-center',
 							render: (a) => (
-								<StatusSwitchOrBadge
-									entity={{
-										id: a.id!,
-										active: a.accountActive!,
-									}}
-									getLabel={() => `Account: ${a.accountName}`}
-									onToggle={handleToggleActive}
-									canToggle={canToggle}
-								/>
+								<div className="flex flex-col items-center justify-center gap-1.5">
+									<StatusSwitchOrBadge
+										entity={{
+											id: a.id!,
+											active: a.accountActive!,
+										}}
+										getLabel={() => `Account: ${a.accountName}`}
+										onToggle={handleToggleActive}
+										canToggle={canToggle}
+									/>
+									{canToggle && (
+										<span className="text-xs font-medium text-muted-foreground">
+											{a.accountActive ? 'Active' : 'Inactive'}
+										</span>
+									)}
+								</div>
 							),
 						},
 						{
 							header: 'Actions',
-							className: 'text-center',
+							className: 'w-[20%] px-6 text-center',
 							render: (a) =>
 								sessionUserRole === 'MANAGER' ? (
 									<div className="flex justify-center gap-4 items-center">
@@ -265,20 +287,35 @@ const MainAccountPage = () => {
 			</div>
 
 			{/* Mobile Cards */}
-			<div className="block md:hidden mt-6 space-y-4 p-2">
+			<div className="mt-6 space-y-4 md:hidden">
 				{paginatedAccounts.map((account) => (
-					<DataCard
-						key={account.id}
-						title={
-							<Link href={`/accounts/${account.id}`}>
-								{account.accountName}
-							</Link>
-						}
-						description={account.accountImage ?? undefined}
-						fields={[
-							{
-								label: 'Status',
-								value: (
+					<Card key={account.id} className="gap-0 overflow-hidden py-0 shadow-sm">
+						<Link
+							href={`/accounts/${account.id}`}
+							className="group flex items-center justify-between gap-4 p-5 transition-colors hover:bg-muted/40"
+						>
+							<div className="flex min-w-0 items-center gap-3">
+								<span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-chart-3/10 text-chart-3">
+									<Building2 className="size-5" aria-hidden="true" />
+								</span>
+								<div className="min-w-0">
+									<p className="truncate font-semibold text-foreground">
+										{account.accountName}
+									</p>
+									<p className="mt-1 text-xs text-muted-foreground">
+										View account details
+									</p>
+								</div>
+							</div>
+							<ChevronRight
+								className="size-5 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5"
+								aria-hidden="true"
+							/>
+						</Link>
+
+						<div className="flex items-center justify-between border-t bg-muted/20 px-5 py-4">
+							<span className="text-sm font-medium text-muted-foreground">Status</span>
+							<div className="flex items-center gap-3">
 									<StatusSwitchOrBadge
 										entity={{
 											id: account.id!,
@@ -288,15 +325,20 @@ const MainAccountPage = () => {
 										onToggle={handleToggleActive}
 										canToggle={canToggle}
 									/>
-								),
-							},
-						]}
-						actions={[
-							{
-								element: (
-									<div className="flex justify-center gap-4 items-center">
-										{sessionUserRole === 'MANAGER' ? (
-											<>
+								{canToggle && (
+									<span className="text-sm font-medium">
+										{account.accountActive ? 'Active' : 'Inactive'}
+									</span>
+								)}
+							</div>
+						</div>
+
+						{sessionUserRole === 'MANAGER' && (
+							<div className="flex items-center justify-between border-t px-5 py-2">
+								<span className="text-sm font-medium text-muted-foreground">
+									Manage account
+								</span>
+								<div className="flex items-center gap-1">
 												<EditAccountDialog
 													account={account}
 													accounts={accounts}
@@ -330,20 +372,23 @@ const MainAccountPage = () => {
 														getItemName={() => account.accountName ?? 'unknown'}
 													/>
 												)}
-											</>
-										) : (
-											<span className="text-ring">No Actions</span>
-										)}
-									</div>
-								),
-							},
-						]}
-					/>
+								</div>
+							</div>
+						)}
+					</Card>
 				))}
+
+				{paginatedAccounts.length === 0 && (
+					<div className="rounded-2xl border border-dashed px-6 py-12 text-center text-sm text-muted-foreground">
+						{searchTerm
+							? `No accounts match “${searchTerm}”.`
+							: 'No accounts to display.'}
+					</div>
+				)}
 			</div>
 
 			{/* pagination page size selector */}
-			<div className="w-full md:w-3/4 mx-auto flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 px-4 mt-4">
+			<div className="mt-2 w-full">
 				<Pagination
 					currentPage={currentPage}
 					setCurrentPage={setCurrentPage}
@@ -355,6 +400,7 @@ const MainAccountPage = () => {
 
 			<div className="flex justify-center items-center">
 				{SRADMIN && <AccountHistoryFeed updates={accountHistoryUpdates} />}
+			</div>
 			</div>
 		</div>
 	);

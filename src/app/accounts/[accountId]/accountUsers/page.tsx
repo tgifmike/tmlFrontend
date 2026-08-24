@@ -77,7 +77,7 @@ const AccountUsersPage = () => {
 
 				setHasAccess(true);
 				setAccountName(account.accountName);
-                setAccountImage(account.imageBase64 || null);
+                setAccountImage(account.imageBase64 || account.accountImage || null);
                 setUsers(fetchedUsers)
 			} catch (err) {
 				toast.error('You do not have access to this location.');

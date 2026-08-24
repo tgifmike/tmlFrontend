@@ -7,7 +7,7 @@ import { toast } from 'sonner';
 import z from 'zod';
 
 import { createItem } from '@/app/api/item.Api';
-import { Item, OptionEntity } from '@/app/types';
+import { Item, OptionEntity, TemperatureCategory } from '@/app/types';
 import { Icons } from '@/lib/icon';
 
 import {
@@ -38,7 +38,13 @@ import {
 import { Input } from '../ui/input';
 import { Textarea } from '../ui/textarea';
 import { Switch } from '../ui/switch';
-import { panSizeOptions, portionSizeOptions, shelfLifeOptions, tempCategories, tempCategoryRanges, toolOptions } from '@/lib/constants/usConstants';
+import {
+	getDefaultTemperatureCategories,
+	panSizeOptions,
+	portionSizeOptions,
+	shelfLifeOptions,
+	toolOptions,
+} from '@/lib/constants/usConstants';
 
 type CreateItemDialogProps = {
 	onItemCreated?: (item: Item) => void;
@@ -49,6 +55,7 @@ type CreateItemDialogProps = {
 	panSizes?: OptionEntity[];
 	portionSizes?: OptionEntity[];
 	shelfLifes?: OptionEntity[];
+	temperatureCategories?: TemperatureCategory[];
 };
 
 // Zod schema
@@ -80,7 +87,6 @@ const getSchema = (items: Item[] = [], currentItemId?: string) =>
 			isTempTaken: z.boolean().default(false),
 			tempCategory: z.string().optional(),
 
-			isCheckMark: z.boolean().default(false),
 			itemNotes: z.string().optional(),
 		})
 		.refine((data) => !data.isTool || !!data.toolName, {
@@ -107,6 +113,7 @@ export default function CreateItemDialog({
 	panSizes = [],
 	portionSizes = [],
 	shelfLifes = [],
+	temperatureCategories = getDefaultTemperatureCategories(''),
 }: CreateItemDialogProps) {
 
 	//console.log('tools in CreateItemDialog:', tools);
@@ -136,7 +143,6 @@ export default function CreateItemDialog({
 				portionSize: '',
 				isTempTaken: false,
 				tempCategory: '',
-				isCheckMark: false,
 				itemNotes: '',
 			},
 			mode: 'onChange',
@@ -148,16 +154,33 @@ export default function CreateItemDialog({
 			// Build backend payload
 			const payload: any = {
 				...values,
+				isCheckMark: true,
 				portioned: values.isPortioned,
 				templateNotes: values.itemNotes || undefined,
 			};
 
-			// Temp logic
+			// Send the category id for configurable categories. During the backend
+			// migration, built-in categories continue to use the legacy enum code.
 			if (values.isTempTaken && values.tempCategory) {
-				const range = tempCategoryRanges[values.tempCategory];
-				if (range) {
-					payload.minTemp = range.min;
-					payload.maxTemp = range.max;
+				const selectedCategory = temperatureCategories.find(
+					(category) =>
+						category.id === values.tempCategory ||
+						category.code === values.tempCategory,
+				);
+
+				if (!selectedCategory) {
+					toast.error('Select a valid temperature category.');
+					return;
+				}
+
+				payload.minTemp = selectedCategory.minTemp;
+				payload.maxTemp = selectedCategory.maxTemp;
+
+				if (selectedCategory.id) {
+					payload.tempCategoryId = selectedCategory.id;
+					delete payload.tempCategory;
+				} else {
+					payload.tempCategory = selectedCategory.code;
 				}
 			}
 
@@ -170,6 +193,7 @@ export default function CreateItemDialog({
 
 			if (!payload.isTempTaken) {
 				delete payload.tempCategory;
+				delete payload.tempCategoryId;
 				delete payload.minTemp;
 				delete payload.maxTemp;
 			}
@@ -431,11 +455,17 @@ export default function CreateItemDialog({
 													<SelectValue placeholder="Select temp category" />
 												</SelectTrigger>
 												<SelectContent>
-													{tempCategories.map((option) => (
-														<SelectItem key={option.value} value={option.value}>
-															{option.label}
-														</SelectItem>
-													))}
+											{temperatureCategories
+												.filter((category) => category.active)
+												.map((category) => (
+												<SelectItem
+													key={category.id ?? category.code}
+													value={category.id ?? category.code}
+												>
+													{category.name} ({category.minTemp}°{category.unit} to{' '}
+													{category.maxTemp}°{category.unit})
+												</SelectItem>
+												))}
 												</SelectContent>
 											</Select>
 										</FormControl>
@@ -444,24 +474,6 @@ export default function CreateItemDialog({
 								)}
 							/>
 						)}
-						{/* Check Mark */}
-						<FormField
-							control={form.control}
-							name="isCheckMark"
-							render={({ field }) => (
-								<FormItem className="flex items-center justify-between">
-									<FormLabel className="mb-0">
-										Will you be checking if item is correct?
-									</FormLabel>
-									<FormControl>
-										<Switch
-											checked={field.value}
-											onCheckedChange={(checked) => field.onChange(checked)}
-										/>
-									</FormControl>
-								</FormItem>
-							)}
-						/>
 						{/* item Notes */}
 						<FormField
 							control={form.control}

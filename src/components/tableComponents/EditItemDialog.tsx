@@ -1,10 +1,10 @@
 'use client';
 
 import { updateItem } from '@/app/api/item.Api';
-import { Item, OptionEntity } from '@/app/types';
+import { Item, OptionEntity, TemperatureCategory } from '@/app/types';
 import { Icons } from '@/lib/icon';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useEffect, useMemo, useState } from 'react';
+import { type ReactElement, useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import z from 'zod';
@@ -40,8 +40,7 @@ import {
 	panSizeOptions,
 	portionSizeOptions,
 	shelfLifeOptions,
-	tempCategories,
-	tempCategoryRanges,
+	getDefaultTemperatureCategories,
 	toolOptions,
 } from '@/lib/constants/usConstants';
 
@@ -52,9 +51,11 @@ type EditItemDialogProps = {
 	panSizes?: OptionEntity[];
 	portionSizes?: OptionEntity[];
 	shelfLifes?: OptionEntity[];
+	temperatureCategories?: TemperatureCategory[];
 	stationId: string;
 	currentUserId: string;
 	onUpdate: (updatedItem: Item) => void;
+	trigger?: ReactElement;
 };
 
 // --- Schema ---
@@ -86,7 +87,6 @@ const getSchema = (items: Item[] = [], currentItemId?: string) =>
 			isTempTaken: z.boolean().default(false),
 			tempCategory: z.string().optional(),
 
-			isCheckMark: z.boolean().default(false),
 			templateNotes: z.string().optional(),
 		})
 		.refine((data) => !data.isTool || !!data.toolName, {
@@ -112,7 +112,9 @@ export function EditItemDialog({
 	panSizes = [],
 	portionSizes = [],
 	shelfLifes = [],
+	temperatureCategories = getDefaultTemperatureCategories(''),
 	onUpdate,
+	trigger,
 }: EditItemDialogProps) {
 	//icons
 	const EditIcon = Icons.pencil;
@@ -133,7 +135,6 @@ export function EditItemDialog({
 			isPortioned: false,
 			isTempTaken: false,
 			tempCategory: '',
-			isCheckMark: false,
 			templateNotes: '',
 			toolName: undefined,
 			portionSize: undefined,
@@ -155,8 +156,11 @@ export function EditItemDialog({
 			isPortioned: item.isPortioned ?? false,
 			portionSize: item.portionSize ?? '',
 			isTempTaken: item.isTempTaken ?? false,
-			tempCategory: item.tempCategory ?? '',
-			isCheckMark: item.isCheckMark ?? false,
+			tempCategory:
+				item.tempCategoryId ??
+				item.temperatureCategory?.id ??
+				item.tempCategory ??
+				'',
 			templateNotes: item.templateNotes ?? '',
 		});
 	}, [open, item]);
@@ -167,7 +171,21 @@ export function EditItemDialog({
 			if (!currentUserId || !item.id)
 				throw new Error('Invalid user ID or item ID');
 
-			// Build payload
+			const selectedCategory = values.isTempTaken
+				? temperatureCategories.find(
+						(category) =>
+							category.id === values.tempCategory ||
+							category.code === values.tempCategory,
+					)
+				: undefined;
+
+			if (values.isTempTaken && !selectedCategory) {
+				toast.error('Select a valid temperature category.');
+				return;
+			}
+
+			// Use tempCategoryId once configurable categories are available. The
+			// legacy enum code remains as a fallback during backend migration.
 			const payload: Partial<Item> = {
 				itemName: values.itemName.trim(),
 				shelfLife: values.shelfLife,
@@ -178,16 +196,17 @@ export function EditItemDialog({
 				isPortioned: values.isPortioned,
 				portionSize: values.isPortioned ? values.portionSize : null,
 				isTempTaken: values.isTempTaken,
-				tempCategory: values.isTempTaken ? values.tempCategory : null,
-				minTemp:
-					values.isTempTaken && values.tempCategory
-						? tempCategoryRanges[values.tempCategory]?.min ?? null
+				tempCategory:
+					values.isTempTaken && selectedCategory && !selectedCategory.id
+						? selectedCategory.code
 						: null,
-				maxTemp:
-					values.isTempTaken && values.tempCategory
-						? tempCategoryRanges[values.tempCategory]?.max ?? null
+				tempCategoryId:
+					values.isTempTaken && selectedCategory?.id
+						? selectedCategory.id
 						: null,
-				isCheckMark: values.isCheckMark,
+				minTemp: values.isTempTaken ? selectedCategory?.minTemp ?? null : null,
+				maxTemp: values.isTempTaken ? selectedCategory?.maxTemp ?? null : null,
+				isCheckMark: true,
 				templateNotes: values.templateNotes || null,
 			};
 
@@ -212,9 +231,15 @@ export function EditItemDialog({
 	return (
 		<Dialog open={open} onOpenChange={setOpen} >
 			<DialogTrigger asChild>
-				<Button variant="ghost" size="icon">
-					<EditIcon className="!w-[28px] !h-[28px]" />
-				</Button>
+				{trigger ?? (
+					<Button
+						variant="ghost"
+						size="icon"
+						aria-label={`Edit ${item.itemName}`}
+					>
+						<EditIcon className="!w-[28px] !h-[28px]" />
+					</Button>
+				)}
 			</DialogTrigger>
 
 			<DialogContent className='bg-accent'>
@@ -426,11 +451,17 @@ export function EditItemDialog({
 													<SelectValue placeholder="Select temp category" />
 												</SelectTrigger>
 												<SelectContent>
-													{tempCategories.map((option) => (
-														<SelectItem key={option.value} value={option.value}>
-															{option.label}
-														</SelectItem>
-													))}
+											{temperatureCategories
+												.filter((category) => category.active)
+												.map((category) => (
+												<SelectItem
+													key={category.id ?? category.code}
+													value={category.id ?? category.code}
+												>
+													{category.name} ({category.minTemp}°{category.unit} to{' '}
+													{category.maxTemp}°{category.unit})
+												</SelectItem>
+												))}
 												</SelectContent>
 											</Select>
 										</FormControl>
@@ -439,24 +470,6 @@ export function EditItemDialog({
 								)}
 							/>
 						)}
-						{/* Check Mark */}
-						<FormField
-							control={form.control}
-							name="isCheckMark"
-							render={({ field }) => (
-								<FormItem className="flex items-center justify-between">
-									<FormLabel className="mb-0">
-										Will you be checking if item is correct?
-									</FormLabel>
-									<FormControl>
-										<Switch
-											checked={field.value}
-											onCheckedChange={(checked) => field.onChange(checked)}
-										/>
-									</FormControl>
-								</FormItem>
-							)}
-						/>
 						{/* item Notes */}
 						<FormField
 							control={form.control}

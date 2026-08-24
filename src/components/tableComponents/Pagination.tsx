@@ -28,9 +28,9 @@ export function Pagination({
 	const totalPages = Math.ceil(totalItems / pageSize);
 
 	return (
-		<div className="flex flex-col md:flex-row justify-between items-center w-full bg-ring/40 rounded-2xl p-4 mb-8 mt-8 mx-auto gap-4 md:gap-0">
+		<div className="mx-auto mb-8 mt-8 flex w-full flex-col items-center justify-between gap-4 rounded-2xl border bg-muted/50 px-4 py-4 sm:px-6 md:flex-row">
 			{/* Page size selector */}
-			<div className="flex items-center gap-2">
+			<div className="flex w-full items-center justify-between gap-2 md:w-auto md:justify-start">
 				<span className="text-sm">Rows per page:</span>
 				<Select
 					value={String(pageSize)}
@@ -50,7 +50,7 @@ export function Pagination({
 			</div>
 
 			{/* Pagination buttons */}
-			<div className="flex gap-4 md:gap-8 items-center">
+			<div className="flex w-full items-center justify-between gap-3 sm:w-auto sm:justify-center md:gap-6">
 				<Button
 					size="sm"
 					disabled={currentPage === 1}

@@ -87,6 +87,8 @@ export interface Item {
 	temperature: number;
 	itemTemperature: number;
 	tempCategory?: string | null;
+	tempCategoryId?: string | null;
+	temperatureCategory?: TemperatureCategory | null;
 	minTemp?: number | null;
 	maxTemp?: number | null;
 	isTempTaken: boolean;
@@ -109,6 +111,21 @@ export interface Item {
 	updatedAt?: string | null;
 	data: any;
 	error: string | null;
+}
+
+export interface TemperatureCategory {
+	id?: string;
+	locationId: string;
+	code: string;
+	name: string;
+	minTemp: number;
+	maxTemp: number;
+	unit: 'F' | 'C';
+	active: boolean;
+	systemDefault: boolean;
+	sortOrder: number;
+	createdAt?: string | null;
+	updatedAt?: string | null;
 }
 // types/lineCheck.ts
 // export interface Item {
@@ -302,6 +319,13 @@ export interface LocationHistoryEntity {
 	id: string;
 	locationId: string;
 	locationName: string;
+	entityType?: 'LOCATION' | 'TEMPERATURE_CATEGORY';
+	entityId?: string;
+	entityName?: string;
+	subjectName?: string;
+	categoryName?: string;
+	temperatureCategoryName?: string;
+	actionType?: string;
 	changeType: 'CREATED' | 'UPDATED' | 'DELETED';
 	changeAt: string;
 	changedBy?: string;

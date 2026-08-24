@@ -1,9 +1,25 @@
-export default function robots() {
+import type { MetadataRoute } from 'next';
+
+const SITE_URL = 'https://www.themanagerlife.com';
+
+export default function robots(): MetadataRoute.Robots {
 	return {
-		rules: {
-			userAgent: '*',
-			allow: '/',
-		},
-		sitemap: 'https://www.themanagerlife.com/sitemap.xml',
+		rules: [
+			{
+				userAgent: '*',
+				allow: '/',
+				disallow: [
+					'/accounts',
+					'/admin',
+					'/auth',
+					'/dashboard',
+					'/login',
+					'/settings',
+					'/unauthorized',
+				],
+			},
+		],
+		sitemap: `${SITE_URL}/sitemap.xml`,
+		host: SITE_URL,
 	};
 }
