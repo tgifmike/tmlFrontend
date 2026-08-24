@@ -39,7 +39,7 @@ import {
 } from '@/components/ui/accordion';
 import { Switch } from '@/components/ui/switch';
 import LocationNav from '@/components/navBar/LocationNav';
-import MobileDrawerNav from '@/components/navBar/MoibileDrawerNav';
+import LocationPageHeader from '@/components/navBar/LocationPageHeader';
 import { getUserLocationAccess } from '@/app/api/locationApi';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -129,7 +129,7 @@ const OptionsPage = () => {
 
 				setOptions(sorted);
 				setCurrentLocation(location);
-				setAccountImage(account.imageBase64 || null);
+				setAccountImage(account.imageBase64 || account.accountImage || null);
 				setHasAccess(true);
 				setAccountName(account.accountName);
 			} catch (err) {
@@ -269,7 +269,7 @@ const OptionsPage = () => {
 	return (
 		<div className="flex min-h-screen overflow-hidden">
 			{/* Sidebar */}
-			<aside className="hidden md:block w-1/6 border-r h-screen bg-ring">
+			<aside className="hidden w-1/6 shrink-0 self-stretch border-r bg-ring md:block">
 				<LocationNav
 					accountName={accountName}
 					accountImage={accountImage}
@@ -281,29 +281,17 @@ const OptionsPage = () => {
 
 			{/* Main content */}
 			<section className="flex-1 flex flex-col">
-				<header className="flex flex-col md:flex-row justify-between items-center px-4 py-3 border-b bg-background/70 backdrop-blur-md sticky top-0 z-20 gap-2">
-					<div className="flex items-center gap-4">
-						<MobileDrawerNav
-							open={drawerOpen}
-							setOpen={setDrawerOpen}
-							title="Menu"
-						>
-							<LocationNav
-								accountName={accountName}
-								accountImage={accountImage}
-								accountId={accountIdParam}
-								locationId={locationIdParam}
-								sessionUserRole={currentUser?.appRole ?? AppRole.MEMBER}
-							/>
-						</MobileDrawerNav>
-						<h1 className="text-3xl font-bold">
-							{currentLocation?.locationName}
-						</h1>
-					</div>
-
-					<h1 className="text-3xl font-bold">
-						{accountName ? `${accountName} Options` : 'Options'}
-					</h1>
+				<LocationPageHeader
+					accountId={accountIdParam}
+					locationId={locationIdParam}
+					accountName={accountName}
+					accountImage={accountImage}
+					locationName={currentLocation?.locationName}
+					pageName="Options"
+					sessionUserRole={currentUser?.appRole ?? AppRole.MEMBER}
+					drawerOpen={drawerOpen}
+					setDrawerOpen={setDrawerOpen}
+				>
 					<div className="flex flex-wrap gap-2 items-center">
 						{currentUser && (
 							<CreateOptionDialog
@@ -313,7 +301,7 @@ const OptionsPage = () => {
 							/>
 						)}
 					</div>
-				</header>
+				</LocationPageHeader>
 				<div className="flex flex-col ">
 					{/* Controls */}
 					<div className="flex flex-wrap items-center justify-between gap-4 w-full pt-4 pb-8 px-8 bg-accent">
@@ -467,4 +455,3 @@ const OptionsPage = () => {
 };
 
 export default OptionsPage;
-

@@ -36,6 +36,7 @@ export const UserStatusSwitchOrBadge = ({ user, onStatusChange }: Props) => {
 			<Switch
 				checked={user.userActive ?? false}
 				onCheckedChange={handleToggle}
+				aria-label={`User ${user.userName ?? 'unknown'} status`}
 			/>
 		);
 	}

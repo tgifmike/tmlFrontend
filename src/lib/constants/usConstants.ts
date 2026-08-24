@@ -1,3 +1,5 @@
+import type { TemperatureCategory } from '@/app/types';
+
 // src/constants/usConstants.ts
 
 
@@ -146,16 +148,69 @@ export const portionSizeOptions = [
 	{ label: '30 each', value: '30 each' },
 ];
 
-export const tempCategoryRanges: Record<string, { min: number; max: number }> = {
-	FROZEN: { min: -100, max: 32 },
-	REFRIGERATED: { min: 33, max: 41 },
-	ROOM_TEMP: { min: 42, max: 90 },
-	HOT_HOLDING: { min: 120, max: 200 },
-};
-
-export const tempCategories = [
-	{ label: 'Frozen (-100°F to 32°F)', value: 'FROZEN' },
-	{ label: 'Refrigerated (33°F to 41°F)', value: 'REFRIGERATED' },
-	{ label: 'Room Temp (42°F to 90°F)', value: 'ROOM_TEMP' },
-	{ label: 'Hot Holding (120°F to 200°F)', value: 'HOT_HOLDING' },
+export const DEFAULT_TEMPERATURE_CATEGORIES: ReadonlyArray<
+	Omit<TemperatureCategory, 'locationId'>
+> = [
+	{
+		code: 'FROZEN',
+		name: 'Frozen',
+		minTemp: -20,
+		maxTemp: 31,
+		unit: 'F',
+		active: true,
+		systemDefault: true,
+		sortOrder: 0,
+	},
+	{
+		code: 'REFRIGERATED',
+		name: 'Refrigerated',
+		minTemp: 33,
+		maxTemp: 41,
+		unit: 'F',
+		active: true,
+		systemDefault: true,
+		sortOrder: 1,
+	},
+	{
+		code: 'ROOM_TEMP',
+		name: 'Room Temperature',
+		minTemp: 50,
+		maxTemp: 75,
+		unit: 'F',
+		active: true,
+		systemDefault: true,
+		sortOrder: 2,
+	},
+	{
+		code: 'HOT_HOLDING',
+		name: 'Hot Holding',
+		minTemp: 140,
+		maxTemp: 200,
+		unit: 'F',
+		active: true,
+		systemDefault: true,
+		sortOrder: 3,
+	},
 ];
+
+export const getDefaultTemperatureCategories = (
+	locationId: string,
+): TemperatureCategory[] =>
+	DEFAULT_TEMPERATURE_CATEGORIES.map((category) => ({
+		...category,
+		locationId,
+	}));
+
+// Legacy exports retained until the backend item DTO is migrated to tempCategoryId.
+export const tempCategoryRanges: Record<string, { min: number; max: number }> =
+	Object.fromEntries(
+		DEFAULT_TEMPERATURE_CATEGORIES.map((category) => [
+			category.code,
+			{ min: category.minTemp, max: category.maxTemp },
+		]),
+	);
+
+export const tempCategories = DEFAULT_TEMPERATURE_CATEGORIES.map((category) => ({
+	label: `${category.name} (${category.minTemp}°${category.unit} to ${category.maxTemp}°${category.unit})`,
+	value: category.code,
+}));

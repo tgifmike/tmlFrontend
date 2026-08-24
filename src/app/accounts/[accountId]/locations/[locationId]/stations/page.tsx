@@ -11,6 +11,7 @@ import { getUserLocationAccess } from '@/app/api/locationApi';
 import { deleteStation, getStationsByLocation, reorderStations, toggleStationActive } from '@/app/api/stationApi';
 import { AppRole, Locations, StationDto, User } from '@/app/types';
 import LocationNav from '@/components/navBar/LocationNav';
+import LocationPageHeader from '@/components/navBar/LocationPageHeader';
 import Spinner from '@/components/spinner/Spinner';
 import CreateStationDialog from '@/components/tableComponents/CreateStationForm';
 import { UserControls } from '@/components/tableComponents/UserControls';
@@ -23,12 +24,12 @@ import { DeleteConfirmButton } from '@/components/tableComponents/DeleteConfirmB
 import { Pagination } from '@/components/tableComponents/Pagination';
 import { EditStationDialog } from '@/components/tableComponents/EditStationDialog';
 import { DataCard } from '@/components/cards/DataCard';
-import MobileDrawerNav from '@/components/navBar/MoibileDrawerNav';
 import { Icons } from '@/lib/icon';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import StationHistoryFeed from '@/components/tableComponents/StationHistoryFeed';
 import { CloneStationDialog } from '@/components/cloneStation/CloneStationDialog';
 import { useSession } from '@/lib/auth/session-context';
+import { ChevronRight } from 'lucide-react';
 
 
 
@@ -44,7 +45,8 @@ interface CreateStationDialogProps {
 const LocationStationsPage = () => {
 
 	//icon
-		const UpDownIcon = Icons.sort;
+	const UpDownIcon = Icons.sort;
+	const StationIcon = Icons.stations;
 
 	//session
 	const { user, loading, logout } = useSession();
@@ -127,7 +129,7 @@ const LocationStationsPage = () => {
 				setStations(fetchedStations);
 				setHasAccess(true);
 				setAccountName(account.accountName);
-				setAccountImage(account.imageBase64 || null);
+				setAccountImage(account.imageBase64 || account.accountImage || null);
 				setCurrentLocation(location);
 			} catch (err) {
 				toast.error('You do not have access to this location.');
@@ -274,7 +276,7 @@ const hanldeStationDelete = async (stationId: string) => {
 	return (
 		<main className="flex min-h-screen overflow-hidden ">
 			{/* Desktop Sidebar */}
-			<aside className="hidden md:block w-1/6 border-r h-screen bg-ring">
+			<aside className="hidden w-1/6 shrink-0 self-stretch border-r bg-ring md:block">
 				<LocationNav
 					accountName={accountName}
 					accountImage={accountImage}
@@ -286,40 +288,17 @@ const hanldeStationDelete = async (stationId: string) => {
 
 			{/* Main Content */}
 			<section className="flex-1 flex flex-col">
-				{/* Header */}
-				<header className="flex justify-between items-center px-4 py-3 border-b bg-background/70 backdrop-blur-md sticky top-0 z-20">
-					{/* Left */}
-					<div className="flex items-center gap-3">
-						{/* Mobile Drawer */}
-						<MobileDrawerNav
-							open={drawerOpen}
-							setOpen={setDrawerOpen}
-							title="Menu"
-						>
-							<LocationNav
-								accountName={accountName}
-								accountImage={accountImage}
-								accountId={accountIdParam}
-								locationId={locationIdParam}
-								sessionUserRole={sessionUserRole}
-							/>
-						</MobileDrawerNav>
-
-						{/* <h1 className="text-2xl font-semibold">
-							{currentLocation?.locationName}
-						</h1> */}
-					</div>
-
-					{/* center */}
-					<div>
-						<p className=" md:text-2xl">
-							Stations for Location{' '}:
-							{/* <span className="text-chart-3 italic"> {accountName}</span>: */}
-							<span className="text-chart-3 italic"> {currentLocation?.locationName}</span>
-						</p>
-					</div>
-
-					{/* Right */}
+				<LocationPageHeader
+					accountId={accountIdParam}
+					locationId={locationIdParam}
+					accountName={accountName}
+					accountImage={accountImage}
+					locationName={currentLocation?.locationName}
+					pageName="Stations"
+					sessionUserRole={sessionUserRole}
+					drawerOpen={drawerOpen}
+					setDrawerOpen={setDrawerOpen}
+				>
 					<div>
 						<CreateStationDialog
 							onStationCreated={handleStationCreated}
@@ -327,7 +306,7 @@ const hanldeStationDelete = async (stationId: string) => {
 							currentUserId={currentUserId}
 						/>
 					</div>
-				</header>
+				</LocationPageHeader>
 
 				{/* content */}
 				{stations.length === 0 ? (
@@ -388,9 +367,10 @@ const hanldeStationDelete = async (stationId: string) => {
 																	<p>Drag and Drop items to sort them.</p>
 																</TooltipContent>
 															</Tooltip>
-															<Link
-																href={`/accounts/${accountIdParam}/locations/${locationIdParam}/stations/${station.id}`}
-															>
+													<Link
+														href={`/accounts/${accountIdParam}/locations/${locationIdParam}/stations/${station.id}`}
+														className="underline-offset-4 transition-colors hover:text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+													>
 																{station.stationName}
 															</Link>
 															{/* <span>{station.stationName}</span> */}
@@ -476,24 +456,50 @@ const hanldeStationDelete = async (stationId: string) => {
 						</DragDropContext>
 
 						{/* Mobile Cards */}
-						<div className="md:hidden mt-6 space-y-2 p-2">
+						<div className="mt-6 space-y-4 px-3 md:hidden">
 							{paginatedStations.map((station) => (
 								<DataCard
 									key={station.id}
-									title={station.stationName}
+									avatar={
+										<span className="flex size-11 items-center justify-center rounded-xl bg-primary/10 text-primary">
+											<StationIcon className="size-5" aria-hidden="true" />
+										</span>
+									}
+									title={
+										station.id ? (
+											<Link
+												href={`/accounts/${accountIdParam}/locations/${locationIdParam}/stations/${station.id}`}
+												className="group/title flex min-h-11 w-full items-center justify-between gap-3 rounded-sm underline-offset-4 transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+											>
+												<span className="truncate">{station.stationName}</span>
+												<ChevronRight
+													className="size-4 shrink-0 text-muted-foreground transition-transform group-hover/title:translate-x-0.5 group-hover/title:text-primary"
+													aria-hidden="true"
+												/>
+											</Link>
+										) : (
+											station.stationName
+										)
+									}
+									description="Open this station to manage its line-check items"
 									fields={[
 										{
 											label: 'Status',
 											value: (
-												<StatusSwitchOrBadge
-													entity={{
-														id: station.id!,
-														active: station.stationActive,
-													}}
-													getLabel={() => `Station: ${station.stationName}`}
-													onToggle={handleToggleActive}
-													canToggle={canToggle}
-												/>
+												<div className="flex items-center gap-3">
+													<StatusSwitchOrBadge
+														entity={{
+															id: station.id!,
+															active: station.stationActive,
+														}}
+														getLabel={() => `Station: ${station.stationName}`}
+														onToggle={handleToggleActive}
+														canToggle={canToggle}
+													/>
+													{canToggle && (
+														<span>{station.stationActive ? 'Active' : 'Inactive'}</span>
+													)}
+												</div>
 											),
 										},
 									]}
@@ -564,6 +570,14 @@ const hanldeStationDelete = async (stationId: string) => {
 									]}
 								/>
 							))}
+
+							{paginatedStations.length === 0 && (
+								<div className="rounded-2xl border border-dashed bg-muted/10 px-6 py-12 text-center text-sm text-muted-foreground">
+									{searchTerm
+										? `No stations match “${searchTerm}”.`
+										: 'No stations to display.'}
+								</div>
+							)}
 						</div>
 					</div>
 				)}
@@ -574,7 +588,7 @@ const hanldeStationDelete = async (stationId: string) => {
 						setCurrentPage={setCurrentPage}
 						pageSize={pageSize}
 						setPageSize={setPageSize}
-						totalItems={locations.length}
+						totalItems={filteredStations.length}
 					/>
 				</div>
 

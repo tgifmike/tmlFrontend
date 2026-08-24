@@ -5,28 +5,28 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import UploadAccountImagePopover from './UploadAccountImagePopover';
-import { getAccountById, getAccountsForUser } from '@/app/api/accountApi';
 import { useEffect, useState } from 'react';
-import { useSession } from 'next-auth/react';
+import { getAccountById } from '@/app/api/accountApi';
 import { Tooltip } from '../ui/tooltip';
 import { TooltipContent, TooltipTrigger } from '@radix-ui/react-tooltip';
 
-type LeftNavProps = {
+type LocationNavProps = {
 	accountName: string | null;
-    accountImage: string | null;
-    imageBase64?: string | null;
+	accountImage?: string | null;
 	accountId: string;
 	locationId: string;
-    sessionUserRole: string | undefined;    
+	sessionUserRole?: string;
 };
 
-const LocationNav = ({ accountName, accountImage, accountId, sessionUserRole, locationId }: LeftNavProps) => {
-
-	
+const LocationNav = ({
+	accountName,
+	accountImage,
+	accountId,
+	sessionUserRole,
+	locationId,
+}: LocationNavProps) => {
 	//icons
 	const AddImageIcon = Icons.addPicture;
-	const AccountsIcon = Icons.account;
-	const LocationsIcon = Icons.locations;
 	const DashboardIcon = Icons.dashboard;
 	const SettingsIcon = Icons.settings;
 	const ClipboardIcon = Icons.Clipboard;
@@ -35,10 +35,37 @@ const LocationNav = ({ accountName, accountImage, accountId, sessionUserRole, lo
 	const ToolBoxIcon = Icons.toolbox;
 	//const ItemsIcon = Icons.items;
 
-	//set stae
+	// uploaded image override for an immediate UI update
 	const [image, setImage] = useState<string | null>(null);
 
 	const pathname = usePathname();
+	const displayedImage = image ?? accountImage;
+	const imageSrc = toImageSource(displayedImage);
+
+	useEffect(() => {
+		if (accountImage) {
+			setImage(accountImage);
+			return;
+		}
+
+		let cancelled = false;
+
+		const loadAccountImage = async () => {
+			const response = await getAccountById(accountId);
+			const storedImage =
+				response.data?.imageBase64 || response.data?.accountImage || null;
+
+			if (!cancelled && typeof storedImage === 'string') {
+				setImage(storedImage);
+			}
+		};
+
+		loadAccountImage();
+
+		return () => {
+			cancelled = true;
+		};
+	}, [accountId, accountImage]);
 
 	return (
 		<nav className="sticky left-0 top-0 h-[calc(100vh-80px)] overflow-y-auto bg-ring">
@@ -48,39 +75,34 @@ const LocationNav = ({ accountName, accountImage, accountId, sessionUserRole, lo
 				</p>
 			</div>
 			<div>
-				{image || accountImage ? (
-					<div className="relative mx-auto mt-4 w-24 h-24 sm:w-36 sm:h-36 md:w-44 md:h-44  overflow-hidden">
+				{imageSrc ? (
+					<div className="relative mx-auto mt-4 aspect-square w-[calc(100%-2rem)] max-w-44 overflow-hidden rounded-xl">
 						<Image
-							src={`data:image/png;base64,${image ?? accountImage}`}
+							src={imageSrc}
 							alt="Account Logo"
 							fill
-							className="object-cover "
+							className="object-contain"
+							sizes="(min-width: 768px) 176px, 144px"
 						/>
 					</div>
 				) : (
-					<div className="mx-auto mt-4 rounded-full bg-ring flex items-center justify-center w-32 h-32 sm:w-40 sm:h-40 md:w-44 md:h-44 lg:w-48 lg:h-48">
+					<div className="mx-auto mt-4 flex aspect-square w-[calc(100%-2rem)] max-w-44 items-center justify-center rounded-xl border border-background/20 bg-background/10">
 						<AddImageIcon className="text-background h-12 w-12 sm:h-16 sm:w-16 md:h-18 md:w-18 lg:h-22 lg:w-22" />
 					</div>
 				)}
 			</div>
 
-			<div className="flex flex-col gap-2 px-4 pb-6 mt-6">
-				<NavLink
-					href="/accounts"
-					label="Accounts"
-					icon={<AccountsIcon />}
-					pathname={pathname}
-				/>
-			</div>
-			<div className="flex flex-col gap-2 px-4 pb-6">
-				<NavLink
-					href={`/accounts/${accountId}`}
-					label="Locations"
-					icon={<LocationsIcon />}
-					pathname={pathname}
-				/>
-			</div>
-			<div className="flex flex-col gap-2 px-4 pb-6">
+			{sessionUserRole === 'MANAGER' && (
+				<div className="mt-4 flex justify-center">
+					<UploadAccountImagePopover
+						accountId={accountId}
+						hasImage={Boolean(displayedImage)}
+						onUploadSuccess={setImage}
+					/>
+				</div>
+			)}
+
+			<div className="mt-6 flex flex-col gap-2 px-4 pb-6">
 				<NavLink
 					href={`/accounts/${accountId}/locations/${locationId}`}
 					label="Dashboard"
@@ -176,6 +198,24 @@ const LocationNav = ({ accountName, accountImage, accountId, sessionUserRole, lo
 		</nav>
 	);
 };
+
+function toImageSource(value: unknown): string | null {
+	if (typeof value !== 'string') return null;
+
+	const normalized = value.trim();
+	if (!normalized) return null;
+
+	if (
+		normalized.startsWith('data:') ||
+		normalized.startsWith('blob:') ||
+		normalized.startsWith('http://') ||
+		normalized.startsWith('https://')
+	) {
+		return normalized;
+	}
+
+	return `data:image/png;base64,${normalized}`;
+}
 
 type NavLinkProps = {
 	href: string;

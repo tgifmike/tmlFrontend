@@ -16,6 +16,7 @@ const NavBar = () => {
 
 	const [drawerOpen, setDrawerOpen] = useState(false);
 	const [scrolled, setScrolled] = useState(false);
+	const showPublicNavigation = !loading && !user;
 
 	// stable scroll handler (no re-creation per render)
 	useEffect(() => {
@@ -28,6 +29,10 @@ const NavBar = () => {
 
 		return () => window.removeEventListener('scroll', onScroll);
 	}, []);
+
+	useEffect(() => {
+		if (user) setDrawerOpen(false);
+	}, [user]);
 
 	// prevent re-render churn from session state changes
 	const rightContent = useMemo(() => {
@@ -61,7 +66,7 @@ const NavBar = () => {
 		>
 			<nav
 				className="
-					grid grid-cols-3 items-center
+					grid grid-cols-[1fr_auto_1fr] items-center
 					px-4 sm:px-6 md:px-10
 					h-20
 				"
@@ -91,19 +96,25 @@ const NavBar = () => {
 
 				{/* ================= CENTER ================= */}
 				<div className="flex justify-center">
-					<div className="hidden md:flex">
-						<SectionNav />
-					</div>
+					{showPublicNavigation && (
+						<>
+							<div className="hidden md:flex">
+								<SectionNav />
+							</div>
 
-					<div className="md:hidden">
-						<MobileDrawerNav
-							open={drawerOpen}
-							setOpen={setDrawerOpen}
-							title="Menu"
-						>
-							<LandingSectionLinks onNavigate={() => setDrawerOpen(false)} />
-						</MobileDrawerNav>
-					</div>
+							<div className="md:hidden">
+								<MobileDrawerNav
+									open={drawerOpen}
+									setOpen={setDrawerOpen}
+									title="Menu"
+								>
+									<LandingSectionLinks
+										onNavigate={() => setDrawerOpen(false)}
+									/>
+								</MobileDrawerNav>
+							</div>
+						</>
+					)}
 				</div>
 
 				{/* ================= RIGHT ================= */}

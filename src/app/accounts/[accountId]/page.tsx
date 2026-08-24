@@ -1,19 +1,10 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { toast } from 'sonner';
-import {
-	Drawer,
-	DrawerClose,
-	DrawerContent,
-	DrawerHeader,
-	DrawerTitle,
-	DrawerTrigger,
-} from '@/components/ui/drawer';
-import { Button } from '@/components/ui/button';
-import { Menu, X } from 'lucide-react';
+import { ChevronRight, MapPin } from 'lucide-react';
 import Spinner from '@/components/spinner/Spinner';
 import LeftNav from '@/components/navBar/LeftNav';
 import { ReusableTable } from '@/components/tableComponents/ReusableTableProps';
@@ -23,31 +14,28 @@ import { StatusSwitchOrBadge } from '@/components/tableComponents/StatusSwitchOr
 import { UserControls } from '@/components/tableComponents/UserControls';
 import CreateLocationDialog from '@/components/tableComponents/CreateLocationForm';
 import { EditLocationDialog } from '@/components/tableComponents/EditLocationDialog';
-import { DataCard } from '@/components/cards/DataCard';
+import { Card } from '@/components/ui/card';
 import { AccessRole, AppRole, Locations, User } from '@/app/types';
 import { getAccountsForUser } from '@/app/api/accountApi';
 import {
 	deleteLocation,
 	getLocationsByAccountId,
-	getUserLocationAccess,
 	toggleLocationActive,
-	createLocation,
 	updateLocation,
 } from '@/app/api/locationApi';
-import router from 'next/router';
 import MobileDrawerNav from '@/components/navBar/MoibileDrawerNav';
 import LocationHistoryFeed from '@/components/tableComponents/LocationHistoryFeed';
 import { useSession } from '@/lib/auth/session-context';
 
 
 const AccountPage = () => {
-	const { user, loading, logout } = useSession();
+	const { user } = useSession();
+	const router = useRouter();
 	
 	const params = useParams<{ accountId: string }>();
 	const accountIdParam = params.accountId;
 
 	const [loadingAccess, setLoadingAccess] = useState(true);
-	const [hasAccess, setHasAccess] = useState(false);
 	const [locations, setLocations] = useState<Locations[]>([]);
 	const [accountName, setAccountName] = useState<string | null>(null);
 	const [accountImage, setAccountImage] = useState<string | null>(null);
@@ -83,9 +71,8 @@ const AccountPage = () => {
 				const locationRes = await getLocationsByAccountId(accountIdParam);
 				const fetchedLocations = locationRes.data ?? [];
 
-				setHasAccess(true);
 				setAccountName(account.accountName);
-				setAccountImage(account.imageBase64 || null);
+				setAccountImage(account.imageBase64 || account.accountImage || null);
 				setLocations(fetchedLocations);
 			} catch (err) {
 				toast.error('You do not have access to this account.');
@@ -96,7 +83,7 @@ const AccountPage = () => {
 		};
 
 		verifyAccess();
-	}, [status, userId, accountIdParam, hasAccess, router]);
+	}, [userId, accountIdParam, router]);
 
 	// Toggle active
 	const handleToggleActive = async (locationId: string, checked: boolean) => {
@@ -171,13 +158,13 @@ const handleUpdateLocation = async (
 		currentPage * pageSize
 	);
 
-	// if (loadingAccess)
-	// 	return (
-	// 		<div className="flex justify-center items-center py-40 text-xl text-chart-3">
-	// 			<Spinner />
-	// 			<span className="ml-4">Loading Locations…</span>
-	// 		</div>
-	// 	);
+	if (loadingAccess)
+		return (
+			<div className="flex items-center justify-center py-40 text-xl text-chart-3">
+				<Spinner />
+				<span className="ml-4">Loading locations…</span>
+			</div>
+		);
 
 	return (
 		<div className="flex flex-1 min-w-0">
@@ -209,7 +196,12 @@ const handleUpdateLocation = async (
 							/>
 						</MobileDrawerNav>
 
-						<h1 className="text-2xl font-semibold">{accountName}</h1>
+						{/* <h1 className="text-2xl font-semibold">
+							Location's for {accountName}
+						</h1> */}
+						<h1 className="text-2xl font-semibold">
+							Location List:
+						</h1>
 					</div>
 
 					<CreateLocationDialog
@@ -228,46 +220,70 @@ const handleUpdateLocation = async (
 					) : (
 						<>
 							{/* Controls */}
-							<div className="w-full md:w-3/4 mx-auto flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mt-2">
+							<div className="mx-auto mt-2 w-full max-w-6xl">
 								<UserControls
 									showActiveOnly={showActiveOnly}
 									setShowActiveOnly={setShowActiveOnly}
 									searchTerm={searchTerm}
 									setSearchTerm={setSearchTerm}
+									searchPlaceholder="Search locations"
 								/>
 							</div>
 
 							{/* Desktop Table */}
-							<div className="hidden md:block bg-accent p-4 rounded-2xl text-chart-3 shadow-md w-3/4 mx-auto mt-6">
+							<div className="mx-auto mt-6 hidden w-full max-w-6xl overflow-hidden rounded-2xl border bg-card shadow-sm md:block">
 								<ReusableTable
 									data={paginatedLocations}
 									rowKey={(loc) => loc.id!}
+									headerRowClassName="bg-muted/60 text-xs font-semibold uppercase tracking-[0.12em]"
+									rowClassName="h-20 text-base hover:bg-muted/40"
+									emptyMessage={
+										searchTerm
+											? `No locations match “${searchTerm}”.`
+											: 'No locations to display.'
+									}
 									columns={[
 										{
 											header: 'Location Name',
+											className: 'w-[60%] px-6',
 											render: (loc) => (
 												<Link
 													href={`/accounts/${accountIdParam}/locations/${loc.id}`}
+													className="group inline-flex items-center gap-3 font-semibold text-foreground transition-colors hover:text-chart-3"
 												>
-													{loc.locationName}
+													<span className="flex size-10 items-center justify-center rounded-xl bg-chart-3/10 text-chart-3 transition-colors group-hover:bg-chart-3 group-hover:text-white">
+														<MapPin className="size-5" aria-hidden="true" />
+													</span>
+													<span>{loc.locationName}</span>
+													<ChevronRight
+														className="size-4 opacity-0 transition-all group-hover:translate-x-0.5 group-hover:opacity-100"
+														aria-hidden="true"
+													/>
 												</Link>
 											),
 										},
 										{
 											header: 'Status',
-											className: 'text-center',
+											className: 'w-[20%] px-4 text-center',
 											render: (loc) => (
-												<StatusSwitchOrBadge
-													entity={{ id: loc.id!, active: loc.locationActive }}
-													getLabel={() => `Location: ${loc.locationName}`}
-													onToggle={handleToggleActive}
-													canToggle={canToggle}
-												/>
+												<div className="flex flex-col items-center justify-center gap-1.5">
+													<StatusSwitchOrBadge
+														entity={{ id: loc.id!, active: loc.locationActive }}
+														getLabel={() => `Location: ${loc.locationName}`}
+														onToggle={handleToggleActive}
+														canToggle={canToggle}
+													/>
+													{canToggle && (
+														<span className="text-xs font-medium text-muted-foreground">
+															{loc.locationActive ? 'Active' : 'Inactive'}
+														</span>
+													)}
+												</div>
 											),
 										},
 										{
 											header: 'Actions',
-											className: 'text-center',
+											className: 'w-[20%] px-6 text-center',
 											render: (loc) =>
 												sessionUserRole === 'MANAGER' ? (
 													<div className="flex justify-center gap-4 items-center">
@@ -294,63 +310,90 @@ const handleUpdateLocation = async (
 							</div>
 
 							{/* Mobile Cards */}
-							<div className="md:hidden mt-6 space-y-4">
+							<div className="mt-6 space-y-4 md:hidden">
 								{paginatedLocations.map((loc) => (
-									<DataCard
+									<Card
 										key={loc.id}
-										title={
-											<Link
-												href={`/accounts/${accountIdParam}/locations/${loc.id}`}
-											>
-												{loc.locationName}
-											</Link>
-										}
-										fields={[
-											{
-												label: 'Status',
-												value: (
-													<StatusSwitchOrBadge
-														entity={{ id: loc.id!, active: loc.locationActive }}
-														getLabel={() => `Location: ${loc.locationName}`}
-														onToggle={handleToggleActive}
-														canToggle={canToggle}
+										className="gap-0 overflow-hidden py-0 shadow-sm"
+									>
+										<Link
+											href={`/accounts/${accountIdParam}/locations/${loc.id}`}
+											className="group flex items-center justify-between gap-4 p-5 transition-colors hover:bg-chart-3/10"
+										>
+											<div className="flex min-w-0 items-center gap-3">
+												<span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-chart-3/10 text-chart-3 transition-colors group-hover:bg-chart-3 group-hover:text-white">
+													<MapPin className="size-5" aria-hidden="true" />
+												</span>
+												<div className="min-w-0">
+													<p className="truncate font-semibold text-foreground transition-colors group-hover:text-chart-3">
+														{loc.locationName}
+													</p>
+													<p className="mt-1 text-xs text-muted-foreground">
+														View location dashboard
+													</p>
+												</div>
+											</div>
+											<ChevronRight
+												className="size-5 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:text-chart-3"
+												aria-hidden="true"
+											/>
+										</Link>
+
+										<div className="flex items-center justify-between border-t bg-muted/20 px-5 py-4">
+											<span className="text-sm font-medium text-muted-foreground">
+												Status
+											</span>
+											<div className="flex items-center gap-3">
+												<StatusSwitchOrBadge
+													entity={{ id: loc.id!, active: loc.locationActive }}
+													getLabel={() => `Location: ${loc.locationName}`}
+													onToggle={handleToggleActive}
+													canToggle={canToggle}
+												/>
+												{canToggle && (
+													<span className="text-sm font-medium">
+														{loc.locationActive ? 'Active' : 'Inactive'}
+													</span>
+												)}
+											</div>
+										</div>
+
+										{sessionUserRole === 'MANAGER' && (
+											<div className="flex items-center justify-between border-t px-5 py-2">
+												<span className="text-sm font-medium text-muted-foreground">
+													Manage location
+												</span>
+												<div className="flex items-center gap-1">
+													<EditLocationDialog
+														location={loc}
+														onUpdate={handleUpdateLocation}
+														userId={userId!}
 													/>
-												),
-											},
-										]}
-										actions={[
-											{
-												element: (
-													<div className="flex justify-center gap-4 items-center">
-														{sessionUserRole === 'MANAGER' && (
-															<>
-																<EditLocationDialog
-																	location={loc}
-																	onUpdate={handleUpdateLocation}
-																	userId={userId!}
-																/>
-																{loc.id && (
-																	<DeleteConfirmButton
-																		item={{ id: loc.id }}
-																		entityLabel="Location"
-																		onDelete={() =>
-																			handleDeleteLocation(loc.id!)
-																		}
-																		getItemName={() => loc.locationName}
-																	/>
-																)}
-															</>
-														)}
-													</div>
-												),
-											},
-										]}
-									/>
+													{loc.id && (
+														<DeleteConfirmButton
+															item={{ id: loc.id }}
+															entityLabel="Location"
+															onDelete={() => handleDeleteLocation(loc.id!)}
+															getItemName={() => loc.locationName}
+														/>
+													)}
+												</div>
+											</div>
+										)}
+									</Card>
 								))}
+
+								{paginatedLocations.length === 0 && (
+									<div className="rounded-2xl border border-dashed px-6 py-12 text-center text-sm text-muted-foreground">
+										{searchTerm
+											? `No locations match “${searchTerm}”.`
+											: 'No locations to display.'}
+									</div>
+								)}
 							</div>
 
 							{/* Pagination */}
-							<div className="w-full md:w-3/4 mx-auto mt-6">
+							<div className="mx-auto mt-6 w-full max-w-6xl">
 								<Pagination
 									currentPage={currentPage}
 									setCurrentPage={setCurrentPage}

@@ -17,6 +17,7 @@ import { getUserLocationAccess } from '@/app/api/locationApi';
 import { getStationsByLocation } from '@/app/api/stationApi';
 import { AppRole, Item, Locations, OptionEntity, Station, StationDto, User } from '@/app/types';
 import LocationNav from '@/components/navBar/LocationNav';
+import LocationPageHeader from '@/components/navBar/LocationPageHeader';
 import Spinner from '@/components/spinner/Spinner';
 import CreateItemDialog from '@/components/tableComponents/CreateItemDialog';
 import { DeleteConfirmButton } from '@/components/tableComponents/DeleteConfirmButton';
@@ -24,24 +25,25 @@ import { EditItemDialog } from '@/components/tableComponents/EditItemDialog';
 import { Pagination } from '@/components/tableComponents/Pagination';
 import { StatusSwitchOrBadge } from '@/components/tableComponents/StatusSwitchOrBadge';
 import { UserControls } from '@/components/tableComponents/UserControls';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import React, { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { Icons } from '@/lib/icon';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import router from 'next/router';
-import MobileDrawerNav from '@/components/navBar/MoibileDrawerNav';
 import { DataCard } from '@/components/cards/DataCard';
 import { getOptions } from '@/app/api/optionsApi';
-import Link from 'next/link';
+import { getTemperatureCategories } from '@/app/api/temperatureCategoryApi';
 import ItemHistoryFeed from '@/components/tableComponents/ItemHistoryFeed';
 import { useSession } from '@/lib/auth/session-context';
+import { getDefaultTemperatureCategories } from '@/lib/constants/usConstants';
+import type { TemperatureCategory } from '@/app/types';
 
 
 
 const StationPage = () => {
 	//icon
 	const UpDownIcon = Icons.sort;
+	const ItemIcon = Icons.items;
 
 	//session
 	const { user, loading, logout } = useSession();
@@ -53,6 +55,7 @@ const StationPage = () => {
 	const accountIdParam = params.accountId;
 	const locationIdParam = params.locationId;
 	const stationIdParam = params.stationId;
+	const router = useRouter();
 
 	// state
 	const [loadingAccess, setLoadingAccess] = useState(true);
@@ -71,9 +74,10 @@ const StationPage = () => {
 	const [currentPage, setCurrentPage] = useState(1);
 	const [pageSize, setPageSize] = useState(10);
 	const [drawerOpen, setDrawerOpen] = useState(false);
-	const [selectedItem, setSelectedItem] = useState<Item | null>(null);
-	const [open, setOpen] = useState(false);
 	const [options, setOptions] = useState<OptionEntity[]>([]);
+	const [temperatureCategories, setTemperatureCategories] = useState<
+		TemperatureCategory[]
+	>(getDefaultTemperatureCategories(locationIdParam));
 
 	const currentUser = user as User | undefined;
 	const currentUserId = user?.id;
@@ -163,11 +167,21 @@ const StationPage = () => {
 					(a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0)
 				)
 
+				const temperatureCategoryRes =
+					await getTemperatureCategories(locationIdParam);
+				setTemperatureCategories(
+					temperatureCategoryRes.error
+						? getDefaultTemperatureCategories(locationIdParam)
+						: [...(temperatureCategoryRes.data ?? [])].sort(
+								(a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0),
+							),
+				);
+
 				setItems(fetchedItems);
 				setOptions(optionsSorted);
 				setHasAccess(true);
 				setAccountName(account.accountName);
-				setAccountImage(account.imageBase64 || null);
+				setAccountImage(account.imageBase64 || account.accountImage || null);
 				setStationName(station.stationName);
 				setCurrentLocation(location);
 			} catch (err) {
@@ -275,7 +289,7 @@ const StationPage = () => {
 		<main className="flex min-h-screen overflow-hidden">
 			{/* Desktop Sidebar */}
 			{/* left nav */}
-			<aside className="hidden md:block w-1/6 border-r h-screen bg-ring">
+			<aside className="hidden w-1/6 shrink-0 self-stretch border-r bg-ring md:block">
 				<LocationNav
 					accountName={accountName}
 					accountImage={accountImage}
@@ -287,42 +301,17 @@ const StationPage = () => {
 
 			{/* main content */}
 			<section className="flex-1 flex flex-col">
-				{/* Header */}
-				<header className="flex justify-between items-center p-1 md:p-2  border-b bg-background/70 backdrop-blur-md sticky top-0 z-20">
-					{/* Left */}
-					<div className="flex gap-3">
-						{/* Mobile Drawer */}
-						<MobileDrawerNav
-							open={drawerOpen}
-							setOpen={setDrawerOpen}
-							title="Menu"
-						>
-							<LocationNav
-								accountName={accountName}
-								accountImage={accountImage}
-								accountId={accountIdParam}
-								locationId={locationIdParam}
-								sessionUserRole={sessionUserRole}
-							/>
-						</MobileDrawerNav>
-
-						<h1 className="text-3xl font-bold mb-4">
-							{currentLocation?.locationName}
-						</h1>
-					</div>
-
-					{/* center */}
-					<div>
-						<p className=" md:text-2xl">
-							Items for Station:{' '}
-							<Link
-								className="text-chart-3 text-3xl font-bold italic"
-								href={`/accounts/${accountIdParam}/locations/${locationIdParam}/stations/${stationIdParam}`} > { stationName }
-								</Link>
-						</p>
-					</div>
-
-					{/* Right */}
+				<LocationPageHeader
+					accountId={accountIdParam}
+					locationId={locationIdParam}
+					accountName={accountName}
+					accountImage={accountImage}
+					locationName={currentLocation?.locationName}
+					pageName={stationName || 'Station'}
+					sessionUserRole={sessionUserRole}
+					drawerOpen={drawerOpen}
+					setDrawerOpen={setDrawerOpen}
+				>
 					<CreateItemDialog
 						onItemCreated={handleItemCreated}
 						stationId={stationIdParam}
@@ -331,8 +320,9 @@ const StationPage = () => {
 						panSizes={panSize}
 						portionSizes={portionSize}
 						shelfLifes={shelfLife}
+						temperatureCategories={temperatureCategories}
 					/>
-				</header>
+				</LocationPageHeader>
 
 				{/* content */}
 				{items.length === 0 ? (
@@ -392,7 +382,30 @@ const StationPage = () => {
 																</TooltipContent>
 															</Tooltip>
 
-															<span>{item.itemName}</span>
+													{sessionUserRole === AppRole.MANAGER ? (
+														<EditItemDialog
+															item={item}
+															items={items}
+															tools={tools}
+															panSizes={panSize}
+															portionSizes={portionSize}
+													shelfLifes={shelfLife}
+													temperatureCategories={temperatureCategories}
+													stationId={stationIdParam}
+															currentUserId={currentUserId!}
+															onUpdate={handleItemUpdate}
+															trigger={
+																<button
+																	type="button"
+																	className="rounded-sm text-left underline-offset-4 transition-colors hover:text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+																>
+																	{item.itemName}
+																</button>
+															}
+														/>
+													) : (
+														<span>{item.itemName}</span>
+													)}
 														</div>
 
 														{/* Status */}
@@ -420,8 +433,9 @@ const StationPage = () => {
 																		tools={tools}
 																		panSizes={panSize}
 																		portionSizes={portionSize}
-																		shelfLifes={shelfLife}
-																		stationId={stationIdParam}
+														shelfLifes={shelfLife}
+														temperatureCategories={temperatureCategories}
+														stationId={stationIdParam}
 																		currentUserId={currentUserId!}
 																		onUpdate={handleItemUpdate}
 																	/>
@@ -431,9 +445,9 @@ const StationPage = () => {
 																			id: item.id!,
 																			stationId: stationIdParam,
 																		}}
-																		entityLabel="Station"
+																		entityLabel="Item"
 																		onDelete={async (id) => {
-																			await deleteItem( id, currentUserId!);
+																			await deleteItem(id, currentUserId!);
 																			setItems((prev) =>
 																				prev.filter((it) => it.id !== id)
 																			);
@@ -455,24 +469,88 @@ const StationPage = () => {
 						</DragDropContext>
 
 						{/* Mobile Cards */}
-						<div className="md:hidden mt-6 space-y-2 p-2">
+						<div className="mt-6 space-y-4 px-3 md:hidden">
 							{paginatedItems.map((item) => (
 								<DataCard
 									key={item.id}
-									title={item.itemName}
+									avatar={
+										<span className="flex size-11 items-center justify-center rounded-xl bg-primary/10 text-primary">
+											<ItemIcon className="size-5" aria-hidden="true" />
+										</span>
+									}
+									title={
+										sessionUserRole === AppRole.MANAGER ? (
+											<EditItemDialog
+												item={item}
+												items={items}
+												tools={tools}
+												panSizes={panSize}
+												portionSizes={portionSize}
+												shelfLifes={shelfLife}
+												temperatureCategories={temperatureCategories}
+												stationId={stationIdParam}
+												currentUserId={currentUserId!}
+												onUpdate={handleItemUpdate}
+												trigger={
+													<button
+														type="button"
+														className="inline-flex min-h-11 items-center rounded-sm text-left underline-offset-4 transition-colors hover:text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+													>
+														{item.itemName}
+													</button>
+												}
+											/>
+										) : (
+											item.itemName
+										)
+									}
+									description={
+										sessionUserRole === AppRole.MANAGER
+											? 'Tap the item name to edit its setup'
+											: 'Line-check item setup'
+									}
 									fields={[
 										{
 											label: 'Status',
 											value: (
-												<StatusSwitchOrBadge
-													entity={{
-														id: item.id!,
-														active: item.itemActive,
-													}}
-													getLabel={() => `Station: ${item.itemName}`}
-													onToggle={handleToggleActive}
-													canToggle={canToggle}
-												/>
+												<div className="flex items-center gap-3">
+													<StatusSwitchOrBadge
+														entity={{
+															id: item.id!,
+															active: item.itemActive,
+														}}
+														getLabel={() => `Item: ${item.itemName}`}
+														onToggle={handleToggleActive}
+														canToggle={canToggle}
+													/>
+													{canToggle && (
+														<span>{item.itemActive ? 'Active' : 'Inactive'}</span>
+													)}
+												</div>
+											),
+										},
+										{
+											label: 'Shelf life',
+											value: item.shelfLife || 'Not set',
+										},
+										{
+											label: 'Pan size',
+											value: item.panSize || 'Not set',
+										},
+										{
+											label: 'Temp check',
+											value: (
+												<span
+													className={
+														item.isTempTaken
+															? 'rounded-full bg-primary/10 px-2.5 py-1 text-xs font-semibold text-primary'
+															: 'rounded-full bg-muted px-2.5 py-1 text-xs font-semibold text-muted-foreground'
+													}
+												>
+													{item.isTempTaken
+														? item.tempCategory || 'Required'
+														: 'Not required'}
+												</span>
 											),
 										},
 									]}
@@ -480,33 +558,40 @@ const StationPage = () => {
 										{
 											element: (
 												<div className="flex justify-center gap-4 items-center">
-													{sessionUserRole === 'MANAGER' ? (
-														<>
-															<EditItemDialog
-																item={items.find((i) => i.id === item.id)!} // <-- pass the latest item from state
-																items={items}
-																stationId={stationIdParam}
-																currentUserId={currentUserId!} 
-																onUpdate={handleItemUpdate}
-															/>
+																{sessionUserRole === 'MANAGER' ? (
+																	<>
+																		<EditItemDialog
+																			item={items.find((i) => i.id === item.id)!}
+																			items={items}
+																			tools={tools}
+																			panSizes={panSize}
+																			portionSizes={portionSize}
+																	shelfLifes={shelfLife}
+																	temperatureCategories={temperatureCategories}
+																	stationId={stationIdParam}
+																			currentUserId={currentUserId!}
+																			onUpdate={handleItemUpdate}
+																		/>
 
-															{item.id && (
-																<DeleteConfirmButton
-																	item={{
-																		id: item.id,
-																		locationId: locationIdParam,
-																	}}
-																	entityLabel="Location"
-																	onDelete={async (id) => {
-																		await deleteItem(id, currentUserId!);
-																		setStations((prev) =>
-																			prev.filter((s) => s.id !== id)
-																		);
-																	}}
-																	getItemName={() => item.itemName}
-																/>
-															)}
-														</>
+																		{item.id && (
+																			<DeleteConfirmButton
+																				item={{
+																					id: item.id,
+																					locationId: locationIdParam,
+																				}}
+																				entityLabel="Item"
+																				onDelete={async (id) => {
+																					await deleteItem(id, currentUserId!);
+																					setItems((prev) =>
+																						prev.filter(
+																							(existingItem) => existingItem.id !== id
+																						)
+																					);
+																				}}
+																				getItemName={() => item.itemName}
+																			/>
+																		)}
+																	</>
 													) : (
 														<span className="text-ring">No Actions</span>
 													)}
@@ -516,6 +601,14 @@ const StationPage = () => {
 									]}
 								/>
 							))}
+
+							{paginatedItems.length === 0 && (
+								<div className="rounded-2xl border border-dashed bg-muted/10 px-6 py-12 text-center text-sm text-muted-foreground">
+									{searchTerm
+										? `No items match “${searchTerm}”.`
+										: 'No items to display.'}
+								</div>
+							)}
 						</div>
 
 						<div className="w-full md:w-3/4 mx-auto flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 px-4 mt-4">
@@ -524,7 +617,7 @@ const StationPage = () => {
 								setCurrentPage={setCurrentPage}
 								pageSize={pageSize}
 								setPageSize={setPageSize}
-								totalItems={items.length}
+								totalItems={filteredItems.length}
 							/>
 							</div>
 							<ItemHistoryFeed stationId={stationIdParam}

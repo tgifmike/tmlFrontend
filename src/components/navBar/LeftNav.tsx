@@ -55,6 +55,7 @@ const LeftNav = ({ accountName, accountImage, accountId, sessionUserRole }: Left
 				<div className="flex justify-center mt-4">
 					<UploadAccountImagePopover
 						accountId={accountId}
+						hasImage={Boolean(image || accountImage)}
 						onUploadSuccess={(uploadedBase64) => {
 							setImage(uploadedBase64); // immediate update
 						}}

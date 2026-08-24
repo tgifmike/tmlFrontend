@@ -33,6 +33,8 @@ import {
 
 type Props = {
 	accountId?: string;
+	locationId?: string;
+	refreshKey?: number;
 	currentUser?: User;
 };
 
@@ -50,6 +52,14 @@ const LOCATION_FIELD_LABELS: Record<string, string> = {
 	locationCountry: 'Country',
 	startOfWeek: 'Start of Week',
 	lineCheckDailyGoal: 'Daily Line Check Goal',
+	name: 'Category Name',
+	categoryName: 'Category Name',
+	code: 'Category Code',
+	minTemp: 'Minimum Temperature',
+	maxTemp: 'Maximum Temperature',
+	unit: 'Temperature Unit',
+	active: 'Category Status',
+	systemDefault: 'Built-in Default',
 };
 
 const toBoolean = (val: any): boolean => {
@@ -63,10 +73,17 @@ const formatLocationValue = (key: string, value: any) => {
 	if (value === null || value === undefined) return '—';
 
 	switch (key) {
-		case 'locationActive': {
+		case 'locationActive':
+		case 'active':
+		case 'systemDefault': {
 			const bool = toBoolean(value);
+			if (key === 'systemDefault') return bool ? 'Yes' : 'No';
 			return bool ? 'Active' : 'Inactive';
 		}
+
+		case 'minTemp':
+		case 'maxTemp':
+			return `${value}°`;
 
 		case 'sortOrder':
 			// zero-based → user-friendly
@@ -78,8 +95,9 @@ const formatLocationValue = (key: string, value: any) => {
 };
 
 
-const parseJson = (val?: string): Record<string, string> => {
+const parseJson = (val?: string | Record<string, unknown>): Record<string, any> => {
 	if (!val) return {};
+	if (typeof val === 'object') return val;
 	try {
 		return JSON.parse(val);
 	} catch {
@@ -87,7 +105,17 @@ const parseJson = (val?: string): Record<string, string> => {
 	}
 };
 
-export default function LocationAuditFeed({ accountId }: Props) {
+const getHistoryActionType = (history: LocationHistoryEntity) => {
+	const oldValues = parseJson(history.oldValues);
+	const newValues = parseJson(history.newValues);
+	return history.actionType || newValues.actionType || oldValues.actionType || null;
+};
+
+export default function LocationAuditFeed({
+	accountId,
+	locationId,
+	refreshKey = 0,
+}: Props) {
 	const [history, setHistory] = useState<LocationHistoryEntity[]>([]);
 	const [usersMap] = useState<UserMap>({});
 	const [loading, setLoading] = useState(true);
@@ -103,7 +131,7 @@ export default function LocationAuditFeed({ accountId }: Props) {
 	useEffect(() => {
 		const load = async () => {
 			try {
-				const h = await getLocationHistory(accountId);
+				const h = await getLocationHistory(locationId ?? accountId);
 				setHistory(h);
 			} catch (err) {
 				console.error(err);
@@ -113,7 +141,7 @@ export default function LocationAuditFeed({ accountId }: Props) {
 			}
 		};
 		load();
-	}, [accountId]);
+	}, [accountId, locationId, refreshKey]);
 const filteredHistory = useMemo(() => {
 	const arr = Array.isArray(history) ? history : history ? [history] : [];
 
@@ -127,9 +155,15 @@ const filteredHistory = useMemo(() => {
 
 	return sorted.filter((h) => {
 		const who = h.changedByName || getUserName(h.changedBy);
+		const searchableValues = `${h.entityName ?? ''} ${h.subjectName ?? ''} ${
+			h.categoryName ?? ''
+		} ${h.temperatureCategoryName ?? ''} ${h.oldValues ?? ''} ${
+			h.newValues ?? ''
+		}`.toLowerCase();
 		const matchesSearch =
 			who.toLowerCase().includes(search.toLowerCase()) ||
-			h.locationName?.toLowerCase().includes(search.toLowerCase());
+			h.locationName?.toLowerCase().includes(search.toLowerCase()) ||
+			searchableValues.includes(search.toLowerCase());
 
 		const matchesType =
 			changeTypeFilter === 'ALL' || h.changeType === changeTypeFilter;
@@ -155,24 +189,83 @@ const filteredHistory = useMemo(() => {
 	const formatHistory = (h: LocationHistoryEntity) => {
 		const who = h.changedByName || getUserName(h.changedBy);
 		const when = new Date(h.changeAt).toLocaleString();
+		const oldVals = parseJson(h.oldValues);
+		const newVals = parseJson(h.newValues);
+		const isTemperatureCategory =
+			h.entityType === 'TEMPERATURE_CATEGORY' ||
+			getHistoryActionType(h) === 'TEMPERATURE_DEFAULTS_RESTORED' ||
+			Boolean(
+				h.categoryName || h.temperatureCategoryName || h.subjectName,
+			) ||
+			[
+				'name',
+				'categoryName',
+				'code',
+				'minTemp',
+				'maxTemp',
+				'active',
+				'temperatureCategoryId',
+			].some(
+				(key) => key in oldVals || key in newVals,
+			);
+		const entityName =
+			h.entityName ||
+			h.categoryName ||
+			h.temperatureCategoryName ||
+			h.subjectName ||
+			newVals.name ||
+			oldVals.name ||
+			newVals.categoryName ||
+			oldVals.categoryName ||
+			'Temperature category';
+		const actionType = getHistoryActionType(h);
+
+		if (actionType === 'TEMPERATURE_DEFAULTS_RESTORED') {
+			return (
+				<span className="text-sm sm:text-base">
+					{who} restored the default temperature categories for “
+					<strong>{h.locationName}</strong>” at {when}
+				</span>
+			);
+		}
 
 		switch (h.changeType) {
 			case 'CREATED':
 				return (
-					<span className="text-xl">
-						{who} created location "<strong>{h.locationName}</strong>" at {when}
+					<span className="text-sm sm:text-base">
+						{isTemperatureCategory ? (
+							<>
+								{who} created temperature category “<strong>{entityName}</strong>” at{' '}
+								{when}
+							</>
+						) : (
+							<>
+								{who} created location “<strong>{h.locationName}</strong>” at {when}
+							</>
+						)}
 					</span>
 				);
 
 			case 'UPDATED': {
-				const oldVals = parseJson(h.oldValues);
-				const newVals = parseJson(h.newValues);
-				const changes = Object.keys(oldVals);
+				const changes = Object.keys(oldVals).filter(
+					(key) =>
+						![
+							'actionType',
+							'categoryName',
+							'code',
+							'temperatureCategoryId',
+						].includes(
+							key,
+						) && String(oldVals[key]) !== String(newVals[key]),
+				);
 
 				return (
-					<div className="flex flex-wrap gap-2 items-center text-xl">
+					<div className="flex flex-wrap items-center gap-2 text-sm sm:text-base">
 						<span>
-							{who} updated "<strong>{h.locationName}</strong>" at {when}
+							{who} updated{' '}
+							{isTemperatureCategory ? 'temperature category' : 'location'} “
+							<strong>{isTemperatureCategory ? entityName : h.locationName}</strong>” at{' '}
+							{when}
 						</span>
 
 						{changes.length > 0 && (
@@ -202,8 +295,10 @@ const filteredHistory = useMemo(() => {
 
 			case 'DELETED':
 				return (
-					<span className="text-xl">
-						{who} deleted location "<strong>{h.locationName}</strong>" at {when}
+					<span className="text-sm sm:text-base">
+						{who} deleted {isTemperatureCategory ? 'temperature category' : 'location'} “
+						<strong>{isTemperatureCategory ? entityName : h.locationName}</strong>” at{' '}
+						{when}
 					</span>
 				);
 
@@ -213,34 +308,36 @@ const filteredHistory = useMemo(() => {
 	};
 
 	return (
-		<div className="flex flex-col items-center w-full py-8">
-			<div className="w-3/4">
+		<div className="w-full">
+			<div className="w-full">
 				<Accordion type="single" collapsible>
-					<AccordionItem value="location-history">
-						<AccordionTrigger className="text-lg font-semibold text-destructive">
+					<AccordionItem
+						value="location-history"
+						className="rounded-2xl border border-border/60 bg-card px-6 shadow-sm"
+					>
+						<AccordionTrigger className="text-lg font-semibold hover:no-underline">
 							<div className="flex gap-2 items-center">
-								<LogIcon className="w-6 h-6" />
+								<LogIcon className="size-5 text-primary" />
 								Show Location History
 							</div>
 						</AccordionTrigger>
 
 						<AccordionContent>
-							<Card>
-								<CardHeader className="flex flex-col gap-4">
-									<CardTitle className="flex justify-between items-center w-full text-xl md:text-3xl">
-										<div className="text-xl md:text-2xl">Location History</div>
-
-										<div className="w-1/4 md:w-1/3">
+							<Card className="border-0 bg-transparent shadow-none">
+								<CardHeader className="gap-4 px-0">
+									<CardTitle className="text-xl">Location history</CardTitle>
+									<div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto]">
+										<div>
 											<Input
 												type="text"
 												placeholder="Search by location or user..."
 												value={search}
 												onChange={(e) => setSearch(e.target.value)}
-												className="text-xl rounded-full"
+												className="w-full"
 											/>
 										</div>
 
-										<div className="flex flex-col md:flex-row gap-2">
+										<div className="flex flex-col gap-2 sm:flex-row">
 											<Select
 												value={sortOrder}
 												onValueChange={(v) =>
@@ -283,7 +380,7 @@ const filteredHistory = useMemo(() => {
 												</SelectContent>
 											</Select>
 										</div>
-									</CardTitle>
+									</div>
 
 									<CardDescription>
 										Review changes made to locations over time.
@@ -302,7 +399,7 @@ const filteredHistory = useMemo(() => {
 											<div className="flex justify-between items-start">
 												<span>{formatHistory(h)}</span>
 												<Badge
-													className="p-2 font-bold text-lg"
+											className="font-semibold"
 													variant={
 														h.changeType === 'CREATED'
 															? 'default'
@@ -311,7 +408,10 @@ const filteredHistory = useMemo(() => {
 															: 'destructive'
 													}
 												>
-													{h.changeType}
+											{getHistoryActionType(h) ===
+											'TEMPERATURE_DEFAULTS_RESTORED'
+												? 'RESTORED'
+												: h.changeType}
 												</Badge>
 											</div>
 											<Separator />

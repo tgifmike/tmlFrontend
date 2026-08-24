@@ -5,6 +5,9 @@ export default function Footer() {
 				<p>© {new Date().getFullYear()} The Manager Life</p>
 
 				<div className="flex gap-6">
+					<a href="/blog" className="hover:text-foreground transition">
+						Blog
+					</a>
 					<a href="/privacy" className="hover:text-foreground transition">
 						Privacy
 					</a>

@@ -24,7 +24,7 @@ import {
 
 import LineCheckPdf from '@/components/locaitons/LineCheckPdf';
 import LocationNav from '@/components/navBar/LocationNav';
-import MobileDrawerNav from '@/components/navBar/MoibileDrawerNav';
+import LocationPageHeader from '@/components/navBar/LocationPageHeader';
 import Spinner from '@/components/spinner/Spinner';
 
 import { Button } from '@/components/ui/button';
@@ -262,7 +262,7 @@ const LocationLineChecksPage = () => {
 				setStations(sortedStations);
 				setCurrentLocation(location);
 				setAccountName(account.accountName || null);
-				setAccountImage(account.imageBase64 || null);
+				setAccountImage(account.imageBase64 || account.accountImage || null);
 				setHasAccess(true);
 			} catch {
 				toast.error('You do not have access to this location.');
@@ -364,7 +364,7 @@ const LocationLineChecksPage = () => {
 	return (
 		<main className="flex min-h-screen overflow-hidden">
 			{/* Sidebar */}
-			<aside className="hidden md:block w-1/6 border-r h-screen bg-ring">
+			<aside className="hidden w-1/6 shrink-0 self-stretch border-r bg-ring md:block">
 				<LocationNav
 					accountName={accountName}
 					accountImage={accountImage}
@@ -376,27 +376,17 @@ const LocationLineChecksPage = () => {
 
 			{/* Main content */}
 			<section className="flex-1 flex flex-col">
-				{/* Header */}
-				<header className="flex flex-col md:flex-row justify-between items-center px-4 py-3 border-b bg-background/70 backdrop-blur-md sticky top-0 z-20 gap-2">
-					<div className="flex items-center gap-4">
-						<MobileDrawerNav
-							open={drawerOpen}
-							setOpen={setDrawerOpen}
-							title="Menu"
-						>
-							<LocationNav
-								accountName={accountName}
-								accountImage={accountImage}
-								accountId={accountIdParam}
-								locationId={locationIdParam}
-								sessionUserRole={currentUser?.appRole ?? AppRole.MEMBER}
-							/>
-						</MobileDrawerNav>
-						<h1 className="text-3xl font-bold">
-							{currentLocation?.locationName}
-						</h1>
-					</div>
-
+				<LocationPageHeader
+					accountId={accountIdParam}
+					locationId={locationIdParam}
+					accountName={accountName}
+					accountImage={accountImage}
+					locationName={currentLocation?.locationName}
+					pageName="Line Checks"
+					sessionUserRole={currentUser?.appRole ?? AppRole.MEMBER}
+					drawerOpen={drawerOpen}
+					setDrawerOpen={setDrawerOpen}
+				>
 					<div className="flex flex-wrap items-center gap-2">
 						{/* Date Picker */}
 						<Popover>
@@ -452,7 +442,7 @@ const LocationLineChecksPage = () => {
 							Reset Filters
 						</Button>
 					</div>
-				</header>
+				</LocationPageHeader>
 
 				{/* Line Checks */}
 				<div className="p-4 flex-1 overflow-y-auto">

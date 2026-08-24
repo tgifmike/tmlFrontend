@@ -19,17 +19,23 @@ type ReusableTableProps<T> = {
 	data: T[];
 	columns: Column<T>[];
 	rowKey: (row: T) => string; // unique key for each row
+	headerRowClassName?: string;
+	rowClassName?: string;
+	emptyMessage?: string;
 };
 
 export function ReusableTable<T>({
 	data,
 	columns,
 	rowKey,
+	headerRowClassName,
+	rowClassName,
+	emptyMessage = 'No results found.',
 }: ReusableTableProps<T>) {
 	return (
 		<Table className="min-w-full">
 			<TableHeader>
-				<TableRow className="text-lg font-semibold uppercase">
+				<TableRow className={headerRowClassName ?? 'text-lg font-semibold uppercase'}>
 					{columns.map((col, idx) => (
 						<TableHead key={idx} className={col.className}>
 							{col.header}
@@ -39,7 +45,7 @@ export function ReusableTable<T>({
 			</TableHeader>
 			<TableBody>
 				{data.map((row) => (
-					<TableRow key={rowKey(row)} className="text-lg">
+					<TableRow key={rowKey(row)} className={rowClassName ?? 'text-lg'}>
 						{columns.map((col, idx) => (
 							<TableCell key={idx} className={col.className}>
 								{col.render(row)}
@@ -47,6 +53,16 @@ export function ReusableTable<T>({
 						))}
 					</TableRow>
 				))}
+				{data.length === 0 && (
+					<TableRow>
+						<TableCell
+							colSpan={columns.length}
+							className="h-32 text-center text-sm text-muted-foreground"
+						>
+							{emptyMessage}
+						</TableCell>
+					</TableRow>
+				)}
 			</TableBody>
 		</Table>
 	);

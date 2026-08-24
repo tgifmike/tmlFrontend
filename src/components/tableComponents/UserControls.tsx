@@ -11,6 +11,7 @@ type UserControlsProps = {
 	setShowActiveOnly: (checked: boolean) => void;
 	searchTerm: string;
 	setSearchTerm: (value: string) => void;
+	searchPlaceholder?: string;
 };
 
 export const UserControls: React.FC<UserControlsProps> = ({
@@ -18,27 +19,35 @@ export const UserControls: React.FC<UserControlsProps> = ({
 	setShowActiveOnly,
 	searchTerm,
 	setSearchTerm,
+	searchPlaceholder = 'Search',
 }) => {
+	const activeOnlyId = React.useId();
 	
 	return (
-		<div className="w-full flex flex-col md:flex-row justify-between items-center mx-auto bg-ring/40 py-4 px-6 rounded-2xl">
+		<div className="mx-auto flex w-full flex-col items-center justify-between gap-4 rounded-2xl border bg-muted/50 px-4 py-4 sm:px-6 md:flex-row">
 			
 			{/* Search Input */}
-			<div className="">
+			<div className="w-full md:max-w-sm">
 				<Input
-					placeholder="Search"
+					placeholder={searchPlaceholder}
+					aria-label={searchPlaceholder}
 					value={searchTerm}
 					onChange={(e) => setSearchTerm(e.target.value)}
-					className="bg-background rounded-full"
+					className="rounded-full bg-background"
 				/>
 			</div>
 
 			{/* Active Only Switch */}
-			<div className="flex flex-row gap-2 items-center">
-				<label className="text-lg font-medium">Show Active Only</label>
-				<Switch className='' checked={showActiveOnly} onCheckedChange={setShowActiveOnly} />
+			<div className="flex w-full flex-row items-center justify-between gap-3 md:w-auto md:justify-end">
+				<label htmlFor={activeOnlyId} className="text-sm font-medium sm:text-base">
+					Show active only
+				</label>
+				<Switch
+					id={activeOnlyId}
+					checked={showActiveOnly}
+					onCheckedChange={setShowActiveOnly}
+				/>
 			</div>
 		</div>
 	);
 };
-

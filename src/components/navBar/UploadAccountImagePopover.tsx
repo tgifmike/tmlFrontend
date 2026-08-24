@@ -15,11 +15,13 @@ import { toast } from 'sonner';
 
 interface Props {
 	accountId: string;
-	onUploadSuccess?: (uploadedBase64:string) => void;
+	hasImage?: boolean;
+	onUploadSuccess?: (uploadedBase64: string) => void;
 }
 
 const UploadAccountImagePopover: React.FC<Props> = ({
 	accountId,
+	hasImage = false,
 	onUploadSuccess,
 }) => {
 	const [file, setFile] = useState<File | null>(null);
@@ -60,12 +62,18 @@ const UploadAccountImagePopover: React.FC<Props> = ({
 	return (
 		<Dialog open={open} onOpenChange={setOpen}>
 			<DialogTrigger asChild>
-				<Button variant="secondary">Upload Image</Button>
+				<Button variant="secondary">
+					{hasImage ? 'Change Image' : 'Upload Image'}
+				</Button>
 			</DialogTrigger>
 			<DialogContent className="flex flex-col gap-4">
-				<DialogTitle>Upload Account Image</DialogTitle>
+				<DialogTitle>
+					{hasImage ? 'Change Account Image' : 'Upload Account Image'}
+				</DialogTitle>
 				<DialogDescription>
-					Select an image file to associate with this account.
+					{hasImage
+						? 'Select a new image to replace the current account image.'
+						: 'Select an image file to associate with this account.'}
 				</DialogDescription>
 
 				<Input type="file" accept="image/*" onChange={handleFileChange} />
