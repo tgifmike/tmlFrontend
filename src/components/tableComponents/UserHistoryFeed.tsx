@@ -57,7 +57,7 @@ const formatUserValue = (key: string, value: any) => {
 	}
 };
 
-export default function GlobalUserHistoryFeed() {
+export default function GlobalUserHistoryFeed({ refreshKey = 0 }: { refreshKey?: number }) {
 	const [history, setHistory] = useState<UserHistory[]>([]);
 	const [loading, setLoading] = useState(true);
 	const [search, setSearch] = useState('');
@@ -88,7 +88,7 @@ export default function GlobalUserHistoryFeed() {
 		};
 
 		load();
-	}, []);
+	}, [refreshKey]);
 
 	const filtered = useMemo(() => {
 		const sorted = [...history].sort((a, b) =>

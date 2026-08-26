@@ -1,70 +1,73 @@
 'use client';
 
-import Link from 'next/link';
-import React, { useEffect, useState } from 'react';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import {
-	deleteUser,
-	getAllUsers,
-	toggleUserActive,
-	updateUser,
-	updateUserAccessRole,
-	updateUserAppRole,
-} from '@/app/api/userApI';
+import { useEffect, useState } from 'react';
+import { ShieldCheck } from 'lucide-react';
 import { toast } from 'sonner';
-import { AccessRole, AppRole, User, UserHistory } from '@/app/types';
-import { UserStatusSwitchOrBadge } from '@/components/tableComponents/UserStatusSwitch';
+
+import { deleteUser, getAllUsers, toggleUserActive } from '@/app/api/userApI';
+import { AccessRole, AppRole, User } from '@/app/types';
 import { AccessRoleSelectOrBadge } from '@/components/tableComponents/AccessRoleSelect';
 import { AppRoleSelect } from '@/components/tableComponents/AppRoleSelect';
-import { DeleteUserButton } from '@/components/tableComponents/DeleteUserButton';
-import Spinner from '@/components/spinner/Spinner';
-import { EditUserDialog } from '@/components/tableComponents/EditUserDialog';
-import { ReusableTable } from '@/components/tableComponents/ReusableTableProps';
-import { DataCard } from '@/components/cards/DataCard';
-import { Pagination } from '@/components/tableComponents/Pagination';
-import { UserControls } from '@/components/tableComponents/UserControls';
-import { Icons } from '@/lib/icon';
-import { StatusSwitchOrBadge } from '@/components/tableComponents/StatusSwitchOrBadge';
 import { DeleteConfirmButton } from '@/components/tableComponents/DeleteConfirmButton';
-import { useSession } from '@/lib/auth/session-context';
+import { EditUserDialog } from '@/components/tableComponents/EditUserDialog';
+import { Pagination } from '@/components/tableComponents/Pagination';
+import { StatusSwitchOrBadge } from '@/components/tableComponents/StatusSwitchOrBadge';
 import UserHistoryFeed from '@/components/tableComponents/UserHistoryFeed';
+import { UserControls } from '@/components/tableComponents/UserControls';
+import { UserInvitationStatus } from '@/components/tableComponents/UserInvitationStatus';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
+import { Card } from '@/components/ui/card';
+import { useSession } from '@/lib/auth/session-context';
 
+const AdminUsersPage = () => {
+	const { user: sessionUser, loading: sessionLoading } = useSession();
+	const currentUser = sessionUser as User | undefined;
+	const currentUserId = currentUser?.id;
+	const canManage = currentUser?.appRole === AppRole.MANAGER;
+	const canViewHistory = currentUser?.accessRole === AccessRole.SRADMIN;
 
-
-const Page = () => {
-	//icons
-	const UserIcon = Icons.user;
-
-	//session
-	const { user, loading, logout } = useSession();
-	const currentUser = user as User | undefined;
-	const sessionUserRole = user?.appRole;
-	const SRADMIN = currentUser?.accessRole === AccessRole.SRADMIN;
-	const canToggle = currentUser?.appRole === AppRole.MANAGER;
-
-	//set state
 	const [users, setUsers] = useState<User[]>([]);
-	
+	const [loadingUsers, setLoadingUsers] = useState(true);
 	const [showActiveOnly, setShowActiveOnly] = useState(false);
 	const [searchTerm, setSearchTerm] = useState('');
 	const [currentPage, setCurrentPage] = useState(1);
 	const [pageSize, setPageSize] = useState(10);
-	const [userHistoryUpdates, setUserHistoryUpdates] = useState<
-			UserHistory[]
-		>([]);
+	const [historyRefreshKey, setHistoryRefreshKey] = useState(0);
 
-	// Load pagination settings from localStorage safely
 	useEffect(() => {
-		if (typeof window !== 'undefined') {
-			const storedPage = Number(localStorage.getItem('usersCurrentPage')) || 1;
-			const storedPageSize =
-				Number(localStorage.getItem('usersPageSize')) || 10;
-			setCurrentPage(storedPage);
-			setPageSize(storedPageSize);
-		}
+		if (sessionLoading) return;
+
+		let cancelled = false;
+		const loadUsers = async () => {
+			setLoadingUsers(true);
+			try {
+				const response = await getAllUsers();
+				if (response.error) throw new Error(response.error);
+				if (!cancelled) setUsers(response.data ?? []);
+			} catch (error) {
+				if (!cancelled) {
+					toast.error(
+						error instanceof Error ? error.message : 'Failed to load users.',
+					);
+				}
+			} finally {
+				if (!cancelled) setLoadingUsers(false);
+			}
+		};
+
+		loadUsers();
+		return () => {
+			cancelled = true;
+		};
+	}, [sessionLoading]);
+
+	useEffect(() => {
+		if (typeof window === 'undefined') return;
+		setCurrentPage(Number(localStorage.getItem('usersCurrentPage')) || 1);
+		setPageSize(Number(localStorage.getItem('usersPageSize')) || 10);
 	}, []);
 
-	// Persist pagination to localStorage
 	useEffect(() => {
 		if (typeof window !== 'undefined') {
 			localStorage.setItem('usersCurrentPage', String(currentPage));
@@ -75,363 +78,244 @@ const Page = () => {
 		if (typeof window !== 'undefined') {
 			localStorage.setItem('usersPageSize', String(pageSize));
 		}
+		setCurrentPage(1);
 	}, [pageSize]);
 
-
-	//fetch users on component mount
-	useEffect(() => {
-		const fetchUsers = async () => {
-			try {
-				const response = await getAllUsers();
-				setUsers(response.data || []);
-			} catch (error: any) {
-				toast.error('Failed to fetch users: ' + (error.message || error));
-			} finally {
-				// setLoading(false);
-			}
-		};
-		fetchUsers();
-	}, []);
-
-	const handleUserHistoryUpdated = (updated: UserHistory) => {
-		setUserHistoryUpdates((prev) => [updated, ...prev]);
-	};
-
-	//toggle user active status
-	const handleToggleActive = async (userId: string, checked: boolean) => {
-		try {
-			await toggleUserActive(userId, checked);
-
-			setUsers((prev) =>
-				prev.map((u) => (u.id === userId ? { ...u, userActive: checked } : u))
-			);
-
-			const updatedUser = users.find((u) => u.id === userId);
-		
-		} catch (error: any) {
-			toast.error('Failed to update user status: ' + error.message);
-		}
-	};
-
-	//update user access role
-	const handleAccessRoleChange = async (
-		userId: string,
-		newRole: AccessRole
-	) => {
-		try {
-			await updateUserAccessRole(userId, newRole);
-
-			setUsers((prev) =>
-				prev.map((u) => (u.id === userId ? { ...u, accessRole: newRole } : u))
-			);
-			const updatedUser = users.find((u) => u.id === userId);
-			toast.success(
-				`User:  ${
-					updatedUser?.userName ?? 'unknown'
-				} access role updated to ${newRole}`
-			);
-		} catch (error: any) {
-			toast.error('Failed to update user access role: ' + error.message);
-		}
-	};
-
-	// edit app role
-	const handleAppRoleChange = async (userId: string, newRole: AppRole) => {
-		try {
-			await updateUserAppRole(userId, newRole);
-
-			setUsers((prev) =>
-				prev.map((u) => (u.id === userId ? { ...u, appRole: newRole } : u))
-			);
-			const updatedUser = users.find((u) => u.id === userId);
-			toast.success(
-				`User:  ${
-					updatedUser?.userName ?? 'unknown'
-				} app role updated to ${newRole}`
-			);
-		} catch (error: any) {
-			toast.error('Failed to update user app role: ' + error.message);
-		}
-	};
-
-	//updating user name and email
-	const handleUpdateUser = async (id: string, name: string, email: string) => {
-		try {
-			const result = await updateUser(id, { name, email });
-
-			// Update frontend state
-			setUsers((prev) =>
-				prev.map((u) =>
-					u.id === id ? { ...u, userName: name, userEmail: email } : u
-				)
-			);
-
-			toast.success(result); // show "User updated successfully"
-		} catch (error: any) {
-			const message =
-				error.response?.data || error.message || 'Failed to update user';
-			toast.error(message);
-		}
-	};
-
-	//toggle showing only active users and search
 	const filteredUsers = users.filter((user) => {
-		const name = user.userName ?? '';
-		const email = user.userEmail ?? '';
-
+		const normalizedSearch = searchTerm.trim().toLowerCase();
 		const matchesSearch =
-			name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-			email.toLowerCase().includes(searchTerm.toLowerCase());
-
-		const matchesActive = showActiveOnly ? user.userActive : true;
-
-		return matchesSearch && matchesActive;
+			!normalizedSearch ||
+			(user.userName ?? '').toLowerCase().includes(normalizedSearch) ||
+			(user.userEmail ?? '').toLowerCase().includes(normalizedSearch);
+		return matchesSearch && (!showActiveOnly || user.userActive === true);
 	});
 
-	//pagination
-	useEffect(() => {
-		localStorage.setItem('usersCurrentPage', String(currentPage));
-	}, [currentPage]);
-
-	useEffect(() => {
-		localStorage.setItem('usersPageSize', String(pageSize));
-		setCurrentPage(1); // reset to first page when pageSize changes
-	}, [pageSize]);
-
-	// slice for current page
 	const paginatedUsers = filteredUsers.slice(
 		(currentPage - 1) * pageSize,
-		currentPage * pageSize
+		currentPage * pageSize,
 	);
 
+	useEffect(() => {
+		setCurrentPage(1);
+	}, [searchTerm, showActiveOnly]);
+
+	useEffect(() => {
+		const lastPage = Math.max(1, Math.ceil(filteredUsers.length / pageSize));
+		if (currentPage > lastPage) setCurrentPage(lastPage);
+	}, [currentPage, filteredUsers.length, pageSize]);
+
+	const handleToggleActive = async (userId: string, checked: boolean) => {
+		setUsers((previous) =>
+			previous.map((user) =>
+				user.id === userId ? { ...user, userActive: checked } : user,
+			),
+		);
+
+		try {
+			const response = await toggleUserActive(userId, checked);
+			if (response.error) throw new Error(response.error);
+			setHistoryRefreshKey((key) => key + 1);
+			toast.success(`User is now ${checked ? 'active' : 'inactive'}.`);
+		} catch (error) {
+			setUsers((previous) =>
+				previous.map((user) =>
+					user.id === userId ? { ...user, userActive: !checked } : user,
+				),
+			);
+			toast.error(
+				error instanceof Error
+					? error.message
+					: 'Failed to update user status.',
+			);
+		}
+	};
+
+	const updateUserInState = (userId: string, changes: Partial<User>) => {
+		setUsers((previous) =>
+			previous.map((user) =>
+				user.id === userId ? { ...user, ...changes } : user,
+			),
+		);
+		setHistoryRefreshKey((key) => key + 1);
+	};
+
+	const handleDelete = async (userId: string) => {
+		await deleteUser(userId);
+		setUsers((previous) => previous.filter((user) => user.id !== userId));
+		setHistoryRefreshKey((key) => key + 1);
+	};
+
+	if (sessionLoading || loadingUsers) {
+		return (
+			<div className="flex items-center justify-center py-40 text-xl text-chart-3">
+				<div className="size-8 animate-spin rounded-full border-4 border-current border-t-transparent" />
+				<span className="ml-4">Loading users…</span>
+			</div>
+		);
+	}
 
 	return (
-		<main className="pt-4">
-			<div className="flex mx-auto p-4">
-				<h1 className="text-3xl font-bold text-center mb-4">
-					Admin Users Page
-				</h1>
-			</div>
+		<main className="min-h-screen p-4 sm:p-6">
+			<div className="mx-auto w-full max-w-7xl">
+				<header className="mb-6 flex items-start gap-4">
+					<span className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-chart-3/10 text-chart-3">
+						<ShieldCheck className="size-6" aria-hidden="true" />
+					</span>
+					<div>
+						<h1 className="text-2xl font-bold tracking-tight sm:text-3xl">
+							Manage Users
+						</h1>
+						<p className="mt-1 text-sm text-muted-foreground sm:text-base">
+							Review invitations, user status, roles, and account-wide permissions.
+						</p>
+					</div>
+				</header>
 
-			{/* table header */}
-			<div className="w-full mx-auto flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 px-4 mt-4">
 				<UserControls
 					showActiveOnly={showActiveOnly}
 					setShowActiveOnly={setShowActiveOnly}
 					searchTerm={searchTerm}
 					setSearchTerm={setSearchTerm}
+					searchPlaceholder="Search users"
 				/>
-			</div>
 
-			{/* Desktop Table */}
-			<div className="hidden md:block mt-8 bg-accent p-2 m-4 rounded-2xl shadow-2xl text-chart-3">
-				<ReusableTable
-					data={paginatedUsers}
-					rowKey={(u) => u.id!}
-					columns={[
-						{
-							header: '',
-							render: (u) => (
-								<Avatar>
-									<AvatarImage src={u.userImage ?? undefined} />
-									<AvatarFallback>
-										<UserIcon className="h-6 w-6" />
-									</AvatarFallback>
-								</Avatar>
-							),
-						},
-						{ header: 'User Name', render: (u) => u.userName },
-						{ header: 'Email', render: (u) => u.userEmail },
-						{
-							header: 'Status',
-							className: 'text-center',
-							render: (u) => (
+				<div className="mt-4 flex flex-wrap items-center gap-2 px-1 text-sm text-muted-foreground">
+					<span>
+						{filteredUsers.length} user{filteredUsers.length === 1 ? '' : 's'}
+					</span>
+					<span aria-hidden="true">·</span>
+					<span>{users.filter((user) => user.userActive).length} active</span>
+					<span aria-hidden="true">·</span>
+					<span>{users.filter(isPendingInvite).length} pending</span>
+				</div>
+
+				<Card className="mt-6 hidden gap-0 overflow-hidden py-0 shadow-sm md:block">
+					<div className="grid grid-cols-[minmax(260px,2fr)_minmax(130px,1fr)_minmax(110px,0.8fr)_minmax(155px,1fr)_minmax(155px,1fr)_minmax(130px,0.8fr)] items-center bg-muted/60 px-6 py-4 text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+						<span>User</span>
+						<span>Invitation</span>
+						<span className="text-center">Status</span>
+						<span className="text-center">Access role</span>
+						<span className="text-center">App role</span>
+						<span className="text-center">Actions</span>
+					</div>
+
+					{paginatedUsers.map((user) => (
+						<div
+							key={user.id ?? user.userEmail}
+							className="grid min-h-24 grid-cols-[minmax(260px,2fr)_minmax(130px,1fr)_minmax(110px,0.8fr)_minmax(155px,1fr)_minmax(155px,1fr)_minmax(130px,0.8fr)] items-center border-t px-6 transition-colors hover:bg-muted/30"
+						>
+							<UserIdentity user={user} />
+							<div><UserInvitationStatus user={user} /></div>
+							<div className="flex flex-col items-center gap-1.5">
 								<StatusSwitchOrBadge
-									entity={{
-										id: u.id!,
-										active: u.userActive!,
-									}}
-									getLabel={() => `User: ${u.userName}`}
+									entity={{ id: user.id!, active: user.userActive ?? false }}
+									getLabel={() => `User: ${displayName(user)}`}
 									onToggle={handleToggleActive}
-									canToggle={canToggle}
+									canToggle={canManage && user.id !== currentUserId}
 								/>
-							),
-						},
-						{
-							header: 'Access Role',
-							className: 'text-center',
-							render: (u) => (
+								<span className="text-xs text-muted-foreground">
+									{user.userActive ? 'Active' : 'Inactive'}
+								</span>
+							</div>
+							<div className="flex justify-center">
 								<AccessRoleSelectOrBadge
-									user={u}
+									user={user}
 									onRoleChange={(id, role) =>
-										setUsers((prev) =>
-											prev.map((user) =>
-												user.id === id ? { ...user, accessRole: role } : user,
-											),
-										)
+										updateUserInState(id, { accessRole: role })
 									}
 								/>
-							),
-						},
-						{
-							header: 'App Role',
-							render: (u) => (
+							</div>
+							<div className="flex justify-center">
 								<AppRoleSelect
-									user={u}
+									user={user}
 									onRoleChange={(id, role) =>
-										setUsers((prev) =>
-											prev.map((user) =>
-												user.id === id ? { ...user, appRole: role } : user,
-											),
-										)
+										updateUserInState(id, { appRole: role })
 									}
 								/>
-							),
-						},
-						{
-							header: 'Actions',
-							className: 'text-center',
-							render: (u) =>
-								sessionUserRole === 'MANAGER' ? (
-									<div className="flex justify-center gap-4 items-center">
-										<EditUserDialog
-											users={users}
-											user={u}
-											onUpdate={(id, name, email) =>
-												setUsers((prev) =>
-													prev.map((user) =>
-														user.id === id
-															? { ...user, userName: name, userEmail: email }
-															: user,
-													),
-												)
-											}
-										/>
-										{u.id && (
-											<DeleteConfirmButton
-												item={{ id: u.id }}
-												entityLabel="user"
-												onDelete={async (id) => {
-													await deleteUser(id);
-													setUsers((prev) =>
-														prev.filter((user) => user.id !== id),
-													);
-												}}
-												getItemName={() => u.userName ?? 'Unknown'} // guarantee a string
-											/>
-										)}
-									</div>
-								) : (
-									<span className="text-ring">No Actions</span>
-								),
-						},
-					]}
-				/>
-			</div>
+							</div>
+							<UserActions
+								user={user}
+								users={users}
+								canManage={canManage}
+								isCurrentUser={user.id === currentUserId}
+								onUpdate={(id, name, email) =>
+									updateUserInState(id, { userName: name, userEmail: email })
+								}
+								onDelete={handleDelete}
+							/>
+						</div>
+					))}
+					{paginatedUsers.length === 0 && <EmptyUsers searchTerm={searchTerm} />}
+				</Card>
 
-			{/* Mobile Cards */}
-			<div className="block md:hidden mt-6 space-y-4 p-2">
-				{paginatedUsers.map((user) => (
-					<DataCard
-						key={user.id}
-						title={user.userName ?? 'No Name'}
-						description={user.userEmail ?? undefined}
-						avatar={
-							<Avatar>
-								<AvatarImage src={user.userImage ?? undefined} />
-								<AvatarFallback>
-									<UserIcon className="h-5 w-5 text-chart-3" />
-								</AvatarFallback>
-							</Avatar>
-						}
-						fields={[
-							{
-								label: 'Status',
-								value: (
-									<UserStatusSwitchOrBadge
-										user={user}
-										onStatusChange={(id, checked) =>
-											setUsers((prev) =>
-												prev.map((user) =>
-													user.id === id
-														? { ...user, userActive: checked }
-														: user,
-												),
-											)
-										}
+				<div className="mt-6 space-y-4 md:hidden">
+					{paginatedUsers.map((user) => (
+						<Card
+							key={user.id ?? user.userEmail}
+							className="gap-0 overflow-hidden py-0 shadow-sm"
+						>
+							<div className="p-5">
+								<UserIdentity user={user} />
+								<div className="mt-4">
+									<UserInvitationStatus user={user} />
+								</div>
+							</div>
+
+							<MobileField label="Status">
+								<div className="flex items-center gap-3">
+									<StatusSwitchOrBadge
+										entity={{ id: user.id!, active: user.userActive ?? false }}
+										getLabel={() => `User: ${displayName(user)}`}
+										onToggle={handleToggleActive}
+										canToggle={canManage && user.id !== currentUserId}
 									/>
-								),
-							},
-							{
-								label: 'Access Role',
-								value: (
-									<AccessRoleSelectOrBadge
+									<span className="text-sm font-medium">
+										{user.userActive ? 'Active' : 'Inactive'}
+									</span>
+								</div>
+							</MobileField>
+							<MobileField label="Access role">
+								<AccessRoleSelectOrBadge
+									user={user}
+									onRoleChange={(id, role) =>
+										updateUserInState(id, { accessRole: role })
+									}
+								/>
+							</MobileField>
+							<MobileField label="App role">
+								<AppRoleSelect
+									user={user}
+									onRoleChange={(id, role) =>
+										updateUserInState(id, { appRole: role })
+									}
+								/>
+							</MobileField>
+
+							{canManage && (
+								<div className="flex items-center justify-between border-t px-5 py-2">
+									<span className="text-sm font-medium text-muted-foreground">
+										Manage user
+									</span>
+									<UserActions
 										user={user}
-										onRoleChange={(id, role) =>
-											setUsers((prev) =>
-												prev.map((u) =>
-													u.id === id ? { ...u, accessRole: role } : u,
-												),
-											)
-										}
-									/>
-								),
-							},
-							{
-								label: 'App Role',
-								value: (
-									<AppRoleSelect
-										user={user}
-										onRoleChange={(id, role) =>
-											setUsers((prev) =>
-												prev.map((u) =>
-													u.id === id ? { ...u, appRole: role } : u,
-												),
-											)
-										}
-									/>
-								),
-							},
-						]}
-						actions={[
-							{
-								element: (
-									// <EditUserDialog user={user} onUpdate={handleUpdateUser} />
-									<EditUserDialog
 										users={users}
-										user={user}
+										canManage={canManage}
+										isCurrentUser={user.id === currentUserId}
 										onUpdate={(id, name, email) =>
-											setUsers((prev) =>
-												prev.map((user) =>
-													user.id === id
-														? { ...user, userName: name, userEmail: email }
-														: user,
-												),
-											)
+											updateUserInState(id, {
+												userName: name,
+												userEmail: email,
+											})
 										}
+										onDelete={handleDelete}
 									/>
-								),
-							},
-							{
-								element: user.id ? (
-									<DeleteConfirmButton
-										item={{ id: user.id }}
-										entityLabel="user"
-										onDelete={async (id) => {
-											await deleteUser(id);
-											setUsers((prev) => prev.filter((u) => u.id !== id));
-										}}
-										getItemName={() => user.userName ?? 'Unknown'} // always returns string
-									/>
-								) : null,
-							},
-						]}
-					/>
-				))}
-			</div>
+								</div>
+							)}
+						</Card>
+					))}
+					{paginatedUsers.length === 0 && <EmptyUsers searchTerm={searchTerm} mobile />}
+				</div>
 
-			{/* pagination page size selector */}
-			<div className="w-full mx-auto flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 px-4 mt-4">
 				<Pagination
 					currentPage={currentPage}
 					setCurrentPage={setCurrentPage}
@@ -439,13 +323,123 @@ const Page = () => {
 					setPageSize={setPageSize}
 					totalItems={filteredUsers.length}
 				/>
-			</div>
 
-			<div className="flex justify-center items-center">
-				{SRADMIN && <UserHistoryFeed  />}
+				{canViewHistory && (
+					<div className="mt-8">
+						<UserHistoryFeed refreshKey={historyRefreshKey} />
+					</div>
+				)}
 			</div>
 		</main>
 	);
 };
 
-export default Page;
+function UserIdentity({ user }: { user: User }) {
+	return (
+		<div className="flex min-w-0 items-center gap-3">
+			<Avatar className="size-11 border">
+				<AvatarImage src={user.userImage ?? undefined} alt="" />
+				<AvatarFallback className="font-semibold text-chart-3">
+					{initials(user.userName)}
+				</AvatarFallback>
+			</Avatar>
+			<div className="min-w-0">
+				<div className="flex items-center gap-2">
+					<p className="truncate font-semibold">{displayName(user)}</p>
+					{user.userActive === false && (
+						<Badge variant="secondary" className="shrink-0">Inactive</Badge>
+					)}
+				</div>
+				<p className="mt-1 truncate text-xs text-muted-foreground">
+					{user.userEmail || 'No email address'}
+				</p>
+			</div>
+		</div>
+	);
+}
+
+function UserActions({
+	user,
+	users,
+	canManage,
+	isCurrentUser,
+	onUpdate,
+	onDelete,
+}: {
+	user: User;
+	users: User[];
+	canManage: boolean;
+	isCurrentUser: boolean;
+	onUpdate: (id: string, name: string, email: string) => void;
+	onDelete: (id: string) => Promise<void>;
+}) {
+	if (!canManage) {
+		return <div className="text-center text-sm text-muted-foreground">View only</div>;
+	}
+
+	return (
+		<div className="flex items-center justify-center gap-1">
+			<EditUserDialog users={users} user={user} onUpdate={onUpdate} />
+			{user.id && !isCurrentUser ? (
+				<DeleteConfirmButton
+					item={{ id: user.id }}
+					entityLabel="User"
+					onDelete={onDelete}
+					getItemName={() => displayName(user)}
+				/>
+			) : (
+				<Badge variant="outline">You</Badge>
+			)}
+		</div>
+	);
+}
+
+function MobileField({
+	label,
+	children,
+}: {
+	label: string;
+	children: React.ReactNode;
+}) {
+	return (
+		<div className="flex min-h-14 items-center justify-between gap-4 border-t px-5 py-3">
+			<span className="text-sm font-medium text-muted-foreground">{label}</span>
+			<div className="flex justify-end">{children}</div>
+		</div>
+	);
+}
+
+function EmptyUsers({
+	searchTerm,
+	mobile = false,
+}: {
+	searchTerm: string;
+	mobile?: boolean;
+}) {
+	return (
+		<div
+			className={`${mobile ? 'rounded-2xl border border-dashed' : 'border-t'} px-6 py-14 text-center text-sm text-muted-foreground`}
+		>
+			{searchTerm ? `No users match “${searchTerm}”.` : 'No users are available.'}
+		</div>
+	);
+}
+
+const isPendingInvite = (user: User) =>
+	user.invited === true && user.firstLogin === true;
+
+function displayName(user: User) {
+	return user.userName || user.userEmail || 'Unknown user';
+}
+
+function initials(name?: string | null) {
+	if (!name) return 'U';
+	return name
+		.split(/\s+/)
+		.filter(Boolean)
+		.slice(0, 2)
+		.map((part) => part[0]?.toUpperCase())
+		.join('');
+}
+
+export default AdminUsersPage;

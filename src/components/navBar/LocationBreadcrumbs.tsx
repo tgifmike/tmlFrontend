@@ -15,6 +15,11 @@ type LocationBreadcrumbsProps = {
 	accountName?: string | null;
 	locationName?: string | null;
 	pageName?: string | null;
+	pageHref?: string;
+	parentCrumb?: {
+		label: string;
+		href: string;
+	};
 };
 
 export default function LocationBreadcrumbs({
@@ -23,6 +28,8 @@ export default function LocationBreadcrumbs({
 	accountName,
 	locationName,
 	pageName,
+	pageHref,
+	parentCrumb,
 }: LocationBreadcrumbsProps) {
 	const locationHref = `/accounts/${accountId}/locations/${locationId}`;
 
@@ -58,8 +65,24 @@ export default function LocationBreadcrumbs({
 				{pageName && (
 					<>
 						<BreadcrumbSeparator />
+						{parentCrumb && (
+							<>
+								<BreadcrumbItem>
+									<BreadcrumbLink asChild>
+										<Link href={parentCrumb.href}>{parentCrumb.label}</Link>
+									</BreadcrumbLink>
+								</BreadcrumbItem>
+								<BreadcrumbSeparator />
+							</>
+						)}
 						<BreadcrumbItem>
-							<BreadcrumbPage>{pageName}</BreadcrumbPage>
+							{pageHref ? (
+								<BreadcrumbLink asChild>
+									<Link href={pageHref}>{pageName}</Link>
+								</BreadcrumbLink>
+							) : (
+								<BreadcrumbPage>{pageName}</BreadcrumbPage>
+							)}
 						</BreadcrumbItem>
 					</>
 				)}

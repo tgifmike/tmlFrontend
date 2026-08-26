@@ -15,6 +15,7 @@ import TimeOfDayGreeting from '@/components/login/TimeOfDayGreeting';
 import { getAccountsForUser } from '../../api/accountApi';
 import { Account } from '../../types';
 import { useSession } from '@/lib/auth/session-context';
+import SetupAssistant from '@/components/onboarding/SetupAssistant';
 
 
 const Dashboard = () => {
@@ -24,6 +25,7 @@ const Dashboard = () => {
 	// const [loading, setLoading] = useState(true);
 
 	const isSRAdmin = user?.accessRole?.toUpperCase() === 'SRADMIN';
+	const isSetupManager = user?.appRole?.toUpperCase() === 'MANAGER';
 	const displayName = user?.name?.split(' ')[0] ?? 'You';
 
 	useEffect(() => {
@@ -46,6 +48,15 @@ const Dashboard = () => {
 	return (
 		<main className="space-y-8 p-4">
 			<TimeOfDayGreeting name={user?.name} />
+
+			{user?.id && isSetupManager && (
+				<SetupAssistant
+					accounts={accounts}
+					userId={user.id}
+					userName={user.name}
+					canManage
+				/>
+			)}
 
 			{/* ADMIN */}
 			{isSRAdmin && (

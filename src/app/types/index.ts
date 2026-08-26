@@ -26,6 +26,7 @@ export interface User {
 	accessRole?: string | null;
 	appRole?: string | null;
 	firstLogin?: boolean | null;
+	invited?: boolean | null;
 	googleId?: string | null;
 	appleId?: string | null;
 	createdAt?: string | null;
@@ -75,11 +76,42 @@ export interface Station {
 	updatedAt?: string | null;
 }
 
+export enum ItemType {
+	FOOD_PREP = 'FOOD_PREP',
+	EQUIPMENT = 'EQUIPMENT',
+	CLEANLINESS = 'CLEANLINESS',
+	GENERAL = 'GENERAL',
+}
+
+export enum CriterionResponseType {
+	PASS_FAIL = 'PASS_FAIL',
+	CHECKBOX = 'CHECKBOX',
+	TEMPERATURE = 'TEMPERATURE',
+	NUMBER = 'NUMBER',
+	TEXT = 'TEXT',
+	PHOTO = 'PHOTO',
+}
+
+export interface ItemCriterion {
+	id?: string;
+	itemId?: string;
+	label: string;
+	responseType: CriterionResponseType;
+	required: boolean;
+	requireNotesOnFailure: boolean;
+	minValue?: number | null;
+	maxValue?: number | null;
+	unit?: string | null;
+	sortOrder: number;
+	active: boolean;
+}
+
 export interface Item {
 	id?: string;
 	itemName: string;
-	shelfLife: string;
-	panSize: string;
+	itemType?: ItemType;
+	shelfLife?: string | null;
+	panSize?: string | null;
 	toolName?: string | null;
 	isTool: boolean;
 	portionSize?: string | null;
@@ -100,6 +132,7 @@ export interface Item {
 	sortOrder: number;
 	location: Location;
 	items?: Item[];
+	criteria?: ItemCriterion[];
 	itemNotes?: string;
 	checkMark?: boolean;
 	itemChecked?: boolean;
@@ -270,6 +303,7 @@ export interface ItemHistory {
 	itemId: string;
 	stationId: string;
 	itemName: string;
+	itemType?: ItemType;
 	shelfLife: string;
 	panSize: string;
 	toolName: string;

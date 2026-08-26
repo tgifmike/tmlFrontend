@@ -1,24 +1,43 @@
-import { Item, ItemHistory } from '../types';
+import {
+	Item,
+	ItemCriterion,
+	ItemHistory,
+	ItemType,
+} from '../types';
 import { request } from './axios';
 
+export type ItemPayload = Partial<Item> & {
+	itemName: string;
+	itemType: ItemType;
+	stationId?: string;
+};
+
+export type ItemCriterionPayload = Omit<
+	ItemCriterion,
+	'id' | 'itemId'
+>;
 
 //create item
-export const createItem = async (stationId: string, data: any, userId: string) => {
-    
-	 if (!userId) throw new Error('User ID is required');
+export const createItem = async (
+	stationId: string,
+	data: ItemPayload,
+	userId: string,
+) => {
+	if (!userId) throw new Error('User ID is required');
+	if (!stationId?.trim()) throw new Error('Station ID is required');
 
-		// Make sure the DTO includes stationId
-		const dto = {
-			stationId,
-			...data,
-		};
+	// Put stationId last so stale or undefined form data can never overwrite it.
+	const dto = {
+		...data,
+		stationId: stationId.trim(),
+	};
 	
 	return request<Item>({
-        method: 'POST',
-        url: `/items/${stationId}/createItem`,
+		method: 'POST',
+		url: `/items/${stationId.trim()}/createItem`,
 		data: dto,
 		headers: { 'X-User-Id': userId },
-    })
+	});
 }
 
 //get all items for stations
@@ -31,7 +50,7 @@ export const getItemsByStation = async (stationId: string) => {
 
 //get item by id
 export const getItemsById = async (stationId: string, itemId: string) => {
-	return request<Item[]>({
+	return request<Item>({
 		method: 'GET',
 		url: `/items/${stationId}/getItem/${itemId}`,
 	});
@@ -41,7 +60,7 @@ export const getItemsById = async (stationId: string, itemId: string) => {
 export const updateItem = async (
 	stationId: string,
 	itemId: string,
-	data: Partial<Item>,
+	data: Partial<ItemPayload>,
 	userId: string
 ): Promise<Item> => {
 	const res = await request<Item>({
@@ -50,8 +69,74 @@ export const updateItem = async (
 		data,
 		headers: { 'X-User-Id': userId },
 	});
-	console.log('updateItem response:', res);
+	if (res.error || !res.data) {
+		throw new Error(res.error || 'Failed to update item');
+	}
 	return res.data as Item;
+};
+
+// item criteria
+export const getItemCriteria = async (itemId: string) => {
+	return request<ItemCriterion[]>({
+		method: 'GET',
+		url: `/items/${itemId}/criteria`,
+	});
+};
+
+export const createItemCriterion = async (
+	itemId: string,
+	data: ItemCriterionPayload,
+) => {
+	return request<ItemCriterion>({
+		method: 'POST',
+		url: `/items/${itemId}/criteria`,
+		data,
+	});
+};
+
+export const updateItemCriterion = async (
+	itemId: string,
+	criterionId: string,
+	data: ItemCriterionPayload,
+) => {
+	return request<ItemCriterion>({
+		method: 'PUT',
+		url: `/items/${itemId}/criteria/${criterionId}`,
+		data,
+	});
+};
+
+export const deleteItemCriterion = async (
+	itemId: string,
+	criterionId: string,
+) => {
+	return request<void>({
+		method: 'DELETE',
+		url: `/items/${itemId}/criteria/${criterionId}`,
+	});
+};
+
+export const setItemCriterionActive = async (
+	itemId: string,
+	criterionId: string,
+	active: boolean,
+) => {
+	return request<ItemCriterion>({
+		method: 'PATCH',
+		url: `/items/${itemId}/criteria/${criterionId}/active`,
+		params: { active },
+	});
+};
+
+export const reorderItemCriteria = async (
+	itemId: string,
+	orderedCriterionIds: string[],
+) => {
+	return request<void>({
+		method: 'PUT',
+		url: `/items/${itemId}/criteria/reorder`,
+		data: orderedCriterionIds,
+	});
 };
 
 
@@ -104,5 +189,3 @@ export const getItemHistory = async (stationId: string): Promise<ItemHistory[]> 
 	});
 	return (response as { data: ItemHistory[] }).data;
 };
-
-
