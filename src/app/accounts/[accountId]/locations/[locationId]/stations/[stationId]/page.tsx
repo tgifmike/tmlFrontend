@@ -1,74 +1,82 @@
 'use client';
 
+import {
+	DragDropContext,
+	Draggable,
+	Droppable,
+	type DropResult,
+} from '@hello-pangea/dnd';
+import { type ReactElement, useEffect, useState } from 'react';
+import { useParams, useRouter } from 'next/navigation';
+import { toast } from 'sonner';
+
 import { getAccountsForUser } from '@/app/api/accountApi';
 import {
 	deleteItem,
 	getItemsByStation,
-	toggleItemActive,
 	reorderItems,
+	toggleItemActive,
 } from '@/app/api/item.Api';
-import {
-	DragDropContext,
-	Droppable,
-	Draggable,
-	DropResult,
-} from '@hello-pangea/dnd';
 import { getUserLocationAccess } from '@/app/api/locationApi';
+import { getOptions } from '@/app/api/optionsApi';
 import { getStationsByLocation } from '@/app/api/stationApi';
-import { AppRole, Item, Locations, OptionEntity, Station, StationDto, User } from '@/app/types';
+import { getTemperatureCategories } from '@/app/api/temperatureCategoryApi';
+import {
+	AppRole,
+	Item,
+	ItemType,
+	Locations,
+	OptionEntity,
+	StationDto,
+	TemperatureCategory,
+	User,
+} from '@/app/types';
+import { Card } from '@/components/ui/card';
 import LocationNav from '@/components/navBar/LocationNav';
 import LocationPageHeader from '@/components/navBar/LocationPageHeader';
 import Spinner from '@/components/spinner/Spinner';
 import CreateItemDialog from '@/components/tableComponents/CreateItemDialog';
 import { DeleteConfirmButton } from '@/components/tableComponents/DeleteConfirmButton';
 import { EditItemDialog } from '@/components/tableComponents/EditItemDialog';
+import ItemHistoryFeed from '@/components/tableComponents/ItemHistoryFeed';
 import { Pagination } from '@/components/tableComponents/Pagination';
 import { StatusSwitchOrBadge } from '@/components/tableComponents/StatusSwitchOrBadge';
 import { UserControls } from '@/components/tableComponents/UserControls';
-import { useParams, useRouter } from 'next/navigation';
-import React, { useEffect, useState } from 'react';
-import { toast } from 'sonner';
-import { Icons } from '@/lib/icon';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import { DataCard } from '@/components/cards/DataCard';
-import { getOptions } from '@/app/api/optionsApi';
-import { getTemperatureCategories } from '@/app/api/temperatureCategoryApi';
-import ItemHistoryFeed from '@/components/tableComponents/ItemHistoryFeed';
 import { useSession } from '@/lib/auth/session-context';
 import { getDefaultTemperatureCategories } from '@/lib/constants/usConstants';
-import type { TemperatureCategory } from '@/app/types';
+import { Icons } from '@/lib/icon';
 
+const itemTypeLabels: Record<ItemType, string> = {
+	[ItemType.FOOD_PREP]: 'Food prep',
+	[ItemType.EQUIPMENT]: 'Equipment check',
+	[ItemType.CLEANLINESS]: 'Cleanliness check',
+	[ItemType.GENERAL]: 'General task',
+};
 
+const getItemTypeLabel = (itemType?: ItemType) =>
+	itemTypeLabels[itemType ?? ItemType.FOOD_PREP];
 
 const StationPage = () => {
-	//icon
-	const UpDownIcon = Icons.sort;
+	const SortIcon = Icons.sort;
 	const ItemIcon = Icons.items;
-
-	//session
-	const { user, loading, logout } = useSession();
+	const { user, loading } = useSession();
 	const params = useParams<{
 		accountId: string;
 		locationId: string;
 		stationId: string;
 	}>();
-	const accountIdParam = params.accountId;
-	const locationIdParam = params.locationId;
-	const stationIdParam = params.stationId;
+	const accountId = params.accountId;
+	const locationId = params.locationId;
+	const stationId = params.stationId;
 	const router = useRouter();
 
-	// state
 	const [loadingAccess, setLoadingAccess] = useState(true);
-	const [hasAccess, setHasAccess] = useState(false);
 	const [accountName, setAccountName] = useState<string | null>(null);
 	const [accountImage, setAccountImage] = useState<string | null>(null);
-	const [locations, setLocations] = useState<Locations[]>([]);
-	const [stations, setStations] = useState<Station[]>([]);
 	const [items, setItems] = useState<Item[]>([]);
 	const [stationName, setStationName] = useState<string | null>(null);
-	const [currentLocation, setCurrentLocation] = useState<Locations | null>(
-		null
-	);
+	const [currentLocation, setCurrentLocation] = useState<Locations | null>(null);
 	const [showActiveOnly, setShowActiveOnly] = useState(true);
 	const [searchTerm, setSearchTerm] = useState('');
 	const [currentPage, setCurrentPage] = useState(1);
@@ -77,30 +85,39 @@ const StationPage = () => {
 	const [options, setOptions] = useState<OptionEntity[]>([]);
 	const [temperatureCategories, setTemperatureCategories] = useState<
 		TemperatureCategory[]
-	>(getDefaultTemperatureCategories(locationIdParam));
+	>(getDefaultTemperatureCategories(locationId));
 
 	const currentUser = user as User | undefined;
-	const currentUserId = user?.id;
+	const currentUserId = user?.id ?? '';
 	const sessionUserRole = user?.appRole;
-	const canToggle = currentUser?.appRole === AppRole.MANAGER;
+	const canManage = currentUser?.appRole === AppRole.MANAGER;
 
-	// verify access & fetch items
 	useEffect(() => {
-		if (
-			loading ||
-			!user?.id ||
-			!accountIdParam ||
-			!locationIdParam ||
-			!stationIdParam
-		)
-			return;
-		if (hasAccess) return;
+		if (loading || !user?.id || !accountId || !locationId || !stationId) return;
 
-		const verifyAccess = async () => {
+		let cancelled = false;
+		const loadPage = async () => {
+			setLoadingAccess(true);
 			try {
-				const accountsRes = await getAccountsForUser(user.id);
+				const [
+					accountsRes,
+					locationRes,
+					stationRes,
+					itemsRes,
+					optionsRes,
+					temperatureRes,
+				] = await Promise.all([
+					getAccountsForUser(user.id),
+					getUserLocationAccess(user.id),
+					getStationsByLocation(locationId),
+					getItemsByStation(stationId),
+					getOptions(accountId),
+					getTemperatureCategories(locationId),
+				]);
+				if (cancelled) return;
+
 				const account = accountsRes.data?.find(
-					(acc) => acc.id?.toString() === accountIdParam
+					(candidate) => candidate.id?.toString() === accountId,
 				);
 				if (!account) {
 					toast.error('You do not have access to this account.');
@@ -108,525 +125,469 @@ const StationPage = () => {
 					return;
 				}
 
-				const locationRes = await getUserLocationAccess(user.id);
-				const fetchedLocations = locationRes.data ?? [];
-				setLocations(fetchedLocations);
-
-				const location = fetchedLocations.find(
-					(loc) => loc.id?.toString() === locationIdParam
+				const location = (locationRes.data ?? []).find(
+					(candidate) => candidate.id?.toString() === locationId,
 				);
 				if (!location) {
 					toast.error('You do not have access to this location.');
-					router.push(`/accounts/${accountIdParam}/locations`);
+					router.push(`/accounts/${accountId}`);
 					return;
 				}
 
-				const stationRes = await getStationsByLocation(locationIdParam);
-
-				// Explicitly map to your frontend Station type
-				const fetchedStations: Station[] = (stationRes.data ?? []).map(
-					(s: StationDto) => ({
-						id: s.id ?? undefined,
-						stationName: s.stationName,
-						stationActive: s.stationActive,
-						sortOrder: s.sortOrder ?? 0,
-						items: s.items ?? [],
-						location: s.location
-							? { id: s.location.id, locationName: s.location.locationName }
-							: currentLocation
-							? {
-									id: currentLocation.id,
-									locationName: currentLocation.locationName,
-							  }
-							: { id: undefined, locationName: undefined },
-						createdAt: s.createdAt ?? null,
-						updatedAt: s.updatedAt ?? null,
-					})
+				const station = (stationRes.data ?? []).find(
+					(candidate: StationDto) => candidate.id?.toString() === stationId,
 				);
-
-				setStations(fetchedStations);
-
-
-				const station = fetchedStations.find(
-					(sta) => sta.id?.toString() === stationIdParam
-				);
-				if (!station) return;
-
-				const itemsRes = await getItemsByStation(stationIdParam);
-				const fetchedItems = itemsRes.data ?? [];
-
-				// sort by saved sortOrder
-				fetchedItems.sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
-
-				const optionsRes = await getOptions(accountIdParam);
-				if (!optionsRes.data) {
-					toast.error('Failed to fetch account options.');
+				if (!station) {
+					toast.error('Station not found.');
+					router.push(`/accounts/${accountId}/locations/${locationId}/stations`);
 					return;
 				}
-				const optionsSorted = optionsRes.data.sort(
-					(a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0)
-				)
 
-				const temperatureCategoryRes =
-					await getTemperatureCategories(locationIdParam);
+				if (itemsRes.error) throw new Error(itemsRes.error);
+				if (optionsRes.error) throw new Error(optionsRes.error);
+
+				setItems(
+					[...(itemsRes.data ?? [])].sort(
+						(a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0),
+					),
+				);
+				setOptions(
+					[...(optionsRes.data ?? [])].sort(
+						(a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0),
+					),
+				);
 				setTemperatureCategories(
-					temperatureCategoryRes.error
-						? getDefaultTemperatureCategories(locationIdParam)
-						: [...(temperatureCategoryRes.data ?? [])].sort(
+					temperatureRes.error
+						? getDefaultTemperatureCategories(locationId)
+						: [...(temperatureRes.data ?? [])].sort(
 								(a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0),
 							),
 				);
-
-				setItems(fetchedItems);
-				setOptions(optionsSorted);
-				setHasAccess(true);
 				setAccountName(account.accountName);
 				setAccountImage(account.imageBase64 || account.accountImage || null);
-				setStationName(station.stationName);
 				setCurrentLocation(location);
-			} catch (err) {
-				toast.error('You do not have access to this location.');
-				router.push('/accounts');
+				setStationName(station.stationName);
+			} catch (error) {
+				if (!cancelled) {
+					toast.error(
+						error instanceof Error ? error.message : 'Failed to load station items.',
+					);
+				}
 			} finally {
-				setLoadingAccess(false);
+				if (!cancelled) setLoadingAccess(false);
 			}
 		};
 
-		verifyAccess();
-	}, [loading, user, accountIdParam, locationIdParam, hasAccess, router]);
+		loadPage();
+		return () => {
+			cancelled = true;
+		};
+	}, [loading, user?.id, accountId, locationId, stationId, router]);
 
-	// toggle active
+	useEffect(() => {
+		if (typeof window === 'undefined') return;
+		setCurrentPage(Number(localStorage.getItem('itemCurrentPage')) || 1);
+		setPageSize(Number(localStorage.getItem('itemPageSize')) || 10);
+	}, []);
+
+	useEffect(() => {
+		if (typeof window !== 'undefined') {
+			localStorage.setItem('itemCurrentPage', String(currentPage));
+		}
+	}, [currentPage]);
+
+	useEffect(() => {
+		if (typeof window !== 'undefined') {
+			localStorage.setItem('itemPageSize', String(pageSize));
+		}
+		setCurrentPage(1);
+	}, [pageSize]);
+
 	const handleToggleActive = async (itemId: string, checked: boolean) => {
-		setItems((prev) =>
-			prev.map((item) =>
-				item.id === itemId ? { ...item, itemActive: checked } : item
-			)
+		setItems((previous) =>
+			previous.map((item) =>
+				item.id === itemId ? { ...item, itemActive: checked } : item,
+			),
 		);
 
-		try {
-			await toggleItemActive(stationIdParam, itemId, checked, currentUserId!);
-		} catch (error: any) {
-			setItems((prev) =>
-				prev.map((item) =>
-					item.id === itemId ? { ...item, itemActive: !checked } : item
-				)
+		const response = await toggleItemActive(
+			stationId,
+			itemId,
+			checked,
+			currentUserId,
+		);
+		if (response.error) {
+			setItems((previous) =>
+				previous.map((item) =>
+					item.id === itemId ? { ...item, itemActive: !checked } : item,
+				),
 			);
-			toast.error(`Failed to update item status: ${error?.message || error}`);
+			toast.error(response.error);
 		}
 	};
 
-	// handle item created
-	const handleItemCreated = (newItem: Item) => {
-		setItems((prev) => [...prev, newItem]);
+	const handleDeleteItem = async (itemId: string) => {
+		const response = await deleteItem(itemId, currentUserId);
+		if (response.error) throw new Error(response.error);
+		setItems((previous) => previous.filter((item) => item.id !== itemId));
 	};
 
-	const handleItemUpdate = (updatedItem: Item) => {
-		setItems((prev) =>
-			prev.map((i) => (i.id === updatedItem.id ? updatedItem : i))
-		);
-	};
-
-
-	const handleSave = (savedItem: Item) => {
-		if (items.some((i) => i.id === savedItem.id)) {
-			// Edit
-			setItems(items.map((i) => (i.id === savedItem.id ? savedItem : i)));
-		} else {
-			// Create
-			setItems([...items, savedItem]);
-		}
-	};
-
-	// filtered & paginated
 	const filteredItems = items.filter((item) => {
-		const itemName = item.itemName ?? '';
-		const matchesSearch = itemName
+		const matchesSearch = (item.itemName ?? '')
 			.toLowerCase()
 			.includes(searchTerm.toLowerCase());
-		const matchesActive = showActiveOnly ? item.itemActive : true;
-		return matchesActive && matchesSearch;
+		return matchesSearch && (!showActiveOnly || item.itemActive);
 	});
 
 	const paginatedItems = filteredItems.slice(
 		(currentPage - 1) * pageSize,
-		currentPage * pageSize
+		currentPage * pageSize,
 	);
 
-	// drag & drop
+	useEffect(() => {
+		const lastPage = Math.max(1, Math.ceil(filteredItems.length / pageSize));
+		if (currentPage > lastPage) setCurrentPage(lastPage);
+	}, [currentPage, filteredItems.length, pageSize]);
+
 	const handleDragEnd = async (result: DropResult) => {
-		if (!result.destination) return;
-		const sourceIndex = result.source.index;
-		const destIndex = result.destination.index;
+		if (!result.destination || result.source.index === result.destination.index) {
+			return;
+		}
 
-		const updatedItems = Array.from(items);
-		const [removed] = updatedItems.splice(sourceIndex, 1);
-		updatedItems.splice(destIndex, 0, removed);
+		const reorderedPage = [...paginatedItems];
+		const [moved] = reorderedPage.splice(result.source.index, 1);
+		reorderedPage.splice(result.destination.index, 0, moved);
 
-		setItems(updatedItems);
+		const visibleIds = new Set(
+			paginatedItems.flatMap((item) => (item.id ? [item.id] : [])),
+		);
+		const reorderedById = new Map(
+			reorderedPage.flatMap((item) =>
+				item.id ? ([[item.id, item]] as const) : [],
+			),
+		);
+		const orderedVisibleIds = reorderedPage.flatMap((item) =>
+			item.id ? [item.id] : [],
+		);
+		let visibleIndex = 0;
+		const nextItems = items.map((item) => {
+			if (!item.id || !visibleIds.has(item.id)) return item;
+			const replacement = reorderedById.get(orderedVisibleIds[visibleIndex]);
+			visibleIndex += 1;
+			return replacement ?? item;
+		});
 
-		try {
-			const itemIdsInOrder = updatedItems.map((i) => i.id!) as any;
-			await reorderItems(stationIdParam, itemIdsInOrder, currentUserId!);
-		} catch (err) {
-			toast.error('Failed to save new item order.');
+		setItems(nextItems);
+		const response = await reorderItems(
+			stationId,
+			nextItems.flatMap((item) => (item.id ? [item.id] : [])),
+			currentUserId,
+		);
+		if (response.error) {
+			setItems(items);
+			toast.error(response.error);
 		}
 	};
 
-	const optionsByType = options.reduce<Record<string, OptionEntity[]>>((acc, option) => {
-		const type = option.optionType;
-		if (!acc[type]) acc[type] = [];
-		acc[type].push(option);
-		return acc;
-	}, {});
+	const optionsByType = options.reduce<Record<string, OptionEntity[]>>(
+		(grouped, option) => {
+			(grouped[option.optionType] ??= []).push(option);
+			return grouped;
+		},
+		{},
+	);
+	const tools = optionsByType.TOOL ?? [];
+	const panSizes = optionsByType.PAN_SIZE ?? [];
+	const portionSizes = optionsByType.PORTION_SIZE ?? [];
+	const shelfLifes = optionsByType.SHELF_LIFE ?? [];
 
-	const tools = optionsByType['TOOL'] ?? [];
-	const panSize = optionsByType['PAN_SIZE'] ?? [];
-	const portionSize = optionsByType['PORTION_SIZE'] ?? [];
-	const shelfLife = optionsByType['SHELF_LIFE'] ?? [];
-		
+	const updateItemInState = (updatedItem: Item) => {
+		setItems((previous) =>
+			previous.map((item) =>
+				item.id === updatedItem.id ? updatedItem : item,
+			),
+		);
+	};
+
+	const renderEditDialog = (item: Item, trigger?: ReactElement) => (
+		<EditItemDialog
+			item={item}
+			items={items}
+			tools={tools}
+			panSizes={panSizes}
+			portionSizes={portionSizes}
+			shelfLifes={shelfLifes}
+			temperatureCategories={temperatureCategories}
+			stationId={stationId}
+			currentUserId={currentUserId}
+			onUpdate={updateItemInState}
+			trigger={trigger}
+		/>
+	);
+
+	if (loadingAccess) {
+		return (
+			<div className="flex items-center justify-center py-40 text-xl text-chart-3">
+				<Spinner />
+				<span className="ml-4">Loading items…</span>
+			</div>
+		);
+	}
 
 	return (
 		<main className="flex min-h-screen overflow-hidden">
-			{/* Desktop Sidebar */}
-			{/* left nav */}
 			<aside className="hidden w-1/6 shrink-0 self-stretch border-r bg-ring md:block">
 				<LocationNav
 					accountName={accountName}
 					accountImage={accountImage}
-					accountId={accountIdParam}
-					locationId={locationIdParam}
+					accountId={accountId}
+					locationId={locationId}
 					sessionUserRole={sessionUserRole}
 				/>
 			</aside>
 
-			{/* main content */}
-			<section className="flex-1 flex flex-col">
+			<section className="flex min-w-0 flex-1 flex-col">
 				<LocationPageHeader
-					accountId={accountIdParam}
-					locationId={locationIdParam}
+					accountId={accountId}
+					locationId={locationId}
 					accountName={accountName}
 					accountImage={accountImage}
 					locationName={currentLocation?.locationName}
 					pageName={stationName || 'Station'}
+					pageHref={`/accounts/${accountId}/locations/${locationId}/stations`}
 					sessionUserRole={sessionUserRole}
 					drawerOpen={drawerOpen}
 					setDrawerOpen={setDrawerOpen}
 				>
-					<CreateItemDialog
-						onItemCreated={handleItemCreated}
-						stationId={stationIdParam}
-						currentUserId={currentUserId!}
-						tools={tools}
-						panSizes={panSize}
-						portionSizes={portionSize}
-						shelfLifes={shelfLife}
-						temperatureCategories={temperatureCategories}
-					/>
+					{canManage && (
+						<CreateItemDialog
+							onItemCreated={(item) =>
+								setItems((previous) => [...previous, item])
+							}
+							existingItems={items}
+							stationId={stationId}
+							currentUserId={currentUserId}
+							tools={tools}
+							panSizes={panSizes}
+							portionSizes={portionSizes}
+							shelfLifes={shelfLifes}
+							temperatureCategories={temperatureCategories}
+						/>
+					)}
 				</LocationPageHeader>
 
-				{/* content */}
-				{items.length === 0 ? (
-					<p className="text-destructive text-2xl">No items found.</p>
-				) : (
-					<div>
-						{/* Controls */}
-						<div className="w-full md:w-3/4 mx-auto flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 px-4 mt-4">
-							<UserControls
-								showActiveOnly={showActiveOnly}
-								setShowActiveOnly={setShowActiveOnly}
-								searchTerm={searchTerm}
-								setSearchTerm={setSearchTerm}
-							/>
+				<div className="flex-1 overflow-y-auto p-4">
+					<div className="mx-auto w-full max-w-6xl">
+						<UserControls
+							showActiveOnly={showActiveOnly}
+							setShowActiveOnly={setShowActiveOnly}
+							searchTerm={searchTerm}
+							setSearchTerm={setSearchTerm}
+							searchPlaceholder="Search items"
+						/>
+
+						<div className="mt-4 flex items-center justify-between px-1 text-sm text-muted-foreground">
+							<span>{filteredItems.length} item{filteredItems.length === 1 ? '' : 's'}</span>
+							<span className="hidden sm:inline">Drag rows by the handle to set their order</span>
 						</div>
-						{/* Dragable Desktop Table */}
+
 						<DragDropContext onDragEnd={handleDragEnd}>
-							<Droppable droppableId="items">
-								{(provided) => (
+							<Droppable droppableId="station-items">
+								{(dropProvided) => (
 									<div
-										className="hidden md:block bg-ring/40 p-4 rounded-2xl shadow-md w-full md:w-3/4 mx-auto mt-8"
-										{...provided.droppableProps}
-										ref={provided.innerRef}
+										ref={dropProvided.innerRef}
+										{...dropProvided.droppableProps}
+										className="mt-6 hidden overflow-hidden rounded-2xl border bg-card shadow-sm md:block"
 									>
-										{/* Table headers */}
-										<div className="flex justify-between items-center font-bold text-lg px-2 py-1 border-b border-accent mb-2">
-											<span className="flex items-center gap-2 w-1/2">
-												<UpDownIcon className="w-5 h-5" />
-												Item Name
-											</span>
-											<span className="w-1/4 text-center">Status</span>
-											<span className="w-1/4 text-center">Actions</span>
+										<div className="grid grid-cols-[minmax(0,3fr)_minmax(150px,1fr)_minmax(150px,1fr)] items-center bg-muted/60 px-6 py-4 text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+											<span>Item name</span>
+											<span className="text-center">Status</span>
+											<span className="text-center">Actions</span>
 										</div>
 
-										{/* Draggable rows */}
 										{paginatedItems.map((item, index) => (
-											<Draggable
-												key={item.id}
-												draggableId={item.id!}
-												index={index}
-											>
-												{(provided) => (
+											<Draggable key={item.id} draggableId={item.id!} index={index}>
+												{(dragProvided, snapshot) => (
 													<div
-														className="flex justify-between items-center p-2 mb-2 bg-accent rounded-2xl text-chart-3"
-														ref={provided.innerRef}
-														{...provided.draggableProps}
-														{...provided.dragHandleProps}
+														ref={dragProvided.innerRef}
+														{...dragProvided.draggableProps}
+														className={`grid min-h-20 grid-cols-[minmax(0,3fr)_minmax(150px,1fr)_minmax(150px,1fr)] items-center border-t px-6 text-base transition-colors ${
+															snapshot.isDragging ? 'bg-card shadow-lg' : 'hover:bg-muted/40'
+														}`}
 													>
-														{/* Icon + Name */}
-														<div className="flex items-center gap-2 w-1/2">
+														<div className="flex min-w-0 items-center gap-3">
 															<Tooltip>
-																<TooltipTrigger>
-																	<UpDownIcon className="w-5 h-5" />
+																<TooltipTrigger asChild>
+																	<button
+																		type="button"
+																		className="cursor-grab rounded-lg p-2 text-muted-foreground hover:bg-muted hover:text-foreground active:cursor-grabbing"
+																		aria-label={`Reorder ${item.itemName}`}
+																		{...dragProvided.dragHandleProps}
+																	>
+																		<SortIcon className="size-5" aria-hidden="true" />
+																	</button>
 																</TooltipTrigger>
-																<TooltipContent>
-																	<p>Drag and Drop items to sort them.</p>
-																</TooltipContent>
+																<TooltipContent>Drag to reorder</TooltipContent>
 															</Tooltip>
 
-													{sessionUserRole === AppRole.MANAGER ? (
-														<EditItemDialog
-															item={item}
-															items={items}
-															tools={tools}
-															panSizes={panSize}
-															portionSizes={portionSize}
-													shelfLifes={shelfLife}
-													temperatureCategories={temperatureCategories}
-													stationId={stationIdParam}
-															currentUserId={currentUserId!}
-															onUpdate={handleItemUpdate}
-															trigger={
-																<button
-																	type="button"
-																	className="rounded-sm text-left underline-offset-4 transition-colors hover:text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-																>
-																	{item.itemName}
-																</button>
-															}
-														/>
-													) : (
-														<span>{item.itemName}</span>
-													)}
+															<span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-chart-3/10 text-chart-3">
+																<ItemIcon className="size-5" aria-hidden="true" />
+															</span>
+															<div className="min-w-0">
+														{canManage ? (
+															renderEditDialog(
+																		item,
+																		<button type="button" className="block max-w-full truncate rounded-sm text-left font-semibold text-foreground transition-colors hover:text-chart-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+																			{item.itemName}
+																		</button>,
+																	)
+																) : (
+																	<p className="truncate font-semibold">{item.itemName}</p>
+																)}
+																<p className="mt-1 text-xs text-muted-foreground">
+																	{getItemTypeLabel(item.itemType)}
+																</p>
+															</div>
 														</div>
 
-														{/* Status */}
-														<div className="w-1/4 text-center">
+														<div className="flex flex-col items-center gap-1.5">
 															<StatusSwitchOrBadge
-																entity={{
-																	id: item.id!,
-																	active: item.itemActive,
-																}}
-																getLabel={() => `item: ${item.itemName}`}
+																entity={{ id: item.id!, active: item.itemActive }}
+																getLabel={() => `Item: ${item.itemName}`}
 																onToggle={handleToggleActive}
-																canToggle={canToggle}
+																canToggle={canManage}
 															/>
+															{canManage && <span className="text-xs font-medium text-muted-foreground">{item.itemActive ? 'Active' : 'Inactive'}</span>}
 														</div>
 
-														{/* Actions */}
-														<div className="w-1/4 flex justify-center items-center gap-2">
-															{sessionUserRole === AppRole.MANAGER && (
+														<div className="flex items-center justify-center gap-1">
+															{canManage ? (
 																<>
-																	{/* Edit Item */}
-																	<EditItemDialog
-																		key={item.id}
-																		item={item}
-																		items={items}
-																		tools={tools}
-																		panSizes={panSize}
-																		portionSizes={portionSize}
-														shelfLifes={shelfLife}
-														temperatureCategories={temperatureCategories}
-														stationId={stationIdParam}
-																		currentUserId={currentUserId!}
-																		onUpdate={handleItemUpdate}
-																	/>
-
+																	{renderEditDialog(item)}
 																	<DeleteConfirmButton
-																		item={{
-																			id: item.id!,
-																			stationId: stationIdParam,
-																		}}
+																		item={{ id: item.id!, stationId }}
 																		entityLabel="Item"
-																		onDelete={async (id) => {
-																			await deleteItem(id, currentUserId!);
-																			setItems((prev) =>
-																				prev.filter((it) => it.id !== id)
-																			);
-																		}}
+																		onDelete={handleDeleteItem}
 																		getItemName={() => item.itemName}
 																	/>
 																</>
+															) : (
+																<span className="text-sm text-muted-foreground">View only</span>
 															)}
 														</div>
 													</div>
 												)}
 											</Draggable>
 										))}
-
-										{provided.placeholder}
+										{dropProvided.placeholder}
+										{paginatedItems.length === 0 && <EmptyState searchTerm={searchTerm} />}
 									</div>
 								)}
 							</Droppable>
 						</DragDropContext>
 
-						{/* Mobile Cards */}
-						<div className="mt-6 space-y-4 px-3 md:hidden">
+						<div className="mt-6 space-y-4 md:hidden">
 							{paginatedItems.map((item) => (
-								<DataCard
-									key={item.id}
-									avatar={
-										<span className="flex size-11 items-center justify-center rounded-xl bg-primary/10 text-primary">
+								<Card key={item.id} className="gap-0 overflow-hidden py-0 shadow-sm">
+									<div className="flex items-center gap-3 p-5">
+										<span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-chart-3/10 text-chart-3">
 											<ItemIcon className="size-5" aria-hidden="true" />
 										</span>
-									}
-									title={
-										sessionUserRole === AppRole.MANAGER ? (
-											<EditItemDialog
-												item={item}
-												items={items}
-												tools={tools}
-												panSizes={panSize}
-												portionSizes={portionSize}
-												shelfLifes={shelfLife}
-												temperatureCategories={temperatureCategories}
-												stationId={stationIdParam}
-												currentUserId={currentUserId!}
-												onUpdate={handleItemUpdate}
-												trigger={
-													<button
-														type="button"
-														className="inline-flex min-h-11 items-center rounded-sm text-left underline-offset-4 transition-colors hover:text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-													>
-														{item.itemName}
-													</button>
+										<div className="min-w-0 flex-1">
+											{canManage ? (
+												renderEditDialog(
+													item,
+																<button type="button" className="block min-h-11 w-full truncate rounded-sm text-left font-semibold transition-colors hover:text-chart-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+																	{item.itemName}
+																</button>,
+															)
+											) : (
+												<p className="truncate font-semibold">{item.itemName}</p>
+											)}
+											<p className="text-xs text-muted-foreground">{getItemTypeLabel(item.itemType)}</p>
+										</div>
+									</div>
+
+									{isFoodPrep(item) && (
+										<>
+											<ItemDetailRow label="Shelf life" value={item.shelfLife || 'Not set'} />
+											<ItemDetailRow label="Pan size" value={item.panSize || 'Not set'} />
+											<ItemDetailRow
+												label="Food temperature"
+												value={
+													item.isTempTaken
+														? item.temperatureCategory?.name || item.tempCategory || 'Required'
+														: 'Not required'
 												}
 											/>
-										) : (
-											item.itemName
-										)
-									}
-									description={
-										sessionUserRole === AppRole.MANAGER
-											? 'Tap the item name to edit its setup'
-											: 'Line-check item setup'
-									}
-									fields={[
-										{
-											label: 'Status',
-											value: (
-												<div className="flex items-center gap-3">
-													<StatusSwitchOrBadge
-														entity={{
-															id: item.id!,
-															active: item.itemActive,
-														}}
-														getLabel={() => `Item: ${item.itemName}`}
-														onToggle={handleToggleActive}
-														canToggle={canToggle}
-													/>
-													{canToggle && (
-														<span>{item.itemActive ? 'Active' : 'Inactive'}</span>
-													)}
-												</div>
-											),
-										},
-										{
-											label: 'Shelf life',
-											value: item.shelfLife || 'Not set',
-										},
-										{
-											label: 'Pan size',
-											value: item.panSize || 'Not set',
-										},
-										{
-											label: 'Temp check',
-											value: (
-												<span
-													className={
-														item.isTempTaken
-															? 'rounded-full bg-primary/10 px-2.5 py-1 text-xs font-semibold text-primary'
-															: 'rounded-full bg-muted px-2.5 py-1 text-xs font-semibold text-muted-foreground'
-													}
-												>
-													{item.isTempTaken
-														? item.tempCategory || 'Required'
-														: 'Not required'}
-												</span>
-											),
-										},
-									]}
-									actions={[
-										{
-											element: (
-												<div className="flex justify-center gap-4 items-center">
-																{sessionUserRole === 'MANAGER' ? (
-																	<>
-																		<EditItemDialog
-																			item={items.find((i) => i.id === item.id)!}
-																			items={items}
-																			tools={tools}
-																			panSizes={panSize}
-																			portionSizes={portionSize}
-																	shelfLifes={shelfLife}
-																	temperatureCategories={temperatureCategories}
-																	stationId={stationIdParam}
-																			currentUserId={currentUserId!}
-																			onUpdate={handleItemUpdate}
-																		/>
+										</>
+									)}
+									<div className="flex items-center justify-between border-t bg-muted/20 px-5 py-4">
+										<span className="text-sm font-medium text-muted-foreground">Status</span>
+										<div className="flex items-center gap-3">
+											<StatusSwitchOrBadge
+												entity={{ id: item.id!, active: item.itemActive }}
+												getLabel={() => `Item: ${item.itemName}`}
+												onToggle={handleToggleActive}
+												canToggle={canManage}
+											/>
+											{canManage && <span className="text-sm font-medium">{item.itemActive ? 'Active' : 'Inactive'}</span>}
+										</div>
+									</div>
 
-																		{item.id && (
-																			<DeleteConfirmButton
-																				item={{
-																					id: item.id,
-																					locationId: locationIdParam,
-																				}}
-																				entityLabel="Item"
-																				onDelete={async (id) => {
-																					await deleteItem(id, currentUserId!);
-																					setItems((prev) =>
-																						prev.filter(
-																							(existingItem) => existingItem.id !== id
-																						)
-																					);
-																				}}
-																				getItemName={() => item.itemName}
-																			/>
-																		)}
-																	</>
-													) : (
-														<span className="text-ring">No Actions</span>
-													)}
-												</div>
-											),
-										},
-									]}
-								/>
+									{canManage && (
+										<div className="flex items-center justify-between border-t px-5 py-2">
+											<span className="text-sm font-medium text-muted-foreground">Manage item</span>
+											<div className="flex items-center gap-1">
+												{renderEditDialog(item)}
+												<DeleteConfirmButton
+													item={{ id: item.id!, stationId }}
+													entityLabel="Item"
+													onDelete={handleDeleteItem}
+													getItemName={() => item.itemName}
+												/>
+											</div>
+										</div>
+									)}
+								</Card>
 							))}
-
-							{paginatedItems.length === 0 && (
-								<div className="rounded-2xl border border-dashed bg-muted/10 px-6 py-12 text-center text-sm text-muted-foreground">
-									{searchTerm
-										? `No items match “${searchTerm}”.`
-										: 'No items to display.'}
-								</div>
-							)}
+							{paginatedItems.length === 0 && <EmptyState searchTerm={searchTerm} mobile />}
 						</div>
 
-						<div className="w-full md:w-3/4 mx-auto flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 px-4 mt-4">
-							<Pagination
-								currentPage={currentPage}
-								setCurrentPage={setCurrentPage}
-								pageSize={pageSize}
-								setPageSize={setPageSize}
-								totalItems={filteredItems.length}
-							/>
-							</div>
-							<ItemHistoryFeed stationId={stationIdParam}
-							/>
+						<Pagination
+							currentPage={currentPage}
+							setCurrentPage={setCurrentPage}
+							pageSize={pageSize}
+							setPageSize={setPageSize}
+							totalItems={filteredItems.length}
+						/>
+
+						<ItemHistoryFeed stationId={stationId} />
 					</div>
-				)}
+				</div>
 			</section>
 		</main>
 	);
 };
+
+const isFoodPrep = (item: Item) =>
+	!item.itemType || item.itemType === ItemType.FOOD_PREP;
+
+function ItemDetailRow({ label, value }: { label: string; value: React.ReactNode }) {
+	return (
+		<div className="flex min-h-12 items-center justify-between gap-4 border-t px-5 py-3 text-sm">
+			<span className="font-medium text-muted-foreground">{label}</span>
+			<span className="text-right font-medium">{value}</span>
+		</div>
+	);
+}
+
+function EmptyState({ searchTerm, mobile = false }: { searchTerm: string; mobile?: boolean }) {
+	return (
+		<div className={`${mobile ? '' : 'border-t'} px-6 py-14 text-center text-sm text-muted-foreground`}>
+			{searchTerm ? `No items match “${searchTerm}”.` : 'No items have been created for this station yet.'}
+		</div>
+	);
+}
 
 export default StationPage;

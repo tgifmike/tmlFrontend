@@ -25,6 +25,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 type Props = {
     accountId: string;
     currentUser?: User;
+	refreshKey?: number;
 };
 
 const FIELD_LABELS: Record<string, string> = {
@@ -66,7 +67,7 @@ const formatValue = (key: string, value: any) => {
 };
 
 
-export default function OptionAuditFeed({ accountId }: Props) {
+export default function OptionAuditFeed({ accountId, refreshKey = 0 }: Props) {
 	const [history, setHistory] = useState<OptionHistory[]>([]);
 	// const [usersMap, setUsersMap] = useState<UserMap>({});
 	const [search, setSearch] = useState('');
@@ -93,7 +94,7 @@ export default function OptionAuditFeed({ accountId }: Props) {
 			}
 		};
 		load();
-	}, [accountId]);
+	}, [accountId, refreshKey]);
 
 	const filteredHistory = useMemo(() => {
 				const arr = Array.isArray(history) ? history : []; // normalize

@@ -16,8 +16,9 @@ export const createOption = async (
 		headers: { 'X-User-Id': userId },
 	});
 
-	// Make sure to return the data itself, not the Axios response wrapper
-	return res.data as OptionEntity;
+	if (res.error) throw new Error(res.error);
+	if (!res.data) throw new Error('The server did not return the created option.');
+	return res.data;
 };
 
 
@@ -67,7 +68,9 @@ export const updateOption = async (
 		headers: { 'X-User-Id': userId },
 	});
 
-	return res.data!; // ✅ Non-null assertion
+	if (res.error) throw new Error(res.error);
+	if (!res.data) throw new Error('The server did not return the updated option.');
+	return res.data;
 };
 
 
@@ -76,13 +79,15 @@ export const updateOption = async (
  * Soft delete an option
  */
 export const deleteOption = async (optionId: string, userId: string) => {
-	return request<void>({
+	const response = await request<void>({
 		method: 'DELETE',
 		url: `/options/${optionId}`,
 		headers: {
 			'X-User-Id': userId,
 		},
 	});
+
+	if (response.error) throw new Error(response.error);
 };
 
 /**
@@ -98,13 +103,15 @@ export const reorderOptions = async (
 	const params: Record<string, any> = { accountId };
 	if (optionType) params.optionType = optionType;
 
-	return request<void>({
+	const response = await request<void>({
 		method: 'PUT',
 		url: '/options/reorder',
 		params,
 		data: orderedIds,
 		headers: { 'X-User-Id': userId },
 	});
+
+	if (response.error) throw new Error(response.error);
 };
 
 
@@ -116,12 +123,15 @@ export const toggleOptionActive = async (
 	active: boolean,
 	userId: string
 ) => {
-	return request({
+	const response = await request({
 		method: 'PUT',
 		url: `/options/${optionId}/active`,
 		params: { active },
 		headers: { 'X-User-Id': userId },
 	});
+
+	if (response.error) throw new Error(response.error);
+	return response.data;
 };
 
 //logs
@@ -134,7 +144,7 @@ export const getOptionHistory = async (
 		params: { accountId },
 	});
 
-	return (response as { data: OptionHistory[] }).data;
+	if (response.error) throw new Error(response.error);
+	return response.data ?? [];
 };
-
 

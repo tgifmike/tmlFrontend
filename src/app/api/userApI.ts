@@ -1,5 +1,5 @@
 import axios, { AxiosRequestConfig } from 'axios';
-import { User, UserHistory } from '../types';
+import { AppRole, User, UserHistory } from '../types';
 import api, { request } from './axios';
 import { toast } from 'sonner';
 import { access } from 'fs';
@@ -145,14 +145,26 @@ export const getUsersForAccount = async (accountId: string) => {
 };
 
 //invite user to account
-export const inviteUserToAccount = async (accountId: string, email: string) => {
-	return request({
+export type InviteUserResponse = {
+	message: string;
+	userId: string;
+	email: string;
+	firstLogin?: boolean;
+	invited?: boolean;
+};
+
+export const inviteUserToAccount = async (
+	accountId: string,
+	email: string,
+	appRole: AppRole = AppRole.MEMBER,
+) => {
+	return request<InviteUserResponse>({
 		method: 'POST',
 		url: '/users/invite',
 		data: {
 			email,
 			accountId,
-			appRole: 'MEMBER',
+			appRole,
 			accessRole: 'USER',
 		},
 	});

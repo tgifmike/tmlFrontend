@@ -2,186 +2,133 @@
 
 import {
 	DragDropContext,
-	Droppable,
 	Draggable,
-	DropResult,
+	Droppable,
+	type DropResult,
 } from '@hello-pangea/dnd';
-import { getAccountsForUser } from '@/app/api/accountApi';
-import { getUserLocationAccess } from '@/app/api/locationApi';
-import { deleteStation, getStationsByLocation, reorderStations, toggleStationActive } from '@/app/api/stationApi';
-import { AppRole, Locations, StationDto, User } from '@/app/types';
-import LocationNav from '@/components/navBar/LocationNav';
-import LocationPageHeader from '@/components/navBar/LocationPageHeader';
-import Spinner from '@/components/spinner/Spinner';
-import CreateStationDialog from '@/components/tableComponents/CreateStationForm';
-import { UserControls } from '@/components/tableComponents/UserControls';
+import { ChevronRight } from 'lucide-react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
-import { StatusSwitchOrBadge } from '@/components/tableComponents/StatusSwitchOrBadge';
-import { DeleteConfirmButton } from '@/components/tableComponents/DeleteConfirmButton';
-import { Pagination } from '@/components/tableComponents/Pagination';
-import { EditStationDialog } from '@/components/tableComponents/EditStationDialog';
-import { DataCard } from '@/components/cards/DataCard';
-import { Icons } from '@/lib/icon';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import StationHistoryFeed from '@/components/tableComponents/StationHistoryFeed';
+
+import { getAccountsForUser } from '@/app/api/accountApi';
+import { getUserLocationAccess } from '@/app/api/locationApi';
+import {
+	deleteStation,
+	getStationsByLocation,
+	reorderStations,
+	toggleStationActive,
+} from '@/app/api/stationApi';
+import { AppRole, Locations, StationDto, User } from '@/app/types';
+import { Card } from '@/components/ui/card';
 import { CloneStationDialog } from '@/components/cloneStation/CloneStationDialog';
+import LocationNav from '@/components/navBar/LocationNav';
+import LocationPageHeader from '@/components/navBar/LocationPageHeader';
+import Spinner from '@/components/spinner/Spinner';
+import CreateStationDialog from '@/components/tableComponents/CreateStationForm';
+import { DeleteConfirmButton } from '@/components/tableComponents/DeleteConfirmButton';
+import { EditStationDialog } from '@/components/tableComponents/EditStationDialog';
+import { Pagination } from '@/components/tableComponents/Pagination';
+import StationHistoryFeed from '@/components/tableComponents/StationHistoryFeed';
+import { StatusSwitchOrBadge } from '@/components/tableComponents/StatusSwitchOrBadge';
+import { UserControls } from '@/components/tableComponents/UserControls';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { useSession } from '@/lib/auth/session-context';
-import { ChevronRight } from 'lucide-react';
-
-
-
-interface CreateStationDialogProps {
-	locationId: string;
-	currentUserId: string;
-	onStationCreated: (station: StationDto) => void;
-}
-
-
-
+import { Icons } from '@/lib/icon';
 
 const LocationStationsPage = () => {
-
-	//icon
-	const UpDownIcon = Icons.sort;
+	const SortIcon = Icons.sort;
 	const StationIcon = Icons.stations;
-
-	//session
-	const { user, loading, logout } = useSession();
+	const { user, loading } = useSession();
 	const params = useParams<{ accountId: string; locationId: string }>();
-	const accountIdParam = params.accountId;
-	const locationIdParam = params.locationId;
+	const accountId = params.accountId;
+	const locationId = params.locationId;
 	const router = useRouter();
 
-	//set state
 	const [loadingAccess, setLoadingAccess] = useState(true);
-	const [hasAccess, setHasAccess] = useState(false);
 	const [accountName, setAccountName] = useState<string | null>(null);
 	const [accountImage, setAccountImage] = useState<string | null>(null);
 	const [locations, setLocations] = useState<Locations[]>([]);
 	const [stations, setStations] = useState<StationDto[]>([]);
-	const [currentLocation, setCurrentLocation] = useState<Locations | null>(
-		null
-	);
+	const [currentLocation, setCurrentLocation] = useState<Locations | null>(null);
 	const [showActiveOnly, setShowActiveOnly] = useState(true);
 	const [searchTerm, setSearchTerm] = useState('');
 	const [currentPage, setCurrentPage] = useState(1);
 	const [pageSize, setPageSize] = useState(10);
 	const [drawerOpen, setDrawerOpen] = useState(false);
-	const [deletingStationId, setDeletingStationId] = useState<Set<string>>(
-		new Set()
-	);
 
 	const currentUser = user as User | undefined;
-	const currentUserId = user?.id || '';
+	const currentUserId = user?.id ?? '';
 	const sessionUserRole = user?.appRole;
-	const canToggle = currentUser?.appRole === AppRole.MANAGER;
+	const canManage = currentUser?.appRole === AppRole.MANAGER;
 
 	useEffect(() => {
-		if (
-			loading ||
-			!user?.id ||
-			!accountIdParam ||
-			!locationIdParam
-		)
-			return;
-		if (hasAccess) return; // prevent rerun
+		if (loading || !user?.id || !accountId || !locationId) return;
 
-		const verifyAccess = async () => {
+		let cancelled = false;
+		const loadPage = async () => {
+			setLoadingAccess(true);
 			try {
-				// Fetch accounts for user
-				const accountsRes = await getAccountsForUser(user.id);
-				const account = accountsRes.data?.find(
-					(acc) => acc.id?.toString() === accountIdParam
-				);
+				const [accountsRes, locationRes, stationRes] = await Promise.all([
+					getAccountsForUser(user.id),
+					getUserLocationAccess(user.id),
+					getStationsByLocation(locationId),
+				]);
+				if (cancelled) return;
 
+				const account = accountsRes.data?.find(
+					(candidate) => candidate.id?.toString() === accountId,
+				);
 				if (!account) {
 					toast.error('You do not have access to this account.');
 					router.push('/accounts');
 					return;
 				}
-				
-				
-				// Fetch location access
-				const locationRes = await getUserLocationAccess(currentUserId);
-				const fetchedLocations = locationRes.data ?? [];
 
-				
-				setLocations(fetchedLocations);
-
-				const location = fetchedLocations.find(
-					(loc) => loc.id?.toString() === locationIdParam
+				const accessibleLocations = locationRes.data ?? [];
+				const location = accessibleLocations.find(
+					(candidate) => candidate.id?.toString() === locationId,
 				);
-
-				//console.log('Current location:', location);
 				if (!location) {
-					
 					toast.error('You do not have access to this location.');
-					router.push(`/accounts/${accountIdParam}/locations`);
+					router.push(`/accounts/${accountId}`);
 					return;
 				}
 
-				//fetch stations
-				const stationRes = await getStationsByLocation(locationIdParam);
-				const fetchedStations = stationRes.data ?? [];
-				setStations(fetchedStations);
-				setHasAccess(true);
+				if (stationRes.error) throw new Error(stationRes.error);
+				setLocations(accessibleLocations);
+				setStations(
+					[...(stationRes.data ?? [])].sort(
+						(a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0),
+					),
+				);
 				setAccountName(account.accountName);
 				setAccountImage(account.imageBase64 || account.accountImage || null);
 				setCurrentLocation(location);
-			} catch (err) {
-				toast.error('You do not have access to this location.');
-				router.push('/accounts');
+			} catch (error) {
+				if (!cancelled) {
+					toast.error(
+						error instanceof Error ? error.message : 'Failed to load stations.',
+					);
+				}
 			} finally {
-				setLoadingAccess(false);
+				if (!cancelled) setLoadingAccess(false);
 			}
 		};
 
-		verifyAccess();
-	}, [loading, user, accountIdParam, locationIdParam, hasAccess, router]);
+		loadPage();
+		return () => {
+			cancelled = true;
+		};
+	}, [loading, user?.id, accountId, locationId, router]);
 
-	//toggle station active
-	const handleToggleActive = async (stationId: string, checked: boolean) => {
-		setStations((prev) =>
-			prev.map((station) =>
-				station.id === stationId
-					? { ...station, stationActive: checked }
-					: station
-			)
-		);
-
-		try {
-			await toggleStationActive(stationId, checked, currentUserId);
-		} catch (error: any) {
-			setStations((prev) =>
-				prev.map((station) =>
-					station.id === stationId
-						? { ...station, stationActive: !checked }
-						: station
-				)
-			);
-			toast.error(
-				`Failed to update location status: ` + (error?.message || error)
-			);
-		}
-	};
-
-	//pagination
-	// Load pagination settings from localStorage safely
 	useEffect(() => {
-		if (typeof window !== 'undefined') {
-			const storedPage =
-				Number(localStorage.getItem('stationCurrentPage')) || 1;
-			const storedPageSize =
-				Number(localStorage.getItem('stationPageSize')) || 10;
-			setCurrentPage(storedPage);
-			setPageSize(storedPageSize);
-		}
+		if (typeof window === 'undefined') return;
+		setCurrentPage(Number(localStorage.getItem('stationCurrentPage')) || 1);
+		setPageSize(Number(localStorage.getItem('stationPageSize')) || 10);
 	}, []);
 
-	// Persist pagination to localStorage
 	useEffect(() => {
 		if (typeof window !== 'undefined') {
 			localStorage.setItem('stationCurrentPage', String(currentPage));
@@ -192,105 +139,136 @@ const LocationStationsPage = () => {
 		if (typeof window !== 'undefined') {
 			localStorage.setItem('stationPageSize', String(pageSize));
 		}
+		setCurrentPage(1);
 	}, [pageSize]);
 
-	//pagination
-	useEffect(() => {
-		localStorage.setItem('stationCurrentPage', String(currentPage));
-	}, [currentPage]);
-
-	useEffect(() => {
-		localStorage.setItem('stationPageSize', String(pageSize));
-		setCurrentPage(1); // reset to first page when pageSize changes
-	}, [pageSize]);
-
-	const handleStationCreated = (newStation: StationDto) => {
-		setStations((prev) => [...prev, newStation]);
+	const refreshStations = async () => {
+		const response = await getStationsByLocation(locationId);
+		if (response.error) throw new Error(response.error);
+		setStations(
+			[...(response.data ?? [])].sort(
+				(a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0),
+			),
+		);
 	};
 
-	//handle station delete
-const hanldeStationDelete = async (stationId: string) => {
-	try {
-		setDeletingStationId((prev) => {
-			const newSet = new Set(prev);
-			newSet.add(stationId);
-			return newSet;
-		});
+	const handleToggleActive = async (stationId: string, checked: boolean) => {
+		setStations((previous) =>
+			previous.map((station) =>
+				station.id === stationId
+					? { ...station, stationActive: checked }
+					: station,
+			),
+		);
 
-		await deleteStation(stationId, currentUserId);
+		const response = await toggleStationActive(
+			stationId,
+			checked,
+			currentUserId,
+		);
+		if (response.error) {
+			setStations((previous) =>
+				previous.map((station) =>
+					station.id === stationId
+						? { ...station, stationActive: !checked }
+						: station,
+				),
+			);
+			toast.error(response.error);
+		}
+	};
 
-		setStations((prev) => prev.filter((station) => station.id !== stationId));
-
+	const handleDeleteStation = async (stationId: string) => {
+		const response = await deleteStation(stationId, currentUserId);
+		if (response.error) throw new Error(response.error);
+		setStations((previous) =>
+			previous.filter((station) => station.id !== stationId),
+		);
 		toast.success('Station deleted successfully.');
-	} catch (error: any) {
-		toast.error(`Failed to delete station: ` + (error?.message || error));
-	} finally {
-		setDeletingStationId((prev) => {
-			const newSet = new Set(prev);
-			newSet.delete(stationId);
-			return newSet;
-		});
-	}
-};
+	};
 
-
-	//toggle showing only active users and search
 	const filteredStations = stations.filter((station) => {
-		const stationName = station.stationName ?? '';
-
-		const matchesSearch = stationName
+		const matchesSearch = (station.stationName ?? '')
 			.toLowerCase()
 			.includes(searchTerm.toLowerCase());
-
-		const matchesActive = showActiveOnly ? station.stationActive : true;
-
-		return matchesActive && matchesSearch;
+		return matchesSearch && (!showActiveOnly || station.stationActive);
 	});
 
-	// slice for current page
 	const paginatedStations = filteredStations.slice(
 		(currentPage - 1) * pageSize,
-		currentPage * pageSize
-	); 
+		currentPage * pageSize,
+	);
 
-	// drag & drop
-		const handleDragEnd = async (result: DropResult) => {
-			if (!result.destination) return;
-			const sourceIndex = result.source.index;
-			const destIndex = result.destination.index;
-	
-			const updatedStations = Array.from(stations);
-			const [removed] = updatedStations.splice(sourceIndex, 1);
-			updatedStations.splice(destIndex, 0, removed);
-	
-			setStations(updatedStations);
-	
-			try {
-				const stationIdsInOrder = updatedStations.map((i) => i.id!) as any;
-				await reorderStations(locationIdParam, stationIdsInOrder, currentUserId);
-			} catch (err) {
-				toast.error('Failed to save new station order.');
-			}
-		};
+	useEffect(() => {
+		const lastPage = Math.max(1, Math.ceil(filteredStations.length / pageSize));
+		if (currentPage > lastPage) setCurrentPage(lastPage);
+	}, [currentPage, filteredStations.length, pageSize]);
+
+	const handleDragEnd = async (result: DropResult) => {
+		if (!result.destination || result.source.index === result.destination.index) {
+			return;
+		}
+
+		const reorderedPage = [...paginatedStations];
+		const [moved] = reorderedPage.splice(result.source.index, 1);
+		reorderedPage.splice(result.destination.index, 0, moved);
+
+		const visibleIds = new Set(
+			paginatedStations.flatMap((station) => (station.id ? [station.id] : [])),
+		);
+		const reorderedById = new Map(
+			reorderedPage.flatMap((station) =>
+				station.id ? ([[station.id, station]] as const) : [],
+			),
+		);
+		const orderedVisibleIds = reorderedPage.flatMap((station) =>
+			station.id ? [station.id] : [],
+		);
+		let visibleIndex = 0;
+		const nextStations = stations.map((station) => {
+			if (!station.id || !visibleIds.has(station.id)) return station;
+			const replacement = reorderedById.get(orderedVisibleIds[visibleIndex]);
+			visibleIndex += 1;
+			return replacement ?? station;
+		});
+
+		setStations(nextStations);
+		const response = await reorderStations(
+			locationId,
+			nextStations.flatMap((station) => (station.id ? [station.id] : [])),
+			currentUserId,
+		);
+		if (response.error) {
+			setStations(stations);
+			toast.error(response.error);
+		}
+	};
+
+	if (loadingAccess) {
+		return (
+			<div className="flex items-center justify-center py-40 text-xl text-chart-3">
+				<Spinner />
+				<span className="ml-4">Loading stations…</span>
+			</div>
+		);
+	}
 
 	return (
-		<main className="flex min-h-screen overflow-hidden ">
-			{/* Desktop Sidebar */}
+		<main className="flex min-h-screen overflow-hidden">
 			<aside className="hidden w-1/6 shrink-0 self-stretch border-r bg-ring md:block">
 				<LocationNav
 					accountName={accountName}
 					accountImage={accountImage}
-					accountId={accountIdParam}
-					locationId={locationIdParam}
+					accountId={accountId}
+					locationId={locationId}
 					sessionUserRole={sessionUserRole}
 				/>
 			</aside>
 
-			{/* Main Content */}
-			<section className="flex-1 flex flex-col">
+			<section className="flex min-w-0 flex-1 flex-col">
 				<LocationPageHeader
-					accountId={accountIdParam}
-					locationId={locationIdParam}
+					accountId={accountId}
+					locationId={locationId}
 					accountName={accountName}
 					accountImage={accountImage}
 					locationName={currentLocation?.locationName}
@@ -299,308 +277,267 @@ const hanldeStationDelete = async (stationId: string) => {
 					drawerOpen={drawerOpen}
 					setDrawerOpen={setDrawerOpen}
 				>
-					<div>
-						<CreateStationDialog
-							onStationCreated={handleStationCreated}
-							locationId={locationIdParam}
-							currentUserId={currentUserId}
-						/>
-					</div>
+					<CreateStationDialog
+						onStationCreated={(station) =>
+							setStations((previous) => [...previous, station])
+						}
+						locationId={locationId}
+						currentUserId={currentUserId}
+					/>
 				</LocationPageHeader>
 
-				{/* content */}
-				{stations.length === 0 ? (
-					<p className="text-destructive text-2xl">No Stations found.</p>
-				) : (
-					<div>
-						{/* Controls */}
-						<div className="w-full md:w-3/4 mx-auto flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 px-4 mt-4">
-							<UserControls
-								showActiveOnly={showActiveOnly}
-								setShowActiveOnly={setShowActiveOnly}
-								searchTerm={searchTerm}
-								setSearchTerm={setSearchTerm}
-							/>
+				<div className="flex-1 overflow-y-auto p-4">
+					<div className="mx-auto w-full max-w-6xl">
+						<UserControls
+							showActiveOnly={showActiveOnly}
+							setShowActiveOnly={setShowActiveOnly}
+							searchTerm={searchTerm}
+							setSearchTerm={setSearchTerm}
+							searchPlaceholder="Search stations"
+						/>
+
+						<div className="mt-4 flex items-center justify-between px-1 text-sm text-muted-foreground">
+							<span>
+								{filteredStations.length} station{filteredStations.length === 1 ? '' : 's'}
+							</span>
+							<span className="hidden sm:inline">Drag rows by the handle to set their order</span>
 						</div>
 
-						{/* Dragable Desktop Table */}
-
 						<DragDropContext onDragEnd={handleDragEnd}>
-							<Droppable droppableId="items">
-								{(provided) => (
+							<Droppable droppableId="stations">
+								{(dropProvided) => (
 									<div
-										className="hidden md:block bg- p-4 rounded-2xl shadow-md w-full md:w-3/4 mx-auto mt-8 bg-ring/40"
-										{...provided.droppableProps}
-										ref={provided.innerRef}
+										ref={dropProvided.innerRef}
+										{...dropProvided.droppableProps}
+										className="mt-6 hidden overflow-hidden rounded-2xl border bg-card shadow-sm md:block"
 									>
-										{/* Table headers */}
-										<div className="flex justify-between items-center font-bold text-lg px-2 py-1 border-b border-accent mb-2 ">
-											<span className="flex items-center gap-2 w-1/2">
-												<UpDownIcon className="w-5 h-5" />
-												Station Name
-											</span>
-											<span className="w-1/4 text-center">Status</span>
-											<span className="w-1/4 text-center">Actions</span>
+										<div className="grid grid-cols-[minmax(0,3fr)_minmax(150px,1fr)_minmax(170px,1fr)] items-center bg-muted/60 px-6 py-4 text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+											<span>Station name</span>
+											<span className="text-center">Status</span>
+											<span className="text-center">Actions</span>
 										</div>
 
-										{/* Draggable rows */}
 										{paginatedStations.map((station, index) => (
-											<Draggable
-												key={station.id}
-												draggableId={station.id!}
-												index={index}
-											>
-												{(provided) => (
+											<Draggable key={station.id} draggableId={station.id!} index={index}>
+												{(dragProvided, snapshot) => (
 													<div
-														className="flex justify-between items-center p-2 mb-2 bg-accent rounded-2xl text-chart-3"
-														ref={provided.innerRef}
-														{...provided.draggableProps}
-														{...provided.dragHandleProps}
+														ref={dragProvided.innerRef}
+														{...dragProvided.draggableProps}
+														className={`grid min-h-20 grid-cols-[minmax(0,3fr)_minmax(150px,1fr)_minmax(170px,1fr)] items-center border-t px-6 text-base transition-colors ${
+															snapshot.isDragging ? 'bg-card shadow-lg' : 'hover:bg-muted/40'
+														}`}
 													>
-														{/* Icon + Name */}
-														<div className="flex items-center gap-2 w-1/2">
+														<div className="flex min-w-0 items-center gap-3">
 															<Tooltip>
-																<TooltipTrigger>
-																	<UpDownIcon className="w-5 h-5" />
+																<TooltipTrigger asChild>
+																	<button
+																		type="button"
+																		className="cursor-grab rounded-lg p-2 text-muted-foreground hover:bg-muted hover:text-foreground active:cursor-grabbing"
+																		aria-label={`Reorder ${station.stationName}`}
+																		{...dragProvided.dragHandleProps}
+																	>
+																		<SortIcon className="size-5" aria-hidden="true" />
+																	</button>
 																</TooltipTrigger>
-																<TooltipContent>
-																	<p>Drag and Drop items to sort them.</p>
-																</TooltipContent>
+																<TooltipContent>Drag to reorder</TooltipContent>
 															</Tooltip>
-													<Link
-														href={`/accounts/${accountIdParam}/locations/${locationIdParam}/stations/${station.id}`}
-														className="underline-offset-4 transition-colors hover:text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-													>
-																{station.stationName}
+															<Link
+																href={`/accounts/${accountId}/locations/${locationId}/stations/${station.id}`}
+																className="group flex min-w-0 items-center gap-3 font-semibold text-foreground transition-colors hover:text-chart-3"
+															>
+																<span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-chart-3/10 text-chart-3 transition-colors group-hover:bg-chart-3 group-hover:text-white">
+																	<StationIcon className="size-5" aria-hidden="true" />
+																</span>
+																<span className="min-w-0">
+																	<span className="block truncate">{station.stationName}</span>
+																	<span className="block text-xs font-normal text-muted-foreground">
+																		Open to manage line-check items
+																	</span>
+																</span>
+																<ChevronRight className="size-4 opacity-0 transition-all group-hover:translate-x-0.5 group-hover:opacity-100" aria-hidden="true" />
 															</Link>
-															{/* <span>{station.stationName}</span> */}
 														</div>
 
-														{/* Status */}
-														<div className="w-1/4 text-center">
+														<div className="flex flex-col items-center gap-1.5">
 															<StatusSwitchOrBadge
-																entity={{
-																	id: station.id!,
-																	active: station.stationActive,
-																}}
-																getLabel={() => `item: ${station.stationName}`}
+																entity={{ id: station.id!, active: station.stationActive }}
+																getLabel={() => `Station: ${station.stationName}`}
 																onToggle={handleToggleActive}
-																canToggle={canToggle}
+																canToggle={canManage}
 															/>
+															{canManage && <span className="text-xs font-medium text-muted-foreground">{station.stationActive ? 'Active' : 'Inactive'}</span>}
 														</div>
 
-														{/* Actions */}
-														<div className="w-1/4 flex justify-center items-center gap-2">
-															{sessionUserRole === AppRole.MANAGER && (
-																<>
-																	<EditStationDialog
-																		currentUserId={currentUserId}
-																		station={station}
-																		// locationId={locationIdParam}
-																		stations={stations}
-																		onUpdate={(id, name) =>
-																			setStations((prev) =>
-																				prev.map((station) =>
-																					station.id === id
-																						? { ...station, stationName: name }
-																						: station,
-																				),
-																			)
-																		}
-																	/>
-																	{/* ✅ ADD THIS */}
-																	{station.id && (
-																		<CloneStationDialog
-																			stationId={station.id}
-																			currentLocationId={locationIdParam}
-																			currentAccountId={ accountIdParam}
-																			userId={currentUserId}
-																			locations={locations}
-																			onCloneSuccess={async () => {
-																				try {
-																					const res =
-																						await getStationsByLocation(
-																							locationIdParam,
-																						);
-																					setStations(res.data ?? []);
-																				} catch {
-																					toast.error(
-																						'Failed to refresh stations after clone.',
-																					);
-																				}
-																			}}
-																		/>
-																	)}
-																	{station.id && (
-																		<DeleteConfirmButton
-																			item={{
-																				id: station.id,
-																			}}
-																			entityLabel="Station"
-																			onDelete={hanldeStationDelete}
-																			getItemName={() => station.stationName}
-																		/>
-																	)}{' '}
-																</>
+														<div className="flex items-center justify-center gap-1">
+															{canManage ? (
+																<StationActions
+																	station={station}
+																	stations={stations}
+																	locations={locations}
+																	accountId={accountId}
+																	locationId={locationId}
+																	userId={currentUserId}
+																	onUpdate={setStations}
+																	onClone={refreshStations}
+																	onDelete={handleDeleteStation}
+																/>
+															) : (
+																<span className="text-sm text-muted-foreground">View only</span>
 															)}
 														</div>
 													</div>
 												)}
 											</Draggable>
 										))}
-
-										{provided.placeholder}
+										{dropProvided.placeholder}
+										{paginatedStations.length === 0 && <EmptyState searchTerm={searchTerm} />}
 									</div>
 								)}
 							</Droppable>
 						</DragDropContext>
 
-						{/* Mobile Cards */}
-						<div className="mt-6 space-y-4 px-3 md:hidden">
+						<div className="mt-6 space-y-4 md:hidden">
 							{paginatedStations.map((station) => (
-								<DataCard
-									key={station.id}
-									avatar={
-										<span className="flex size-11 items-center justify-center rounded-xl bg-primary/10 text-primary">
-											<StationIcon className="size-5" aria-hidden="true" />
-										</span>
-									}
-									title={
-										station.id ? (
-											<Link
-												href={`/accounts/${accountIdParam}/locations/${locationIdParam}/stations/${station.id}`}
-												className="group/title flex min-h-11 w-full items-center justify-between gap-3 rounded-sm underline-offset-4 transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-											>
-												<span className="truncate">{station.stationName}</span>
-												<ChevronRight
-													className="size-4 shrink-0 text-muted-foreground transition-transform group-hover/title:translate-x-0.5 group-hover/title:text-primary"
-													aria-hidden="true"
-												/>
-											</Link>
-										) : (
-											station.stationName
-										)
-									}
-									description="Open this station to manage its line-check items"
-									fields={[
-										{
-											label: 'Status',
-											value: (
-												<div className="flex items-center gap-3">
-													<StatusSwitchOrBadge
-														entity={{
-															id: station.id!,
-															active: station.stationActive,
-														}}
-														getLabel={() => `Station: ${station.stationName}`}
-														onToggle={handleToggleActive}
-														canToggle={canToggle}
-													/>
-													{canToggle && (
-														<span>{station.stationActive ? 'Active' : 'Inactive'}</span>
-													)}
-												</div>
-											),
-										},
-									]}
-									actions={[
-										{
-											element: (
-												<div className="flex justify-center gap-4 items-center">
-													{sessionUserRole === 'MANAGER' ? (
-														<>
-															<EditStationDialog
-																currentUserId={currentUserId}
-																station={station}
-																// locationId={locationIdParam}
-																stations={stations}
-																onUpdate={(id, name) =>
-																	setStations((prev) =>
-																		prev.map((s) =>
-																			s.id === id
-																				? { ...s, stationName: name }
-																				: s,
-																		),
-																	)
-																}
-															/>
+								<Card key={station.id} className="gap-0 overflow-hidden py-0 shadow-sm">
+									<Link
+										href={`/accounts/${accountId}/locations/${locationId}/stations/${station.id}`}
+										className="group flex items-center justify-between gap-4 p-5 transition-colors hover:bg-chart-3/10"
+									>
+										<div className="flex min-w-0 items-center gap-3">
+											<span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-chart-3/10 text-chart-3 transition-colors group-hover:bg-chart-3 group-hover:text-white">
+												<StationIcon className="size-5" aria-hidden="true" />
+											</span>
+											<div className="min-w-0">
+												<p className="truncate font-semibold transition-colors group-hover:text-chart-3">{station.stationName}</p>
+												<p className="mt-1 text-xs text-muted-foreground">
+													Open to manage line-check items
+												</p>
+											</div>
+										</div>
+										<ChevronRight className="size-5 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:text-chart-3" aria-hidden="true" />
+									</Link>
 
-															{/* ✅ CLONE BUTTON */}
-															{station.id && (
-																<CloneStationDialog
-																	stationId={station.id}
-																	currentLocationId={locationIdParam}
-																	currentAccountId={accountIdParam}
-																	userId={currentUserId}
-																	locations={locations}
-																	onCloneSuccess={async () => {
-																		// 🔥 IMPORTANT: refetch stations after clone
-																		try {
-																			const res =
-																				await getStationsByLocation(
-																					locationIdParam,
-																				);
-																			setStations(res.data ?? []);
-																		} catch {
-																			toast.error(
-																				'Failed to refresh stations after clone.',
-																			);
-																		}
-																	}}
-																/>
-															)}
+									<div className="flex items-center justify-between border-t bg-muted/20 px-5 py-4">
+										<span className="text-sm font-medium text-muted-foreground">Status</span>
+										<div className="flex items-center gap-3">
+											<StatusSwitchOrBadge
+												entity={{ id: station.id!, active: station.stationActive }}
+												getLabel={() => `Station: ${station.stationName}`}
+												onToggle={handleToggleActive}
+												canToggle={canManage}
+											/>
+											{canManage && <span className="text-sm font-medium">{station.stationActive ? 'Active' : 'Inactive'}</span>}
+										</div>
+									</div>
 
-															{station.id && (
-																<DeleteConfirmButton
-																	item={{
-																		id: station.id,
-																	}}
-																	entityLabel="Station"
-																	onDelete={hanldeStationDelete}
-																	getItemName={() => station.stationName}
-																/>
-															)}
-														</>
-													) : (
-														<span className="text-ring">No Actions</span>
-													)}
-												</div>
-											),
-										},
-									]}
-								/>
+									{canManage && (
+										<div className="flex items-center justify-between border-t px-5 py-2">
+											<span className="text-sm font-medium text-muted-foreground">Manage station</span>
+											<StationActions
+												station={station}
+												stations={stations}
+												locations={locations}
+												accountId={accountId}
+												locationId={locationId}
+												userId={currentUserId}
+												onUpdate={setStations}
+												onClone={refreshStations}
+												onDelete={handleDeleteStation}
+											/>
+										</div>
+									)}
+								</Card>
 							))}
-
-							{paginatedStations.length === 0 && (
-								<div className="rounded-2xl border border-dashed bg-muted/10 px-6 py-12 text-center text-sm text-muted-foreground">
-									{searchTerm
-										? `No stations match “${searchTerm}”.`
-										: 'No stations to display.'}
-								</div>
-							)}
+							{paginatedStations.length === 0 && <EmptyState searchTerm={searchTerm} mobile />}
 						</div>
-					</div>
-				)}
-				{/* pagination page size selector */}
-				<div className="w-full md:w-3/4 mx-auto flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 px-4 mt-4">
-					<Pagination
-						currentPage={currentPage}
-						setCurrentPage={setCurrentPage}
-						pageSize={pageSize}
-						setPageSize={setPageSize}
-						totalItems={filteredStations.length}
-					/>
-				</div>
 
-				<div>
-					<StationHistoryFeed
-						locationId={locationIdParam}
-						currentUser={currentUser}
-					/>
+						<Pagination
+							currentPage={currentPage}
+							setCurrentPage={setCurrentPage}
+							pageSize={pageSize}
+							setPageSize={setPageSize}
+							totalItems={filteredStations.length}
+						/>
+
+						<StationHistoryFeed locationId={locationId} currentUser={currentUser} />
+					</div>
 				</div>
 			</section>
 		</main>
 	);
 };
+
+type StationActionsProps = {
+	station: StationDto;
+	stations: StationDto[];
+	locations: Locations[];
+	accountId: string;
+	locationId: string;
+	userId: string;
+	onUpdate: React.Dispatch<React.SetStateAction<StationDto[]>>;
+	onClone: () => Promise<void>;
+	onDelete: (stationId: string) => Promise<void>;
+};
+
+function StationActions({
+	station,
+	stations,
+	locations,
+	accountId,
+	locationId,
+	userId,
+	onUpdate,
+	onClone,
+	onDelete,
+}: StationActionsProps) {
+	return (
+		<div className="flex items-center gap-1">
+			<EditStationDialog
+				currentUserId={userId}
+				station={station}
+				stations={stations}
+				onUpdate={(id, name) =>
+					onUpdate((previous) =>
+						previous.map((existing) =>
+							existing.id === id ? { ...existing, stationName: name } : existing,
+						),
+					)
+				}
+			/>
+			{station.id && (
+				<CloneStationDialog
+					stationId={station.id}
+					currentLocationId={locationId}
+					currentAccountId={accountId}
+					userId={userId}
+					locations={locations}
+					onCloneSuccess={async () => {
+						try {
+							await onClone();
+						} catch (error) {
+							toast.error(error instanceof Error ? error.message : 'Failed to refresh stations.');
+						}
+					}}
+				/>
+			)}
+			{station.id && (
+				<DeleteConfirmButton
+					item={{ id: station.id }}
+					entityLabel="Station"
+					onDelete={onDelete}
+					getItemName={() => station.stationName}
+				/>
+			)}
+		</div>
+	);
+}
+
+function EmptyState({ searchTerm, mobile = false }: { searchTerm: string; mobile?: boolean }) {
+	return (
+		<div className={`${mobile ? '' : 'border-t'} px-6 py-14 text-center text-sm text-muted-foreground`}>
+			{searchTerm ? `No stations match “${searchTerm}”.` : 'No stations have been created yet.'}
+		</div>
+	);
+}
 
 export default LocationStationsPage;

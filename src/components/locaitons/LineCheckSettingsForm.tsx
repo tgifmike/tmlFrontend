@@ -46,11 +46,17 @@ export const lineCheckSchema = z.object({
  interface LineCheckSettingsFormProps {
 	 locationId: string;
 	 userId?: string;
+	 onSaved?: () => void;
+	 allowConfirmUnchanged?: boolean;
+	 submitLabel?: string;
  }
 
 export default function LineCheckSettingsForm({
 	locationId,
-	userId
+	userId,
+	onSaved,
+	allowConfirmUnchanged = false,
+	submitLabel = 'Save Settings',
 }: LineCheckSettingsFormProps) {
 	const form = useForm<LineCheckFormValues>({
 		resolver: zodResolver(lineCheckSchema),
@@ -69,6 +75,7 @@ export default function LineCheckSettingsForm({
 		formState: { errors, isDirty },
 	} = form;
 	const [loading, setLoading] = useState(false);
+	const [loaded, setLoaded] = useState(false);
 
 	// Fetch current settings on mount
 	useEffect(() => {
@@ -100,6 +107,7 @@ export default function LineCheckSettingsForm({
 				console.error('Failed to fetch line check settings', err);
 			} finally {
 				setLoading(false);
+				setLoaded(true);
 			}
 		};
 
@@ -118,6 +126,7 @@ export default function LineCheckSettingsForm({
 			await updateLineCheckSettings(locationId, userId,  values);
             form.reset(values); // reset dirty state
             toast.success('Line check settings saved successfully');
+			onSaved?.();
         } catch (err) {
             toast.error('Failed to save line check settings');
 			console.error('Failed to save settings', err);
@@ -223,13 +232,12 @@ export default function LineCheckSettingsForm({
 				<CardFooter className="justify-end border-t border-border/50 pt-6">
 					<Button
 						type="submit"
-						disabled={!isDirty || loading}
+						disabled={loading || !loaded || (!isDirty && !allowConfirmUnchanged)}
 					>
-						{loading ? 'Saving...' : 'Save Settings'}
+						{loading ? 'Saving...' : submitLabel}
 					</Button>
 				</CardFooter>
 			</form>
 		</Card>
 	);
 }
-

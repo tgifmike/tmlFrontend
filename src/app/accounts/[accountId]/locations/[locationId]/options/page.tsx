@@ -1,457 +1,687 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
-import { useParams } from 'next/navigation';
-import { toast } from 'sonner';
 import {
 	DragDropContext,
-	Droppable,
 	Draggable,
-	DropResult,
+	Droppable,
+	type DropResult,
 } from '@hello-pangea/dnd';
+import { useEffect, useState } from 'react';
+import { useParams, useRouter } from 'next/navigation';
+import { toast } from 'sonner';
+
+import { getAccountsForUser } from '@/app/api/accountApi';
+import { getUserLocationAccess } from '@/app/api/locationApi';
 import {
-	createOption,
 	deleteOption,
 	getOptions,
 	reorderOptions,
 	toggleOptionActive,
 } from '@/app/api/optionsApi';
 import {
+	AccessRole,
+	AppRole,
+	Locations,
 	OptionEntity,
 	OptionType,
-	AppRole,
-	User,
-	Locations,
 	OptionTypeLabels,
+	User,
 } from '@/app/types';
-import { Icons } from '@/lib/icon';
-import { EditOptionDialog } from '@/components/options/EditOptionDialog';
-import { DeleteConfirmButton } from '@/components/tableComponents/DeleteConfirmButton';
-import Spinner from '@/components/spinner/Spinner';
+import LocationNav from '@/components/navBar/LocationNav';
+import LocationPageHeader from '@/components/navBar/LocationPageHeader';
+import OptionAuditFeed from '@/components/options/OptionAuditFeed';
 import { CreateOptionDialog } from '@/components/options/CreateOptionDialog';
-import { getAccountsForUser } from '@/app/api/accountApi';
-import { useRouter } from 'next/navigation';
+import { EditOptionDialog } from '@/components/options/EditOptionDialog';
+import Spinner from '@/components/spinner/Spinner';
+import { DeleteConfirmButton } from '@/components/tableComponents/DeleteConfirmButton';
+import { UserControls } from '@/components/tableComponents/UserControls';
 import {
 	Accordion,
 	AccordionContent,
 	AccordionItem,
 	AccordionTrigger,
 } from '@/components/ui/accordion';
-import { Switch } from '@/components/ui/switch';
-import LocationNav from '@/components/navBar/LocationNav';
-import LocationPageHeader from '@/components/navBar/LocationPageHeader';
-import { getUserLocationAccess } from '@/app/api/locationApi';
-import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import clsx from 'clsx';
-
-import OptionAuditFeed from '@/components/options/OptionAuditFeed';
+import { Card } from '@/components/ui/card';
+import { Switch } from '@/components/ui/switch';
 import { useSession } from '@/lib/auth/session-context';
+import { Icons } from '@/lib/icon';
 
+const OPTION_TYPES = Object.values(OptionType) as OptionType[];
+
+const OPTION_DESCRIPTIONS: Record<OptionType, string> = {
+	[OptionType.TOOL]: 'Utensils and equipment available for food-prep items.',
+	[OptionType.SHELF_LIFE]: 'Approved holding times used for food-prep items.',
+	[OptionType.PAN_SIZE]: 'Container and pan sizes used during item setup.',
+	[OptionType.PORTION_SIZE]: 'Standard portions available when configuring an item.',
+};
 
 const OptionsPage = () => {
-	const { user, loading, logout } = useSession();
-	
+	const SortIcon = Icons.sort;
+	const ToolboxIcon = Icons.toolbox;
+	const { user, loading } = useSession();
 	const params = useParams<{ accountId: string; locationId: string }>();
-	const accountIdParam = params.accountId;
-	const locationIdParam = params.locationId;
+	const accountId = params.accountId;
+	const locationId = params.locationId;
 	const router = useRouter();
-	const [accountImage, setAccountImage] = useState<string | null>(null);
+
 	const [loadingAccess, setLoadingAccess] = useState(true);
-	const [drawerOpen, setDrawerOpen] = useState(false);
-	const [hasAccess, setHasAccess] = useState(false);
-	const [locations, setLocations] = useState<Locations[]>([]);
+	const [accountImage, setAccountImage] = useState<string | null>(null);
 	const [accountName, setAccountName] = useState<string | null>(null);
-	const [currentLocation, setCurrentLocation] = useState<Locations | null>(
-		null
-	);
+	const [currentLocation, setCurrentLocation] = useState<Locations | null>(null);
 	const [options, setOptions] = useState<OptionEntity[]>([]);
 	const [showActiveOnly, setShowActiveOnly] = useState(true);
 	const [searchTerm, setSearchTerm] = useState('');
+	const [drawerOpen, setDrawerOpen] = useState(false);
 	const [expandedTypes, setExpandedTypes] = useState<Set<OptionType>>(
-		new Set()
+		new Set(OPTION_TYPES),
 	);
 	const [deletingOptionIds, setDeletingOptionIds] = useState<Set<string>>(
-		new Set()
+		new Set(),
 	);
+	const [historyRefreshKey, setHistoryRefreshKey] = useState(0);
 
 	const currentUser = user as User | undefined;
-	const canToggle = currentUser?.appRole === AppRole.MANAGER;
-	const UpDownIcon = Icons.sort;
-	const LogIcon = Icons.log;
+	const currentUserId = currentUser?.id ?? '';
+	const sessionUserRole = currentUser?.appRole;
+	const canManage =
+		currentUser?.appRole === AppRole.MANAGER ||
+		currentUser?.accessRole === AccessRole.ADMIN ||
+		currentUser?.accessRole === AccessRole.SRADMIN;
 
-	
-
-	// Fetch options and verify access
 	useEffect(() => {
-		if (!user) return;
-		if (!accountIdParam) return;
+		if (loading || !currentUserId || !accountId || !locationId) return;
 
-		const verifyAccess = async () => {
+		let cancelled = false;
+		const loadPage = async () => {
+			setLoadingAccess(true);
 			try {
-				const accountsRes = await getAccountsForUser(user.id);
+				const [accountsRes, locationRes, optionsRes] = await Promise.all([
+					getAccountsForUser(currentUserId),
+					getUserLocationAccess(currentUserId),
+					getOptions(accountId),
+				]);
+				if (cancelled) return;
+
+				if (accountsRes.error) throw new Error(accountsRes.error);
+				if (locationRes.error) throw new Error(locationRes.error);
+				if (optionsRes.error) throw new Error(optionsRes.error);
 
 				const account = accountsRes.data?.find(
-					(acc) => acc.id?.toString() === accountIdParam,
+					(candidate) => candidate.id?.toString() === accountId,
 				);
-
 				if (!account) {
-					// toast.error('Access denied to this account.');
-					// router.push('/accounts');
+					toast.error('You do not have access to this account.');
+					router.push('/accounts');
 					return;
 				}
 
-				const locationRes = await getUserLocationAccess(user.id);
-				const fetchedLocations: Locations[] = locationRes.data ?? [];
-
-				setLocations(fetchedLocations);
-
-				const location = fetchedLocations.find(
-					(loc) => loc.id?.toString() === locationIdParam,
+				const location = (locationRes.data ?? []).find(
+					(candidate) => candidate.id?.toString() === locationId,
 				);
-
 				if (!location) {
 					toast.error('You do not have access to this location.');
-					router.push(`/accounts/${accountIdParam}/locations`);
+					router.push(`/accounts/${accountId}`);
 					return;
 				}
 
-				const res = await getOptions(accountIdParam);
-
-				if (!res.data) {
-					toast.error('Failed to load options.');
-					return;
-				}
-
-				const sorted = res.data.sort(
-					(a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0),
-				);
-
-				setOptions(sorted);
+				setOptions(sortOptions(optionsRes.data ?? []));
 				setCurrentLocation(location);
 				setAccountImage(account.imageBase64 || account.accountImage || null);
-				setHasAccess(true);
 				setAccountName(account.accountName);
-			} catch (err) {
-				toast.error('You do not have access to this account.');
-				router.push('/accounts');
+			} catch (error) {
+				if (!cancelled) {
+					toast.error(
+						error instanceof Error ? error.message : 'Failed to load options.',
+					);
+				}
 			} finally {
-				setLoadingAccess(false);
+				if (!cancelled) setLoadingAccess(false);
 			}
 		};
 
-		verifyAccess();
-	}, [user?.userId, accountIdParam, locationIdParam]);
+		loadPage();
+		return () => {
+			cancelled = true;
+		};
+	}, [loading, currentUserId, accountId, locationId, router]);
 
-	// Toggle active status
 	const handleToggleActive = async (optionId: string, checked: boolean) => {
-		setOptions((prev) =>
-			prev.map((opt) =>
-				opt.id === optionId ? { ...opt, optionActive: checked } : opt
-			)
+		setOptions((previous) =>
+			previous.map((option) =>
+				option.id === optionId
+					? { ...option, optionActive: checked }
+					: option,
+			),
 		);
 
 		try {
-			if (!currentUser?.id) throw new Error('User not authenticated');
-			await toggleOptionActive(optionId, checked, currentUser.id);
-		} catch (err: any) {
-			setOptions((prev) =>
-				prev.map((opt) =>
-					opt.id === optionId ? { ...opt, optionActive: !checked } : opt
-				)
+			await toggleOptionActive(optionId, checked, currentUserId);
+			setHistoryRefreshKey((key) => key + 1);
+		} catch (error) {
+			setOptions((previous) =>
+				previous.map((option) =>
+					option.id === optionId
+						? { ...option, optionActive: !checked }
+						: option,
+				),
 			);
 			toast.error(
-				`Failed to update option status: ${
-					err?.response?.data?.message || err.message
-				}`
+				error instanceof Error
+					? error.message
+					: 'Failed to update option status.',
 			);
 		}
 	};
 
-	// Save or update option
 	const handleOptionSave = (savedOption: OptionEntity) => {
-		setOptions((prev) =>
-			prev.some((o) => o.id === savedOption.id)
-				? prev.map((o) => (o.id === savedOption.id ? savedOption : o))
-				: [...prev, savedOption]
+		setOptions((previous) =>
+			sortOptions(
+				previous.some((option) => option.id === savedOption.id)
+					? previous.map((option) =>
+							option.id === savedOption.id ? savedOption : option,
+						)
+					: [...previous, savedOption],
+			),
 		);
+		setExpandedTypes((previous) =>
+			new Set(previous).add(savedOption.optionType),
+		);
+		setHistoryRefreshKey((key) => key + 1);
 	};
 
-	// Delete option
 	const handleOptionDelete = async (optionId: string) => {
-		if (!currentUser?.id) return;
+		if (!currentUserId) throw new Error('User not authenticated.');
 
+		setDeletingOptionIds((previous) => new Set(previous).add(optionId));
 		try {
-			setDeletingOptionIds((prev) => new Set(prev).add(optionId));
-			await deleteOption(optionId, currentUser.id);
-			setOptions((prev) => prev.filter((o) => o.id !== optionId));
-			toast.success('Option deleted successfully.');
-		} catch (err: any) {
-			toast.error(
-				`Failed to delete option: ${
-					err?.response?.data?.message || err.message
-				}`
+			await deleteOption(optionId, currentUserId);
+			setOptions((previous) =>
+				previous.filter((option) => option.id !== optionId),
 			);
+			setHistoryRefreshKey((key) => key + 1);
 		} finally {
-			setDeletingOptionIds((prev) => {
-				const newSet = new Set(prev);
-				newSet.delete(optionId);
-				return newSet;
+			setDeletingOptionIds((previous) => {
+				const next = new Set(previous);
+				next.delete(optionId);
+				return next;
 			});
 		}
 	};
 
-
+	const filteredOptions = options.filter((option) => {
+		const matchesSearch = option.optionName
+			.toLowerCase()
+			.includes(searchTerm.toLowerCase());
+		return matchesSearch && (!showActiveOnly || option.optionActive);
+	});
 
 	const handleDragEnd =
-		(optionType: OptionType) => async (result: DropResult) => {
-			if (!result.destination) return;
+		(optionType: OptionType, visibleOptions: OptionEntity[]) =>
+		async (result: DropResult) => {
+			if (
+				!result.destination ||
+				result.source.index === result.destination.index
+			) {
+				return;
+			}
 
-			const typeOptions = options.filter((o) => o.optionType === optionType);
-			const updatedTypeOptions = [...typeOptions];
-			const [moved] = updatedTypeOptions.splice(result.source.index, 1);
-			updatedTypeOptions.splice(result.destination.index, 0, moved);
+			const previousOptions = options;
+			const reorderedVisible = [...visibleOptions];
+			const [moved] = reorderedVisible.splice(result.source.index, 1);
+			reorderedVisible.splice(result.destination.index, 0, moved);
 
-			// Update sortOrder according to new array order
-			const updatedWithSortOrder = updatedTypeOptions.map((o, index) => ({
-				...o,
-				sortOrder: index,
-			}));
+			const visibleIds = new Set(visibleOptions.map((option) => option.id));
+			const reorderedIds = reorderedVisible.map((option) => option.id);
+			const reorderedById = new Map(
+				reorderedVisible.map((option) => [option.id, option]),
+			);
+			let visibleIndex = 0;
+			const nextTypeOptions = options
+				.filter((option) => option.optionType === optionType)
+				.sort(compareOptions)
+				.map((option) => {
+					if (!visibleIds.has(option.id)) return option;
+					const replacement = reorderedById.get(reorderedIds[visibleIndex]);
+					visibleIndex += 1;
+					return replacement ?? option;
+				})
+				.map((option, index) => ({ ...option, sortOrder: index }));
 
-			const newOptions = [
-				...options.filter((o) => o.optionType !== optionType),
-				...updatedWithSortOrder,
-			].sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
-
-			setOptions(newOptions);
+			const nextById = new Map(
+				nextTypeOptions.map((option) => [option.id, option]),
+			);
+			setOptions((previous) =>
+				previous.map((option) => nextById.get(option.id) ?? option),
+			);
 
 			try {
-				if (!accountIdParam || !currentUser?.id)
-					throw new Error('Missing params');
-				const orderedIds = updatedWithSortOrder.map((o) => o.id);
 				await reorderOptions(
-					accountIdParam,
+					accountId,
 					optionType,
-					orderedIds,
-					currentUser.id
+					nextTypeOptions.map((option) => option.id),
+					currentUserId,
 				);
-			} catch {
-				toast.error('Failed to save new order.');
+				setHistoryRefreshKey((key) => key + 1);
+			} catch (error) {
+				setOptions(previousOptions);
+				toast.error(
+					error instanceof Error
+						? error.message
+						: 'Failed to save the new option order.',
+				);
 			}
 		};
 
-	const filteredOptions = options.filter(
-		(o) =>
-			(!showActiveOnly || o.optionActive) &&
-			(!searchTerm ||
-				o.optionName.toLowerCase().includes(searchTerm.toLowerCase()))
-	);
-
-	const optionTypes = Object.values(OptionType);
-
-	const expandAll = () => setExpandedTypes(new Set(optionTypes));
-	const collapseAll = () => setExpandedTypes(new Set());
-
-	const highlightText = (text: string) => {
-		if (!searchTerm) return text;
-		const parts = text.split(new RegExp(`(${searchTerm})`, 'gi'));
-		return parts.map((part, i) =>
-			part.toLowerCase() === searchTerm.toLowerCase() ? (
-				<span key={i} className="bg-yellow-200">
-					{part}
-				</span>
-			) : (
-				part
-			)
+	if (loadingAccess) {
+		return (
+			<div className="flex items-center justify-center py-40 text-xl text-chart-3">
+				<Spinner />
+				<span className="ml-4">Loading options…</span>
+			</div>
 		);
-	};
+	}
 
 	return (
-		<div className="flex min-h-screen overflow-hidden">
-			{/* Sidebar */}
+		<main className="flex min-h-screen overflow-hidden">
 			<aside className="hidden w-1/6 shrink-0 self-stretch border-r bg-ring md:block">
 				<LocationNav
 					accountName={accountName}
 					accountImage={accountImage}
-					accountId={accountIdParam}
-					locationId={locationIdParam}
-					sessionUserRole={currentUser?.appRole ?? AppRole.MEMBER}
+					accountId={accountId}
+					locationId={locationId}
+					sessionUserRole={sessionUserRole ?? undefined}
 				/>
 			</aside>
 
-			{/* Main content */}
-			<section className="flex-1 flex flex-col">
+			<section className="flex min-w-0 flex-1 flex-col">
 				<LocationPageHeader
-					accountId={accountIdParam}
-					locationId={locationIdParam}
+					accountId={accountId}
+					locationId={locationId}
 					accountName={accountName}
 					accountImage={accountImage}
 					locationName={currentLocation?.locationName}
 					pageName="Options"
-					sessionUserRole={currentUser?.appRole ?? AppRole.MEMBER}
+					sessionUserRole={sessionUserRole ?? undefined}
 					drawerOpen={drawerOpen}
 					setDrawerOpen={setDrawerOpen}
 				>
-					<div className="flex flex-wrap gap-2 items-center">
-						{currentUser && (
-							<CreateOptionDialog
-								accountId={accountIdParam}
+					{canManage && currentUser && (
+						<CreateOptionDialog
+							accountId={accountId}
+							currentUser={currentUser}
+							existingOptions={options}
+							onOptionCreated={handleOptionSave}
+						/>
+					)}
+				</LocationPageHeader>
+
+				<div className="flex-1 overflow-y-auto p-4">
+					<div className="mx-auto w-full max-w-6xl">
+						<UserControls
+							showActiveOnly={showActiveOnly}
+							setShowActiveOnly={setShowActiveOnly}
+							searchTerm={searchTerm}
+							setSearchTerm={setSearchTerm}
+							searchPlaceholder="Search options"
+						/>
+
+						<div className="mt-4 flex flex-wrap items-center justify-between gap-3 px-1 text-sm text-muted-foreground">
+							<span>
+								{filteredOptions.length} shown · {options.length} total
+							</span>
+							<div className="flex items-center gap-2">
+								<Button
+									variant="ghost"
+									size="sm"
+									onClick={() => setExpandedTypes(new Set(OPTION_TYPES))}
+								>
+									Expand all
+								</Button>
+								<Button
+									variant="ghost"
+									size="sm"
+									onClick={() => setExpandedTypes(new Set())}
+								>
+									Collapse all
+								</Button>
+							</div>
+						</div>
+
+						<Accordion
+							type="multiple"
+							value={[...expandedTypes]}
+							onValueChange={(values) =>
+								setExpandedTypes(new Set(values as OptionType[]))
+							}
+							className="mt-6 space-y-4"
+						>
+							{OPTION_TYPES.map((type) => {
+								const allTypeOptions = options
+									.filter((option) => option.optionType === type)
+									.sort(compareOptions);
+								const visibleTypeOptions = filteredOptions
+									.filter((option) => option.optionType === type)
+									.sort(compareOptions);
+								const activeCount = allTypeOptions.filter(
+									(option) => option.optionActive,
+								).length;
+
+								return (
+									<AccordionItem
+										key={type}
+										value={type}
+										className="overflow-hidden rounded-2xl border bg-card px-0 shadow-sm"
+									>
+										<AccordionTrigger className="px-5 py-5 hover:no-underline sm:px-6">
+											<div className="flex min-w-0 flex-1 items-center gap-3 text-left">
+												<span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-chart-3/10 text-chart-3">
+													<ToolboxIcon className="size-5" aria-hidden="true" />
+												</span>
+												<span className="min-w-0 flex-1">
+													<span className="block text-lg font-semibold">
+														{OptionTypeLabels[type]}
+													</span>
+													<span className="mt-1 block text-xs font-normal text-muted-foreground sm:text-sm">
+														{OPTION_DESCRIPTIONS[type]}
+													</span>
+												</span>
+												<Badge variant="secondary" className="mr-2 shrink-0">
+													{activeCount}/{allTypeOptions.length} active
+												</Badge>
+											</div>
+										</AccordionTrigger>
+
+										<AccordionContent className="pb-0">
+											<div className="flex items-center justify-between border-t bg-muted/20 px-5 py-3 sm:px-6">
+												<span className="text-sm text-muted-foreground">
+													{visibleTypeOptions.length} shown
+												</span>
+												{canManage && currentUser && (
+													<CreateOptionDialog
+														accountId={accountId}
+														currentUser={currentUser}
+														existingOptions={options}
+														defaultOptionType={type}
+														onOptionCreated={handleOptionSave}
+														trigger={
+															<Button variant="outline" size="sm">
+																Add {OptionTypeLabels[type].toLowerCase()}
+															</Button>
+														}
+													/>
+												)}
+											</div>
+
+											<OptionList
+												options={visibleTypeOptions}
+												allOptions={options}
+												optionType={type}
+												canManage={canManage}
+												currentUser={currentUser}
+												deletingOptionIds={deletingOptionIds}
+												showActiveOnly={showActiveOnly}
+												searchTerm={searchTerm}
+												SortIcon={SortIcon}
+												onDragEnd={handleDragEnd(type, visibleTypeOptions)}
+												onToggle={handleToggleActive}
+												onSave={handleOptionSave}
+												onDelete={handleOptionDelete}
+												onShowAll={() => {
+													setShowActiveOnly(false);
+													setSearchTerm('');
+												}}
+											/>
+										</AccordionContent>
+									</AccordionItem>
+								);
+							})}
+						</Accordion>
+
+						{canManage && (
+							<OptionAuditFeed
+								accountId={accountId}
 								currentUser={currentUser}
-								onOptionCreated={handleOptionSave}
+								refreshKey={historyRefreshKey}
 							/>
 						)}
 					</div>
-				</LocationPageHeader>
-				<div className="flex flex-col ">
-					{/* Controls */}
-					<div className="flex flex-wrap items-center justify-between gap-4 w-full pt-4 pb-8 px-8 bg-accent">
-						<div className="flex items-center gap-4">
-							<Input
-								type="text"
-								placeholder="Search options..."
-								value={searchTerm}
-								onChange={(e) => setSearchTerm(e.target.value)}
-								className="w-40 md:w-64 bg-background"
-							/>
-							<Button onClick={() => setSearchTerm('')}>Clear</Button>
-						</div>
-
-						<div className="flex items-center gap-6">
-							<Switch
-								checked={showActiveOnly}
-								onCheckedChange={(checked) =>
-									setShowActiveOnly(Boolean(checked))
-								}
-							/>
-							<span className="text-sm">Show Active Only</span>
-						</div>
-
-						<div className="flex items-center gap-2">
-							<Button variant="outline" onClick={expandAll}>
-								Expand All
-							</Button>
-							<Button variant="outline" onClick={collapseAll}>
-								Collapse All
-							</Button>
-						</div>
-					</div>
-
-					<Accordion
-						type="multiple"
-						value={[...expandedTypes]}
-						onValueChange={(values) =>
-							setExpandedTypes(new Set(values as OptionType[]))
-						}
-						className="space-y-4"
-					>
-						{optionTypes.map((type) => {
-							const typeOptions = filteredOptions.filter(
-								(o) => o.optionType === type
-							);
-							if (!typeOptions.length) return null;
-
-							return (
-								<AccordionItem key={type} value={type}>
-									<AccordionTrigger className="text-2xl font-semibold px-7 py-2 [&>svg]:w-8 [&>svg]:h-8">
-										{OptionTypeLabels[type]}
-									</AccordionTrigger>
-									<AccordionContent className="overflow-y-auto bg-accent rounded-2xl px-4 py-6 mb-4">
-										<DragDropContext onDragEnd={handleDragEnd(type)}>
-											<Droppable droppableId={type}>
-												{(provided) => (
-													<div
-														ref={provided.innerRef}
-														{...provided.droppableProps}
-													>
-														<div className="flex justify-between items-center font-bold text-lg px-2 py-1 border-b mb-2 sticky top-0 bg-accent z-10">
-															<span className="flex items-center gap-2 w-1/2">
-																<UpDownIcon className="w-5 h-5" /> Option Name
-															</span>
-															<span className="w-1/4 text-center">Status</span>
-															<span className="w-1/4 text-center">Actions</span>
-														</div>
-
-														{typeOptions.map((option, index) => (
-															<Draggable
-																key={option.id}
-																draggableId={option.id}
-																index={index}
-															>
-																{(provided) => (
-																	<div
-																		ref={provided.innerRef}
-																		{...provided.draggableProps}
-																		{...provided.dragHandleProps}
-																		className={clsx(
-																			'flex justify-between items-center p-2 mb-2 bg-ring/40 rounded-2xl transition-opacity',
-																			deletingOptionIds.has(option.id) &&
-																				'opacity-50'
-																		)}
-																	>
-																		<span className="w-1/2 flex items-center gap-2 text-chart-3 text-xl font-medium pl-4">
-																			<UpDownIcon className="w-5 h-5" />
-																			{highlightText(option.optionName)}
-																		</span>
-																		<div className="w-1/4 text-center">
-																			<Switch
-																				checked={option.optionActive}
-																				onCheckedChange={(checked) =>
-																					canToggle
-																						? handleToggleActive(
-																								option.id,
-																								Boolean(checked)
-																						  )
-																						: undefined
-																				}
-																				disabled={
-																					!canToggle ||
-																					deletingOptionIds.has(option.id)
-																				}
-																			/>
-																		</div>
-																		<div className="w-1/4 flex justify-center items-center gap-2">
-																			<EditOptionDialog
-																				option={option}
-																				onOptionUpdated={handleOptionSave}
-																				currentUser={currentUser}
-																			/>
-																			<DeleteConfirmButton
-																				item={{ id: option.id }}
-																				entityLabel="Option"
-																				onDelete={handleOptionDelete}
-																				getItemName={() => option.optionName}
-																				//loading={deletingOptionIds.has(option.id)}
-																			/>
-																		</div>
-																	</div>
-																)}
-															</Draggable>
-														))}
-														{provided.placeholder}
-													</div>
-												)}
-											</Droppable>
-										</DragDropContext>
-									</AccordionContent>
-								</AccordionItem>
-							);
-						})}
-					</Accordion>
 				</div>
-				{/* Audit Table */}
-				{canToggle && (
-					<section className="flex items-start mt-12 px-0 ">
-						{/* <h2 className="text-2xl font-bold mb-4">Option Audit Log</h2> */}
-						{/* <OptionAuditTable accountId={accountIdParam} currentUser={currentUser} /> */}
-						<OptionAuditFeed
-							accountId={accountIdParam}
-							currentUser={currentUser}
-						/>
-					</section>
-				)}
 			</section>
-		</div>
+		</main>
 	);
 };
+
+type OptionListProps = {
+	options: OptionEntity[];
+	allOptions: OptionEntity[];
+	optionType: OptionType;
+	canManage: boolean;
+	currentUser?: User;
+	deletingOptionIds: Set<string>;
+	showActiveOnly: boolean;
+	searchTerm: string;
+	SortIcon: typeof Icons.sort;
+	onDragEnd: (result: DropResult) => Promise<void>;
+	onToggle: (optionId: string, checked: boolean) => Promise<void>;
+	onSave: (option: OptionEntity) => void;
+	onDelete: (optionId: string) => Promise<void>;
+	onShowAll: () => void;
+};
+
+function OptionList({
+	options,
+	allOptions,
+	optionType,
+	canManage,
+	currentUser,
+	deletingOptionIds,
+	showActiveOnly,
+	searchTerm,
+	SortIcon,
+	onDragEnd,
+	onToggle,
+	onSave,
+	onDelete,
+	onShowAll,
+}: OptionListProps) {
+	if (options.length === 0) {
+		const hasAnyOfType = allOptions.some(
+			(option) => option.optionType === optionType,
+		);
+		return (
+			<div className="border-t px-6 py-12 text-center text-sm text-muted-foreground">
+				<p>
+					{hasAnyOfType
+						? `No ${OptionTypeLabels[optionType].toLowerCase()} options match the current filters.`
+						: `No ${OptionTypeLabels[optionType].toLowerCase()} options have been created yet.`}
+				</p>
+				{hasAnyOfType && (showActiveOnly || searchTerm) && (
+					<Button variant="link" onClick={onShowAll}>
+						Show all options
+					</Button>
+				)}
+			</div>
+		);
+	}
+
+	return (
+		<>
+			<DragDropContext onDragEnd={onDragEnd}>
+				<Droppable droppableId={`options-${optionType}`}>
+					{(dropProvided) => (
+						<div
+							ref={dropProvided.innerRef}
+							{...dropProvided.droppableProps}
+							className="hidden md:block"
+						>
+							<div className="grid grid-cols-[minmax(0,3fr)_minmax(130px,1fr)_minmax(150px,1fr)] items-center border-t bg-muted/40 px-6 py-3 text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+								<span>Option name</span>
+								<span className="text-center">Status</span>
+								<span className="text-center">Actions</span>
+							</div>
+
+							{options.map((option, index) => (
+								<Draggable
+									key={option.id}
+									draggableId={option.id}
+									index={index}
+									isDragDisabled={!canManage}
+								>
+									{(dragProvided, snapshot) => (
+										<div
+											ref={dragProvided.innerRef}
+											{...dragProvided.draggableProps}
+											className={`grid min-h-18 grid-cols-[minmax(0,3fr)_minmax(130px,1fr)_minmax(150px,1fr)] items-center border-t px-6 transition-colors ${
+												snapshot.isDragging ? 'bg-card shadow-lg' : 'hover:bg-muted/30'
+											}`}
+										>
+											<div className="flex min-w-0 items-center gap-3">
+												{canManage && (
+													<Button
+														variant="ghost"
+														size="icon"
+														className="cursor-grab text-muted-foreground active:cursor-grabbing"
+														aria-label={`Reorder ${option.optionName}`}
+														{...dragProvided.dragHandleProps}
+													>
+														<SortIcon className="size-5" aria-hidden="true" />
+													</Button>
+												)}
+												<span className="truncate font-semibold">
+													{option.optionName}
+												</span>
+											</div>
+
+											<OptionStatus
+												option={option}
+												canManage={canManage}
+												disabled={deletingOptionIds.has(option.id)}
+												onToggle={onToggle}
+											/>
+
+											<OptionActions
+												option={option}
+												canManage={canManage}
+												currentUser={currentUser}
+												onSave={onSave}
+												onDelete={onDelete}
+											/>
+										</div>
+									)}
+								</Draggable>
+							))}
+							{dropProvided.placeholder}
+						</div>
+					)}
+				</Droppable>
+			</DragDropContext>
+
+			<div className="space-y-3 border-t p-3 md:hidden">
+				{options.map((option) => (
+					<Card key={option.id} className="gap-0 overflow-hidden py-0 shadow-none">
+						<div className="p-5 font-semibold">{option.optionName}</div>
+						<div className="flex items-center justify-between border-t bg-muted/20 px-5 py-4">
+							<span className="text-sm font-medium text-muted-foreground">Status</span>
+							<OptionStatus
+								option={option}
+								canManage={canManage}
+								disabled={deletingOptionIds.has(option.id)}
+								onToggle={onToggle}
+							/>
+						</div>
+						{canManage && (
+							<div className="flex items-center justify-between border-t px-5 py-2">
+								<span className="text-sm font-medium text-muted-foreground">
+									Manage option
+								</span>
+								<OptionActions
+									option={option}
+									canManage={canManage}
+									currentUser={currentUser}
+									onSave={onSave}
+									onDelete={onDelete}
+								/>
+							</div>
+						)}
+					</Card>
+				))}
+			</div>
+		</>
+	);
+}
+
+function OptionStatus({
+	option,
+	canManage,
+	disabled,
+	onToggle,
+}: {
+	option: OptionEntity;
+	canManage: boolean;
+	disabled: boolean;
+	onToggle: (optionId: string, checked: boolean) => Promise<void>;
+}) {
+	return (
+		<div className="flex items-center justify-center gap-3">
+			<Switch
+				checked={option.optionActive}
+				onCheckedChange={(checked) => onToggle(option.id, Boolean(checked))}
+				disabled={!canManage || disabled}
+				aria-label={`${option.optionName} status`}
+			/>
+			<span className="text-xs font-medium text-muted-foreground">
+				{option.optionActive ? 'Active' : 'Inactive'}
+			</span>
+		</div>
+	);
+}
+
+function OptionActions({
+	option,
+	canManage,
+	currentUser,
+	onSave,
+	onDelete,
+}: {
+	option: OptionEntity;
+	canManage: boolean;
+	currentUser?: User;
+	onSave: (option: OptionEntity) => void;
+	onDelete: (optionId: string) => Promise<void>;
+}) {
+	if (!canManage) {
+		return (
+			<div className="text-center text-sm text-muted-foreground">View only</div>
+		);
+	}
+
+	return (
+		<div className="flex items-center justify-center gap-1">
+			<EditOptionDialog
+				option={option}
+				currentUser={currentUser}
+				onOptionUpdated={onSave}
+			/>
+			<DeleteConfirmButton
+				item={{ id: option.id }}
+				entityLabel="Option"
+				onDelete={onDelete}
+				getItemName={() => option.optionName}
+			/>
+		</div>
+	);
+}
+
+const compareOptions = (a: OptionEntity, b: OptionEntity) =>
+	(a.sortOrder ?? 0) - (b.sortOrder ?? 0);
+
+const sortOptions = (options: OptionEntity[]) =>
+	[...options].sort((a, b) => {
+		const typeDifference =
+			OPTION_TYPES.indexOf(a.optionType) - OPTION_TYPES.indexOf(b.optionType);
+		return typeDifference || compareOptions(a, b);
+	});
 
 export default OptionsPage;

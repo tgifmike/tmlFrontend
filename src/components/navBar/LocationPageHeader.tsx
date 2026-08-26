@@ -13,6 +13,11 @@ type LocationPageHeaderProps = {
 	accountImage?: string | null;
 	locationName?: string | null;
 	pageName?: string | null;
+	pageHref?: string;
+	parentCrumb?: {
+		label: string;
+		href: string;
+	};
 	sessionUserRole?: string;
 	drawerOpen: boolean;
 	setDrawerOpen: Dispatch<SetStateAction<boolean>>;
@@ -26,6 +31,8 @@ export default function LocationPageHeader({
 	accountImage,
 	locationName,
 	pageName,
+	pageHref,
+	parentCrumb,
 	sessionUserRole,
 	drawerOpen,
 	setDrawerOpen,
@@ -55,6 +62,8 @@ export default function LocationPageHeader({
 						accountName={accountName}
 						locationName={locationName}
 						pageName={pageName}
+						pageHref={pageHref}
+						parentCrumb={parentCrumb}
 					/>
 				</div>
 			</div>

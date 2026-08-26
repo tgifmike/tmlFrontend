@@ -42,7 +42,11 @@ export const AccessRoleSelectOrBadge = ({ user, onRoleChange }: Props) => {
 					if (!user.id) return;
 
 					try {
-						await updateUserAccessRole(user.id, value as AccessRole);
+						const response = await updateUserAccessRole(
+							user.id,
+							value as AccessRole,
+						);
+						if (response.error) throw new Error(response.error);
 						onRoleChange(user.id, value as AccessRole);
 						toast.success(
 							`User: ${

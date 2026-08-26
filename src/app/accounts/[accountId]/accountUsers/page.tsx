@@ -17,6 +17,7 @@ import { ReusableTable } from '@/components/tableComponents/ReusableTableProps';
 import { StatusSwitchOrBadge } from '@/components/tableComponents/StatusSwitchOrBadge';
 import { UserControls } from '@/components/tableComponents/UserControls';
 import { UserStatusSwitchOrBadge } from '@/components/tableComponents/UserStatusSwitch';
+import { UserInvitationStatus } from '@/components/tableComponents/UserInvitationStatus';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useSession } from '@/lib/auth/session-context';
 import { Icons } from '@/lib/icon';
@@ -302,6 +303,11 @@ const AccountUsersPage = () => {
 								{ header: 'User Name', render: (u) => u.userName },
 								{ header: 'Email', render: (u) => u.userEmail },
 								{
+									header: 'Invitation',
+									className: 'text-center',
+									render: (u) => <UserInvitationStatus user={u} />,
+								},
+								{
 									header: 'Status',
 									className: 'text-center ',
 									render: (u) => (
@@ -411,6 +417,10 @@ const AccountUsersPage = () => {
 								</Avatar>
 							}
 							fields={[
+								{
+									label: 'Invitation',
+									value: <UserInvitationStatus user={user} />,
+								},
 								{
 									label: 'Status',
 									value: (

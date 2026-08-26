@@ -1,6 +1,6 @@
 // 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, type ReactNode } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -29,6 +29,7 @@ type CreateLocationDialogProps = {
   existingLocations?: Locations[];
   accountId: string;
   userId: string;
+  trigger?: ReactNode;
 };
 
 const getSchema = (locations: Locations[] = []) =>
@@ -57,6 +58,7 @@ export default function CreateLocationDialog({
   existingLocations = [],
   accountId,
   userId,
+  trigger,
 }: CreateLocationDialogProps) {
   const [open, setOpen] = useState(false);
   const AddLocationIcon = Icons.addLocation;
@@ -115,13 +117,15 @@ export default function CreateLocationDialog({
   return (
 		<Dialog open={open} onOpenChange={setOpen}>
 			<DialogTrigger asChild>
-				<Button
-					variant="outline"
-					className="text-chart-3 font-bold text-sm md:text-lg px-3 py-1 md:px-4 md:py-2 flex items-center gap-2"
-				>
-					<AddLocationIcon className="!w-[25px] !h-[25px]" />
-					<span className="hidden md:inline">Create Location</span>
-				</Button>
+				{trigger ?? (
+					<Button
+						variant="outline"
+						className="text-chart-3 font-bold text-sm md:text-lg px-3 py-1 md:px-4 md:py-2 flex items-center gap-2"
+					>
+						<AddLocationIcon className="!w-[25px] !h-[25px]" />
+						<span className="hidden md:inline">Create Location</span>
+					</Button>
+				)}
 			</DialogTrigger>
 
 			<DialogContent>

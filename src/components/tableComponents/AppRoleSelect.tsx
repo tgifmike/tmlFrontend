@@ -36,7 +36,11 @@ export const AppRoleSelect = ({ user, onRoleChange }: Props) => {
 				if (!user.id) return;
 
 				try {
-					await updateUserAppRole(user.id, value as AppRole);
+					const response = await updateUserAppRole(
+						user.id,
+						value as AppRole,
+					);
+					if (response.error) throw new Error(response.error);
 					onRoleChange(user.id, value as AppRole);
 					toast.success(
 						`User: ${

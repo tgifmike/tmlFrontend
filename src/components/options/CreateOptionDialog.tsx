@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { type ReactNode, useEffect, useState } from 'react';
 import { OptionEntity, OptionType, OptionTypeLabels, User } from '@/app/types';
 import { createOption } from '@/app/api/optionsApi';
 import {
@@ -28,21 +28,31 @@ interface CreateOptionDialogProps {
 	accountId: string;
 	currentUser: User;
 	onOptionCreated: (option: OptionEntity) => void;
+	existingOptions?: OptionEntity[];
+	defaultOptionType?: OptionType;
+	trigger?: ReactNode;
 }
 
 export const CreateOptionDialog: React.FC<CreateOptionDialogProps> = ({
 	accountId,
 	currentUser,
 	onOptionCreated,
+	existingOptions = [],
+	defaultOptionType,
+	trigger,
 }) => {
 	const [open, setOpen] = useState(false);
 	const [optionName, setOptionName] = useState('');
 	const [optionActive, setOptionActive] = useState(true);
 	const [optionType, setOptionType] = useState<OptionType | undefined>(
-		undefined
+		defaultOptionType,
 	);
 
-//	const [optionType, setOptionType] = useState<OptionType>(OptionType.TOOL);
+	useEffect(() => {
+		if (open) setOptionType(defaultOptionType);
+	}, [defaultOptionType, open]);
+
+	//	const [optionType, setOptionType] = useState<OptionType>(OptionType.TOOL);
 	//state for loading status during option creation
 	const [loading, setLoading] = useState(false);
 
@@ -60,11 +70,32 @@ export const CreateOptionDialog: React.FC<CreateOptionDialogProps> = ({
 			return;
 		}
 
+		if (!optionType) {
+			toast.error('Option type is required.');
+			return;
+		}
+
+		const normalizedName = normalizeOptionName(optionName);
+		const duplicate = existingOptions.find(
+			(option) =>
+				option.optionType === optionType &&
+				normalizeOptionName(option.optionName) === normalizedName,
+		);
+
+		if (duplicate) {
+			toast.error(
+				`${OptionTypeLabels[optionType]} “${duplicate.optionName}” already exists${
+					duplicate.optionActive ? '.' : ' but is currently inactive.'
+				}`,
+			);
+			return;
+		}
+
 		setLoading(true);
 		try {
 			const created: OptionEntity = await createOption(
-				{ optionName, optionActive, optionType, accountId },
-				currentUser.id
+				{ optionName: optionName.trim(), optionActive, optionType, accountId },
+				currentUser.id,
 			);
 
 			onOptionCreated(created);
@@ -72,14 +103,14 @@ export const CreateOptionDialog: React.FC<CreateOptionDialogProps> = ({
 			// Reset form
 			setOptionName('');
 			setOptionActive(true);
-			setOptionType(OptionType.TOOL);
+			setOptionType(defaultOptionType);
 			setOpen(false);
 			toast.success('Option saved successfully!');
 		} catch (err: any) {
 			toast.error(
 				err?.response?.data?.message ||
 					err.message ||
-					'Failed to create option.'
+					'Failed to create option.',
 			);
 		} finally {
 			setLoading(false);
@@ -89,13 +120,15 @@ export const CreateOptionDialog: React.FC<CreateOptionDialogProps> = ({
 	return (
 		<Dialog open={open} onOpenChange={setOpen}>
 			<DialogTrigger asChild>
-				<Button
-					variant="outline"
-					className="text-chart-3 font-bold text-sm md:text-lg px-3 py-1 md:px-4 md:py-2 flex items-center gap-2"
-				>
-					<ToolboxIcon className="!w-[25px] !h-[25px]" />
-					<span className="hidden md:inline">Create Option</span>
-				</Button>
+				{trigger ?? (
+					<Button
+						variant="outline"
+						className="text-chart-3 font-bold text-sm md:text-lg px-3 py-1 md:px-4 md:py-2 flex items-center gap-2"
+					>
+						<ToolboxIcon className="!w-[25px] !h-[25px]" />
+						<span className="hidden md:inline">Create Option</span>
+					</Button>
+				)}
 			</DialogTrigger>
 			<DialogContent className="sm:max-w-[425px] bg-accent">
 				<DialogHeader>
@@ -163,3 +196,7 @@ export const CreateOptionDialog: React.FC<CreateOptionDialogProps> = ({
 		</Dialog>
 	);
 };
+
+function normalizeOptionName(value: string) {
+	return value.trim().replace(/\s+/g, ' ').toLocaleLowerCase();
+}
