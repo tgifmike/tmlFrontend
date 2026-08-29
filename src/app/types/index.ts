@@ -139,6 +139,12 @@ export interface Item {
 	tool?: boolean;
 	tempTaken?: boolean;
 	isMissing?: boolean;
+	isCorrected?: boolean;
+	corrected?: boolean;
+	correctiveNotes?: string | null;
+	correctedAt?: string | null;
+	correctedBy?: string | null;
+	correctedByName?: string | null;
 	completedAt?: string | null;
 	createdAt?: string | null;
 	updatedAt?: string | null;

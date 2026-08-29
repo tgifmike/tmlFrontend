@@ -46,8 +46,8 @@ export const metadata: Metadata = {
 		images: [
 			{
 				url: '/newLogo.png',
-				width: 1200,
-				height: 630,
+				width: 1024,
+				height: 1024,
 				alt: 'The Manager Life',
 			},
 		],

@@ -1,7 +1,8 @@
 'use client';
 
+import { ListChecks } from 'lucide-react';
+
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { motion } from 'framer-motion';
 
 interface RankedItemDto {
 	itemName: string;
@@ -14,64 +15,55 @@ interface Props {
 	topIncorrectPrepItems?: RankedItemDto[];
 }
 
-function renderItems(data?: RankedItemDto[]) {
-	if (!data?.length) return 'N/A';
-
-	return data.slice(0, 5).map((item, i) => (
-		<div key={item.itemName}>
-			{i + 1}. {item.itemName} ({item.count})
-		</div>
-	));
-}
-
 export default function TopIssueItemsCard({
 	topMissingItems,
 	topOutOfTempItems,
 	topIncorrectPrepItems,
 }: Props) {
 	const rows = [
-		{
-			label: 'Top 5 Missing Items',
-			value: renderItems(topMissingItems),
-		},
-		{
-			label: 'Top 5 Out-of-Temp Items',
-			value: renderItems(topOutOfTempItems),
-		},
-		{
-			label: 'Top 5 Incorrect Prep Items',
-			value: renderItems(topIncorrectPrepItems),
-		},
+		{ label: 'Frequently missing', data: topMissingItems },
+		{ label: 'Temperature problems', data: topOutOfTempItems },
+		{ label: 'Preparation problems', data: topIncorrectPrepItems },
 	];
 
 	return (
-		<motion.div
-			initial={{ opacity: 0, y: 8 }}
-			animate={{ opacity: 1, y: 0 }}
-			transition={{ duration: 0.25 }}
-		>
-			<Card>
-				<CardHeader className="pb-2">
-					<CardTitle className="text-base md:text-lg">
-						📦 Most Problematic Items (Last 30 Days)
-					</CardTitle>
-				</CardHeader>
+		<Card className="gap-0 overflow-hidden py-0 shadow-sm">
+			<CardHeader className="border-b px-5 py-4 sm:px-6">
+				<div className="flex items-center gap-3">
+					<span className="flex size-9 items-center justify-center rounded-xl bg-chart-3/10 text-chart-3">
+						<ListChecks className="size-4.5" aria-hidden="true" />
+					</span>
+					<div>
+						<CardTitle className="text-base">Recurring item issues</CardTitle>
+						<p className="mt-1 text-xs text-muted-foreground">The five most frequently affected items in the last 30 days.</p>
+					</div>
+				</div>
+			</CardHeader>
+			<CardContent className="grid gap-3 p-4 sm:p-5 lg:grid-cols-3">
+				{rows.map((row) => (
+					<ItemRankingPanel key={row.label} label={row.label} data={row.data} />
+				))}
+			</CardContent>
+		</Card>
+	);
+}
 
-				<CardContent className="grid grid-cols-1 md:grid-cols-3 gap-3">
-					{rows.map((row) => (
-						<div
-							key={row.label}
-							className="flex flex-col gap-1 rounded-xl border p-3 shadow-sm"
-						>
-							<span className="text-xs text-muted-foreground">{row.label}</span>
-
-							<div className="flex flex-col text-sm md:text-base space-y-1">
-								{row.value}
-							</div>
-						</div>
+function ItemRankingPanel({ label, data }: { label: string; data?: RankedItemDto[] }) {
+	return (
+		<div className="rounded-xl border bg-muted/15 p-4">
+			<p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{label}</p>
+			{data?.length ? (
+				<ol className="mt-3 space-y-2">
+					{data.slice(0, 5).map((item, index) => (
+						<li key={item.itemName} className="flex items-center justify-between gap-3 text-sm">
+							<span className="min-w-0 truncate"><span className="mr-2 text-muted-foreground">{index + 1}.</span>{item.itemName}</span>
+							<span className="rounded-full bg-background px-2 py-0.5 text-xs font-semibold tabular-nums">{item.count}</span>
+						</li>
 					))}
-				</CardContent>
-			</Card>
-		</motion.div>
+				</ol>
+			) : (
+				<p className="mt-3 text-sm text-muted-foreground">Not enough data yet.</p>
+			)}
+		</div>
 	);
 }

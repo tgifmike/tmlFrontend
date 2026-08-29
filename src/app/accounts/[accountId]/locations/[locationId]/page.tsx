@@ -1,7 +1,14 @@
 'use client';
 
+import { useEffect, useState } from 'react';
+import { useParams, useRouter } from 'next/navigation';
+import { toast } from 'sonner';
+
 import { getAccountsForUser } from '@/app/api/accountApi';
-import { getLineCheckSettings, getUserLocationAccess } from '@/app/api/locationApi';
+import {
+	getLineCheckSettings,
+	getUserLocationAccess,
+} from '@/app/api/locationApi';
 import RobustLineCheckDashboard from '@/components/locaitons/RobustLineCheckDashboard';
 import TimeOfDayGreeting from '@/components/login/TimeOfDayGreeting';
 import LocationNav from '@/components/navBar/LocationNav';
@@ -9,125 +16,136 @@ import LocationPageHeader from '@/components/navBar/LocationPageHeader';
 import Spinner from '@/components/spinner/Spinner';
 import { useSession } from '@/lib/auth/session-context';
 
-import { useParams, useRouter } from 'next/navigation';
-
-import React, { useEffect, useState } from 'react'
-import { toast } from 'sonner';
-
-
+const DEFAULT_DAILY_GOAL = 5;
 
 const LocationPage = () => {
-	//icons
-
-	//session
-	const { user } = useSession();
-	const sessionUserRole = user?.appRole;
+	const { user, loading } = useSession();
 	const params = useParams<{ accountId: string; locationId: string }>();
-	const accountIdParam = params.accountId;
-	const locationIdParam = params.locationId;
+	const accountId = params.accountId;
+	const locationId = params.locationId;
 	const router = useRouter();
 
-	// state
 	const [loadingAccess, setLoadingAccess] = useState(true);
 	const [locationName, setLocationName] = useState<string | null>(null);
 	const [accountName, setAccountName] = useState<string | null>(null);
 	const [accountImage, setAccountImage] = useState<string | null>(null);
 	const [drawerOpen, setDrawerOpen] = useState(false);
-	const [lineCheckSettings, setLineCheckSettings] = useState<{ dailyGoal: number }>({ dailyGoal: 5 });
-
-
+	const [dailyGoal, setDailyGoal] = useState(DEFAULT_DAILY_GOAL);
 
 	useEffect(() => {
-		if (!user?.id) return;
-		if (!accountIdParam || !locationIdParam) return;
+		if (loading || !accountId || !locationId) return;
+		if (!user?.id) {
+			router.push('/login');
+			return;
+		}
 
-		const verifyAccess = async () => {
+		let cancelled = false;
+		const loadLocation = async () => {
+			setLoadingAccess(true);
 			try {
-				const response = await getAccountsForUser(user.id);
-				const account = response.data?.find(
-					// const account = accountList.find(
-					(acc: any) => acc.id?.toString() === accountIdParam
-				);
+				const [accountsResponse, locationsResponse] = await Promise.all([
+					getAccountsForUser(user.id),
+					getUserLocationAccess(user.id),
+				]);
+				if (cancelled) return;
 
+				if (accountsResponse.error) throw new Error(accountsResponse.error);
+				if (locationsResponse.error) throw new Error(locationsResponse.error);
+
+				const account = (accountsResponse.data ?? []).find(
+					(candidate) => candidate.id?.toString() === accountId,
+				);
 				if (!account) {
-					// console.warn('No matching account found', { accountList, accountIdParam });
 					toast.error('You do not have access to this account.');
 					router.push('/accounts');
 					return;
 				}
 
-				// Check location access
-				const locationResponse = await getUserLocationAccess(user.id);
-				const location = locationResponse.data?.find(
-					(loc) => loc.id?.toString() === locationIdParam
+				const location = (locationsResponse.data ?? []).find(
+					(candidate) => candidate.id?.toString() === locationId,
 				);
-
 				if (!location) {
 					toast.error('You do not have access to this location.');
-					router.push(`/accounts/${accountIdParam}`);
+					router.push(`/accounts/${accountId}`);
 					return;
 				}
 
-				setAccountName(account.accountName);
+				setAccountName(account.accountName ?? null);
 				setAccountImage(account.imageBase64 || account.accountImage || null);
 				setLocationName(location.locationName);
 
-				const settingsRes = await getLineCheckSettings(locationIdParam);
-				setLineCheckSettings({ dailyGoal: settingsRes.data?.dailyGoal ?? 5 });
-				
-			} catch (err) {
-				toast.error('You do not have access to this location.');
-				router.push('/accounts');
+				const settingsResponse = await getLineCheckSettings(locationId);
+				if (!cancelled) {
+					setDailyGoal(
+						Math.max(1, settingsResponse.data?.dailyGoal ?? DEFAULT_DAILY_GOAL),
+					);
+				}
+			} catch (error) {
+				if (!cancelled) {
+					toast.error(
+						error instanceof Error
+							? error.message
+							: 'Failed to load this location.',
+					);
+					router.push('/accounts');
+				}
 			} finally {
-				setLoadingAccess(false);
+				if (!cancelled) setLoadingAccess(false);
 			}
 		};
 
-		verifyAccess();
-	}, [user?.id, accountIdParam, locationIdParam, router]);
+		loadLocation();
+		return () => {
+			cancelled = true;
+		};
+	}, [loading, user?.id, accountId, locationId, router]);
 
-	//show loadding state
-	if (loadingAccess)
+	if (loading || loadingAccess) {
 		return (
 			<div className="flex items-center justify-center py-40 text-xl text-chart-3">
 				<Spinner />
 				<span className="ml-4">Loading location…</span>
 			</div>
 		);
+	}
 
 	return (
 		<main className="flex min-h-screen overflow-hidden">
-			{/* Desktop Sidebar */}
-			{/* left nav */}
 			<aside className="hidden w-1/6 shrink-0 self-stretch border-r bg-ring md:block">
 				<LocationNav
 					accountName={accountName}
 					accountImage={accountImage}
-					accountId={accountIdParam}
-					locationId={locationIdParam}
-					sessionUserRole={sessionUserRole}
+					accountId={accountId}
+					locationId={locationId}
+					sessionUserRole={user?.appRole}
 				/>
 			</aside>
 
-			{/* main content */}
-			<section className="flex-1 flex flex-col">
+			<section className="flex min-w-0 flex-1 flex-col">
 				<LocationPageHeader
-					accountId={accountIdParam}
-					locationId={locationIdParam}
+					accountId={accountId}
+					locationId={locationId}
 					accountName={accountName}
 					accountImage={accountImage}
 					locationName={locationName}
-					sessionUserRole={sessionUserRole}
+					pageName="Dashboard"
+					sessionUserRole={user?.appRole}
 					drawerOpen={drawerOpen}
 					setDrawerOpen={setDrawerOpen}
-				>
-					<TimeOfDayGreeting name={user?.name} />
-				</LocationPageHeader>
-				<div className="flex flex-col justify-between p-2 gap-3">
-					<div>
+				/>
+
+				<div className="flex-1 overflow-y-auto p-4 sm:p-6">
+					<div className="mx-auto w-full max-w-7xl space-y-6">
+						<div className="rounded-2xl border bg-gradient-to-br from-card via-card to-chart-3/5 px-5 py-6 shadow-sm sm:px-7">
+							<TimeOfDayGreeting name={user?.name} />
+							<p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground sm:text-base">
+								Here is today&apos;s operational picture for {locationName || 'this location'}.
+							</p>
+						</div>
+
 						<RobustLineCheckDashboard
-							locationId={locationIdParam!}
-							dailyGoal={lineCheckSettings.dailyGoal}
+							locationId={locationId}
+							dailyGoal={dailyGoal}
 						/>
 					</div>
 				</div>

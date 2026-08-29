@@ -1,6 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
-import { ArrowRight, CirclePlay } from 'lucide-react';
+import { ArrowRight, CirclePlay, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 const Hero = () => {
@@ -14,8 +14,9 @@ const Hero = () => {
 					{/* LEFT */}
 					<div>
 						{/* badge */}
-						<div className="inline-flex items-center px-3 py-1 rounded-full border bg-background text-xs font-medium text-muted-foreground mb-6">
-							Built for Multi-Unit Kitchens & Operators
+						<div className="mb-6 inline-flex items-center gap-1.5 rounded-full border bg-background px-3 py-1 text-xs font-medium text-muted-foreground">
+							<Sparkles className="size-3.5 text-primary" aria-hidden="true" />
+							AI-Assisted Setup for Restaurant Operators
 						</div>
 
 						{/* headline */}
@@ -32,6 +33,21 @@ const Hero = () => {
 							real-time compliance tracking—without paper binders or missed
 							steps.
 						</p>
+
+						<div className="mt-6 flex max-w-xl items-start gap-3 rounded-2xl border border-primary/15 bg-primary/5 p-4">
+							<span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+								<Sparkles className="size-4" aria-hidden="true" />
+							</span>
+							<div>
+								<p className="font-semibold text-foreground">
+									Get operational quickly with AI-assisted onboarding
+								</p>
+								<p className="mt-1 text-sm leading-6 text-muted-foreground">
+									Create your location, describe the operation, and review a
+									starting blueprint for stations, options, and items.
+								</p>
+							</div>
+						</div>
 
 						{/* CTA */}
 						<div className="mt-8 flex flex-col sm:flex-row gap-3">
