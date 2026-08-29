@@ -243,10 +243,11 @@ export default function LoginCard() {
 				<CardHeader className="flex flex-col items-center text-center space-y-4 pt-8">
 					<Image
 						src="/newLogo.png"
-						alt="logo"
-						width={72}
-						height={72}
-						className="rounded-full shadow-md"
+						alt="The Manager Life"
+						width={320}
+						height={180}
+						priority
+						className="h-48 w-full max-w-xs object-contain object-center"
 					/>
 
 					<div className="space-y-1">

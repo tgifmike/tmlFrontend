@@ -1,292 +1,583 @@
 'use client';
 
-import React from 'react';
 import {
 	Document,
+	Image,
 	Page,
+	StyleSheet,
 	Text,
 	View,
-	Image,
-	StyleSheet,
-	Font,
 } from '@react-pdf/renderer';
-import { LineCheck } from '@/app/types';
 
-// Register a font that supports Unicode checkmarks
-Font.register({
-	family: 'DejaVuSans',
-	src: 'https://cdn.jsdelivr.net/npm/dejavu-fonts-ttf@2.37.1/ttf/DejaVuSans.ttf',
-});
+import type { Item, LineCheck, LineCheckPhoto } from '@/app/types';
 
-interface Props {
+interface LineCheckPdfProps {
 	lineCheck: LineCheck;
 	accountName?: string;
 	accountImage?: string | null;
 	locationName?: string;
+	brandLogoUrl?: string;
+	photosByItemId?: Record<string, LineCheckPhoto[]>;
 }
+
+const colors = {
+	ink: '#172033',
+	muted: '#667085',
+	border: '#D9DEE8',
+	surface: '#F7F8FA',
+	brand: '#345995',
+	success: '#18794E',
+	successBackground: '#E8F7EF',
+	danger: '#B42318',
+	dangerBackground: '#FDECEC',
+	warning: '#935F00',
+	warningBackground: '#FFF4D6',
+};
 
 const styles = StyleSheet.create({
 	page: {
-		fontSize: 8,
-		paddingTop: 45,
-		paddingBottom: 15,
-		paddingLeft: 15,
-		paddingRight: 65,
-		flexDirection: 'column',
-		fontFamily: 'DejaVuSans',
-		margin: 0,
+		paddingTop: 28,
+		paddingRight: 32,
+		paddingBottom: 34,
+		paddingLeft: 32,
+		fontFamily: 'Helvetica',
+		fontSize: 9,
+		color: colors.ink,
 	},
-	headerContainer: {
+	header: {
 		flexDirection: 'row',
+		alignItems: 'center',
 		justifyContent: 'space-between',
-		alignItems: 'flex-start',
-		marginBottom: 6,
-	},
-	headerText: { fontSize: 12, fontWeight: 'bold', lineHeight: 1 },
-	accountImage: {
-		width: 50,
-		height: 50,
-		borderRadius: 30,
-		objectFit: 'cover',
-		overflow: 'hidden',
-		marginRight: 0,
-	},
-	stationSection: {
-		marginTop: 2,
-		padding: 8,
-		borderWidth: 1,
-		borderColor: '#000',
-		borderRadius: 6,
-	},
-	stationHeader: { fontSize: 10, fontWeight: 'bold', marginBottom: 5 },
-	tableHeader: {
-		flexDirection: 'row',
-		borderBottomColor: '#000',
+		paddingBottom: 14,
 		borderBottomWidth: 1,
-		paddingBottom: 4,
-		marginBottom: 2,
+		borderBottomColor: colors.border,
 	},
-	tableRow: { flexDirection: 'row', paddingVertical: 2 },
-	shadedRow: {
+	headerCopy: {
+		flexGrow: 1,
+		paddingRight: 18,
+	},
+	title: {
+		fontSize: 20,
+		fontWeight: 700,
+		marginBottom: 5,
+	},
+	subtitle: {
+		fontSize: 10,
+		color: colors.muted,
+	},
+	logos: {
 		flexDirection: 'row',
-		backgroundColor: '#f2f2f2',
-		paddingVertical: 4,
-		paddingHorizontal: 3,
-	},
-	cell: { paddingHorizontal: 3 },
-	centeredCell: {
-		textAlign: 'center',
-		justifyContent: 'center',
 		alignItems: 'center',
 	},
-	itemName: { flex: 1 },
-	shelfLife: { flex: 1 },
-	container: { flex: 1 },
-	tool: { flex: 1 },
-	portion: { flex: 1 },
-	temp: { flex: 1 },
-	checked: { flex: 1 },
-	notes: { flex: 1.5 },
-	observations: { flex: 1.5 },
+	brandLogo: {
+		width: 82,
+		height: 64,
+		objectFit: 'contain',
+	},
+	accountLogo: {
+		width: 48,
+		height: 48,
+		marginLeft: 10,
+		borderRadius: 8,
+		objectFit: 'cover',
+	},
+	metaGrid: {
+		flexDirection: 'row',
+		marginTop: 12,
+		padding: 10,
+		borderRadius: 7,
+		backgroundColor: colors.surface,
+	},
+	metaColumn: {
+		width: '25%',
+		paddingRight: 10,
+	},
+	label: {
+		fontSize: 7,
+		fontWeight: 700,
+		textTransform: 'uppercase',
+		color: colors.muted,
+		marginBottom: 3,
+	},
+	metaValue: {
+		fontSize: 9,
+		fontWeight: 700,
+	},
+	stationSection: {
+		marginTop: 14,
+		borderWidth: 1,
+		borderColor: colors.border,
+		borderRadius: 8,
+		overflow: 'hidden',
+	},
+	stationHeader: {
+		paddingVertical: 8,
+		paddingHorizontal: 10,
+		backgroundColor: '#EEF1F6',
+		borderBottomWidth: 1,
+		borderBottomColor: colors.border,
+	},
+	stationName: {
+		fontSize: 12,
+		fontWeight: 700,
+	},
+	itemCard: {
+		paddingVertical: 10,
+		paddingHorizontal: 10,
+		borderBottomWidth: 1,
+		borderBottomColor: colors.border,
+	},
+	lastItemCard: {
+		borderBottomWidth: 0,
+	},
+	itemHeading: {
+		flexDirection: 'row',
+		alignItems: 'flex-start',
+		justifyContent: 'space-between',
+		marginBottom: 7,
+	},
+	itemName: {
+		fontSize: 11,
+		fontWeight: 700,
+		maxWidth: '58%',
+	},
+	statusRow: {
+		flexDirection: 'row',
+		alignItems: 'center',
+		justifyContent: 'flex-end',
+		maxWidth: '40%',
+	},
+	pill: {
+		paddingVertical: 3,
+		paddingHorizontal: 6,
+		borderRadius: 8,
+		marginLeft: 4,
+	},
+	pillText: {
+		fontSize: 7,
+		fontWeight: 700,
+	},
+	successPill: {
+		backgroundColor: colors.successBackground,
+	},
+	successText: {
+		color: colors.success,
+	},
+	dangerPill: {
+		backgroundColor: colors.dangerBackground,
+	},
+	dangerText: {
+		color: colors.danger,
+	},
+	itemDetails: {
+		flexDirection: 'row',
+		alignItems: 'flex-start',
+	},
+	detailColumn: {
+		width: '32%',
+		paddingRight: 12,
+	},
+	notesColumn: {
+		width: '68%',
+	},
+	detailText: {
+		fontSize: 8,
+		lineHeight: 1.45,
+		color: colors.ink,
+		marginBottom: 2,
+	},
+	emptyText: {
+		fontSize: 8,
+		color: colors.muted,
+	},
+	noteBlock: {
+		marginBottom: 6,
+	},
+	noteText: {
+		fontSize: 8,
+		lineHeight: 1.5,
+	},
+	correctionBox: {
+		marginTop: 4,
+		paddingVertical: 7,
+		paddingHorizontal: 8,
+		borderWidth: 1,
+		borderRadius: 6,
+	},
+	correctionResolved: {
+		borderColor: '#B7E2CA',
+		backgroundColor: colors.successBackground,
+	},
+	correctionPending: {
+		borderColor: '#F1D48A',
+		backgroundColor: colors.warningBackground,
+	},
+	correctionHeading: {
+		fontSize: 8,
+		fontWeight: 700,
+		marginBottom: 4,
+	},
+	warningText: {
+		color: colors.warning,
+	},
+	correctionMeta: {
+		fontSize: 7,
+		lineHeight: 1.4,
+		marginTop: 4,
+		color: colors.muted,
+	},
+	photosSection: {
+		marginTop: 8,
+	},
+	photos: {
+		flexDirection: 'row',
+		flexWrap: 'wrap',
+		alignItems: 'flex-start',
+	},
+	photoCard: {
+		width: 62,
+		marginRight: 8,
+		marginBottom: 6,
+	},
+	photo: {
+		width: 58,
+		height: 48,
+		borderRadius: 4,
+		objectFit: 'cover',
+	},
+	photoLabel: {
+		fontSize: 6,
+		fontWeight: 700,
+		marginTop: 3,
+		textAlign: 'center',
+		color: colors.muted,
+	},
+	photoNotes: {
+		fontSize: 6,
+		lineHeight: 1.3,
+		marginTop: 2,
+		color: colors.muted,
+	},
+	footer: {
+		position: 'absolute',
+		left: 32,
+		right: 32,
+		bottom: 14,
+		flexDirection: 'row',
+		justifyContent: 'space-between',
+		fontSize: 7,
+		color: colors.muted,
+	},
 });
 
-// Table Header
-const TableHeader = () => (
-	<View style={styles.tableHeader} fixed>
-		<Text style={[styles.cell, styles.itemName]}>Item</Text>
-		<Text style={[styles.cell, styles.centeredCell, styles.shelfLife]}>
-			Shelf Life
-		</Text>
-		<Text style={[styles.cell, styles.centeredCell, styles.container]}>
-			Container
-		</Text>
-		<Text style={[styles.cell, styles.centeredCell, styles.tool]}>Tool</Text>
-		<Text style={[styles.cell, styles.centeredCell, styles.portion]}>
-			Portion Size
-		</Text>
-		<Text style={[styles.cell, styles.centeredCell, styles.notes]}>Notes</Text>
-		<Text style={[styles.cell, styles.centeredCell, styles.temp]}>
-			Temp / Checked
-		</Text>
-		<Text style={[styles.cell, styles.observations]}>Observations</Text>
-	</View>
-);
-
-const LineCheckPdf: React.FC<Props> = ({
+const LineCheckPdf = ({
 	lineCheck,
 	accountName,
 	accountImage,
 	locationName,
-}) => (
-	<Document>
-		<Page size="A4" orientation="landscape" style={styles.page}>
-			{/* Header */}
-			<View style={styles.headerContainer}>
-				<View style={{ flexDirection: 'column', gap: 2 }}>
-					<Text style={{ fontSize: 12, fontWeight: 'bold' }}>Line Check</Text>
-					<Text>Account Name: {accountName || '-'}</Text>
-					<Text>Location Name: {locationName || '-'}</Text>
-					<Text>Performed by: {lineCheck.username || '-'}</Text>
-					<Text>
-						Line Check Start Time:{' '}
-						{lineCheck.checkTime
-							? new Date(lineCheck.checkTime).toLocaleString()
-							: '-'}
-					</Text>
-					<Text>
-						Line Check Complete Time:{' '}
-						{lineCheck.completedAt
-							? new Date(lineCheck.completedAt).toLocaleString()
-							: '-'}
-					</Text>
-				</View>
+	brandLogoUrl,
+	photosByItemId = {},
+}: LineCheckPdfProps) => {
+	const normalizedAccountImage = normalizeImageSource(accountImage);
+	const stations = lineCheck.stations ?? [];
 
-				{accountImage ? (
-					<Image
-						style={{
-							width: 60,
-							height: 60,
-							borderRadius: 30,
-							objectFit: 'cover',
-							marginLeft: 20,
-						}}
-						src={
-							accountImage.startsWith('data:image')
-								? accountImage
-								: `data:image/png;base64,${accountImage}`
-						}
+	return (
+		<Document
+			title={`Line check - ${locationName || accountName || 'report'}`}
+			author="The Manager Life"
+			subject="Completed restaurant line check"
+		>
+			{stations.length > 0 ? (
+				stations.map((station, stationIndex) => (
+					<Page key={station.id} size="A4" orientation="portrait" style={styles.page} wrap>
+						<PdfReportHeader
+							accountName={accountName}
+							accountImage={normalizedAccountImage}
+							locationName={locationName}
+							brandLogoUrl={brandLogoUrl}
+						/>
+						<View style={styles.metaGrid}>
+							<MetaItem label="Performed by" value={lineCheck.username || 'Unknown'} />
+							<MetaItem label="Started" value={formatDateTime(lineCheck.checkTime)} />
+							<MetaItem label="Completed" value={formatDateTime(lineCheck.completedAt)} />
+							<MetaItem label="Station" value={`${stationIndex + 1} of ${stations.length}`} />
+						</View>
+						<View style={styles.stationSection}>
+							<View style={styles.stationHeader}>
+								<Text style={styles.stationName}>{station.stationName}</Text>
+							</View>
+							{station.items?.map((item, index) => (
+								<PdfItem
+									key={item.id}
+									item={item}
+									photos={item.id ? photosByItemId[item.id] ?? [] : []}
+									isLast={index === station.items.length - 1}
+								/>
+							))}
+						</View>
+						<PdfFooter />
+					</Page>
+				))
+			) : (
+				<Page size="A4" orientation="portrait" style={styles.page}>
+					<PdfReportHeader
+						accountName={accountName}
+						accountImage={normalizedAccountImage}
+						locationName={locationName}
+						brandLogoUrl={brandLogoUrl}
 					/>
-				) : (
-					<Text>No Logo added</Text>
-				)}
+					<View style={styles.stationSection}>
+						<Text style={styles.emptyText}>No stations were recorded for this line check.</Text>
+					</View>
+					<PdfFooter />
+				</Page>
+			)}
+		</Document>
+	);
+};
+
+function PdfReportHeader({
+	accountName,
+	accountImage,
+	locationName,
+	brandLogoUrl,
+}: {
+	accountName?: string;
+	accountImage: string | null;
+	locationName?: string;
+	brandLogoUrl?: string;
+}) {
+	return (
+		<View style={styles.header}>
+			<View style={styles.headerCopy}>
+				<Text style={styles.title}>Completed Line Check</Text>
+				<Text style={styles.subtitle}>
+					{accountName || 'Account'} · {locationName || 'Location'}
+				</Text>
+			</View>
+			<View style={styles.logos}>
+				{brandLogoUrl && <Image src={brandLogoUrl} style={styles.brandLogo} />}
+				{accountImage && <Image src={accountImage} style={styles.accountLogo} />}
+			</View>
+		</View>
+	);
+}
+
+function PdfFooter() {
+	return (
+		<View style={styles.footer} fixed>
+			<Text>The Manager Life · Line-check record</Text>
+			<Text
+				render={({ pageNumber, totalPages }) =>
+					`Page ${pageNumber} of ${totalPages}`
+				}
+			/>
+		</View>
+	);
+}
+
+function MetaItem({ label, value }: { label: string; value: string }) {
+	return (
+		<View style={styles.metaColumn}>
+			<Text style={styles.label}>{label}</Text>
+			<Text style={styles.metaValue}>{value}</Text>
+		</View>
+	);
+}
+
+function PdfItem({
+	item,
+	photos,
+	isLast,
+}: {
+	item: Item;
+	photos: LineCheckPhoto[];
+	isLast: boolean;
+}) {
+	const result = getItemResult(item);
+	const issues = getItemIssues(item);
+	const setupDetails = getSetupDetails(item);
+	const hasCorrectionRecord = hasItemCorrection(item);
+
+	return (
+		<View style={[styles.itemCard, ...(isLast ? [styles.lastItemCard] : [])]}>
+			<View style={styles.itemHeading}>
+				<Text style={styles.itemName}>{item.itemName}</Text>
+				<View style={styles.statusRow}>
+					<PdfPill text={result.text} tone={result.tone} />
+					{issues.map((issue) => (
+						<PdfPill key={issue} text={issue} tone="danger" />
+					))}
+				</View>
 			</View>
 
-			{/* Stations */}
-			{lineCheck.stations?.map((station) => (
-				<View key={station.id} style={styles.stationSection}>
-					<Text style={styles.stationHeader}>
-						Station: {station.stationName}
-					</Text>
-					<TableHeader />
-
-					{station.items?.map((item, index) => {
-						const shaded = index % 2 === 1;
-						const rowStyles = [styles.tableRow];
-						if (shaded) rowStyles.push(styles.shadedRow);
-
-						const tempValid =
-							item.temperature != null &&
-							item.minTemp != null &&
-							item.maxTemp != null &&
-							item.temperature >= item.minTemp &&
-							item.temperature <= item.maxTemp;
-
-						return (
-							<View key={item.id} style={rowStyles} wrap={false}>
-								<Text style={[styles.cell, styles.itemName]}>
-									{item.itemName}
-								</Text>
-								<Text
-									style={[styles.cell, styles.centeredCell, styles.shelfLife]}
-								>
-									{item.shelfLife || '-'}
-								</Text>
-								<Text
-									style={[styles.cell, styles.centeredCell, styles.container]}
-								>
-									{item.panSize || '-'}
-								</Text>
-								<Text style={[styles.cell, styles.centeredCell, styles.tool]}>
-									{item.tool ? item.toolName : '-'}
-								</Text>
-								<Text
-									style={[styles.cell, styles.centeredCell, styles.portion]}
-								>
-									{item.isPortioned ? item.portionSize : '-'}
-								</Text>
-								<Text style={[styles.cell, styles.centeredCell, styles.notes]}>
-									{item.templateNotes || '-'}
-								</Text>
-
-								{/* TEMP / CHECK / MISSING */}
-								{item.isMissing ? (
-									<Text
-										style={[
-											styles.cell,
-											styles.temp,
-											styles.centeredCell,
-											{ color: 'red', fontWeight: 'bold' },
-										]}
-									>
-										Item Missing!
-									</Text>
-								) : item.tempTaken ? (
-									<View
-										style={[
-											styles.cell,
-											styles.temp,
-											styles.centeredCell,
-											{ flexDirection: 'column' },
-										]}
-									>
-										<Text
-											style={{
-												color: tempValid ? 'green' : 'red',
-												fontSize: 10,
-											}}
-										>
-											{item.temperature ?? '-'}°
-										</Text>
-										{item.minTemp != null && item.maxTemp != null && (
-											<Text style={{ fontSize: 6, color: '#555' }}>
-												{item.minTemp}° - {item.maxTemp}°
-											</Text>
-										)}
-									</View>
-								) : (
-									<Text
-										style={[
-											styles.cell,
-											styles.checked,
-											styles.centeredCell,
-											{
-												color: item.itemChecked ? 'green' : 'red',
-												fontSize: 12,
-												fontFamily: 'DejaVuSans',
-											},
-										]}
-									>
-										{item.itemChecked ? '✓' : '✘'}
-									</Text>
-								)}
-
-								<Text style={[styles.cell, styles.observations]}>
-									{item.observations || '-'}
-								</Text>
-							</View>
-						);
-					})}
+			<View style={styles.itemDetails}>
+				<View style={styles.detailColumn}>
+					<Text style={styles.label}>Setup</Text>
+					{setupDetails.length > 0 ? (
+						setupDetails.map((detail) => (
+							<Text key={detail} style={styles.detailText}>{detail}</Text>
+						))
+					) : (
+						<Text style={styles.emptyText}>No setup details</Text>
+					)}
 				</View>
-			))}
 
-			{/* Page Number */}
+				<View style={styles.notesColumn}>
+					{item.templateNotes?.trim() && (
+						<PdfNote label="Setup note" text={item.templateNotes.trim()} />
+					)}
+					{item.observations?.trim() && (
+						<PdfNote label="Line-check observation" text={item.observations.trim()} />
+					)}
+					{!item.templateNotes?.trim() && !item.observations?.trim() && (
+						<>
+							<Text style={styles.label}>Notes &amp; observations</Text>
+							<Text style={styles.emptyText}>None recorded</Text>
+						</>
+					)}
+				</View>
+			</View>
+
+			{hasCorrectionRecord && <PdfCorrection item={item} />}
+
+			{photos.length > 0 && (
+				<View style={styles.photosSection}>
+					<Text style={styles.label}>iPad photos</Text>
+					<View style={styles.photos}>
+						{photos.map((photo) => (
+							<View key={photo.id} style={styles.photoCard} wrap={false}>
+								<Image src={photo.url} style={styles.photo} />
+								<Text style={styles.photoLabel}>{formatPhotoType(photo.photoType)}</Text>
+								{photo.notes?.trim() && (
+									<Text style={styles.photoNotes}>{photo.notes.trim()}</Text>
+								)}
+							</View>
+						))}
+					</View>
+				</View>
+			)}
+		</View>
+	);
+}
+
+function PdfCorrection({ item }: { item: Item }) {
+	const corrected = item.isCorrected ?? item.corrected ?? false;
+	const correctiveNotes = item.correctiveNotes?.trim();
+
+	return (
+		<View
+			style={[
+				styles.correctionBox,
+				corrected ? styles.correctionResolved : styles.correctionPending,
+			]}
+		>
 			<Text
-				style={{
-					position: 'absolute',
-					bottom: 10,
-					left: 0,
-					right: 0,
-					textAlign: 'center',
-					fontSize: 10,
-					color: '#555',
-				}}
-				render={({ pageNumber, totalPages }) =>
-					`Page ${pageNumber} / ${totalPages}`
-				}
-				fixed
-			/>
-		</Page>
-	</Document>
+				style={[
+					styles.correctionHeading,
+					corrected ? styles.successText : styles.warningText,
+				]}
+			>
+				{corrected ? 'CORRECTION · RESOLVED' : 'CORRECTION NOTE'}
+			</Text>
+			<Text style={correctiveNotes ? styles.noteText : styles.emptyText}>
+				{correctiveNotes || 'No correction comments recorded.'}
+			</Text>
+			{corrected && (
+				<Text style={styles.correctionMeta}>
+					Corrected by {item.correctedByName?.trim() || 'Unknown team member'} ·{' '}
+					{formatDateTime(item.correctedAt)}
+				</Text>
+			)}
+		</View>
+	);
+}
+
+const hasItemCorrection = (item: Item) => Boolean(
+	(item.isCorrected ?? item.corrected ?? false) ||
+	item.correctiveNotes?.trim() ||
+	item.correctedAt ||
+	item.correctedByName,
 );
+
+function PdfPill({ text, tone }: { text: string; tone: 'success' | 'danger' }) {
+	return (
+		<View style={[styles.pill, tone === 'success' ? styles.successPill : styles.dangerPill]}>
+			<Text style={[styles.pillText, tone === 'success' ? styles.successText : styles.dangerText]}>
+				{text}
+			</Text>
+		</View>
+	);
+}
+
+function PdfNote({ label, text }: { label: string; text: string }) {
+	return (
+		<View style={styles.noteBlock}>
+			<Text style={styles.label}>{label}</Text>
+			<Text style={styles.noteText}>{text}</Text>
+		</View>
+	);
+}
+
+const getSetupDetails = (item: Item) => [
+	item.shelfLife && `Shelf life: ${item.shelfLife}`,
+	item.panSize && `Container: ${item.panSize}`,
+	item.tool && item.toolName && `Tool: ${item.toolName}`,
+	item.isPortioned && item.portionSize && `Portion: ${item.portionSize}`,
+].filter(Boolean) as string[];
+
+const getItemResult = (item: Item): { text: string; tone: 'success' | 'danger' } => {
+	if (item.isMissing) return { text: 'Item missing', tone: 'danger' };
+	if (item.tempTaken || item.isTempTaken) {
+		if (item.temperature == null) return { text: 'No temperature', tone: 'danger' };
+		return {
+			text: `${item.temperature}°${formatExpectedRange(item)}`,
+			tone: isTemperatureInRange(item) ? 'success' : 'danger',
+		};
+	}
+	return item.itemChecked === true
+		? { text: 'Passed', tone: 'success' }
+		: { text: 'Needs attention', tone: 'danger' };
+};
+
+const getItemIssues = (item: Item) => {
+	const issues: string[] = [];
+	const temperatureExpected = Boolean(item.tempTaken || item.isTempTaken);
+	if (item.isMissing) issues.push('Missing');
+	if (temperatureExpected && item.temperature == null) issues.push('Missing temp');
+	else if (temperatureExpected && !isTemperatureInRange(item)) issues.push('Out of temp');
+	if (!item.isMissing && !temperatureExpected && item.itemChecked !== true) issues.push('Prepped wrong');
+	return issues;
+};
+
+const isTemperatureInRange = (item: Item) =>
+	item.temperature != null &&
+	(item.minTemp == null || item.temperature >= item.minTemp) &&
+	(item.maxTemp == null || item.temperature <= item.maxTemp);
+
+const formatExpectedRange = (item: Item) => {
+	if (item.minTemp != null && item.maxTemp != null) return ` (${item.minTemp}°–${item.maxTemp}°)`;
+	if (item.minTemp != null) return ` (${item.minTemp}°+)`;
+	if (item.maxTemp != null) return ` (≤${item.maxTemp}°)`;
+	return '';
+};
+
+const normalizeImageSource = (image?: string | null) => {
+	const value = image?.trim();
+	if (!value) return null;
+	if (/^(data:image\/|https?:\/\/|blob:|\/)/i.test(value)) return value;
+	return `data:image/png;base64,${value}`;
+};
+
+const formatDateTime = (value?: string | null) => {
+	if (!value) return 'Not recorded';
+	const date = new Date(value);
+	return Number.isNaN(date.getTime()) ? 'Not recorded' : date.toLocaleString();
+};
+
+const formatPhotoType = (photoType: string) => photoType
+	.toLowerCase()
+	.replaceAll('_', ' ')
+	.replace(/^\w/, (character) => character.toUpperCase());
 
 export default LineCheckPdf;

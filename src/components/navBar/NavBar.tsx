@@ -73,24 +73,21 @@ const NavBar = () => {
 			>
 				{/* ================= LEFT ================= */}
 				<div className="flex items-center gap-3">
-					<Link href="/" className="flex items-center gap-3">
+					<Link
+						href="/"
+						className={`block rounded-lg transition-transform duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${
+							scrolled ? 'scale-95' : 'scale-100'
+						}`}
+						aria-label="The Manager Life home"
+					>
 						<Image
 							src="/newLogo.png"
-							alt="Logo"
-							width={36}
-							height={36}
-							className="rounded-full"
+							alt="The Manager Life"
+							width={160}
+							height={80}
+							priority
+							className="h-14 w-24 object-contain object-center sm:h-16 sm:w-28"
 						/>
-
-						<span
-							className={`
-								font-semibold
-								transition-transform duration-300
-								${scrolled ? 'scale-95' : 'scale-100'}
-							`}
-						>
-							The Manager Life
-						</span>
 					</Link>
 				</div>
 

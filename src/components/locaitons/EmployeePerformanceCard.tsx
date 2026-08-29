@@ -13,6 +13,7 @@ import {
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { EmployeePerformanceDto } from '@/app/types';
 import { useState, useEffect } from 'react';
+import { UsersRound } from 'lucide-react';
 
 interface EmployeePerformanceCardProps {
 	data: EmployeePerformanceDto[];
@@ -38,24 +39,30 @@ export default function EmployeePerformanceCard({
 				? d.userName.slice(0, 6) + '…'
 				: d.userName
 			: d.userName,
-		avgMinutes: ((d.avgCompletionSeconds ?? 0) / 60).toFixed(1),
+		avgMinutes: Number(((d.avgCompletionSeconds ?? 0) / 60).toFixed(1)),
 	}));
 
 	return (
-		<Card className="w-full">
-			<CardHeader>
-				<CardTitle className="text-center text-2xl md:text-3xl break-word">
-					Employee Performance
-				</CardTitle>
+		<Card className="w-full gap-0 overflow-hidden py-0 shadow-sm">
+			<CardHeader className="border-b px-5 py-5 sm:px-6">
+				<div className="flex items-center gap-3">
+					<span className="flex size-10 items-center justify-center rounded-xl bg-chart-3/10 text-chart-3">
+						<UsersRound className="size-5" aria-hidden="true" />
+					</span>
+					<div>
+						<CardTitle className="text-lg">Team performance</CardTitle>
+						<p className="mt-1 text-sm text-muted-foreground">Today’s check volume and average completion time.</p>
+					</div>
+				</div>
 			</CardHeader>
 
-			<CardContent className="flex flex-col gap-4">
+			<CardContent className="flex flex-col gap-4 p-5 sm:p-6">
 				{data.length > 0 ? (
-					<div className="h-[250px] md:h-[350px] w-full">
+					<div className="h-[260px] w-full">
 						<ResponsiveContainer width="100%" height="100%">
 							<ComposedChart
 								data={formattedData}
-								margin={{ top: 20, right: 30, left: 20, bottom: 60 }}
+								margin={{ top: 10, right: 12, left: -12, bottom: 48 }}
 							>
 								<XAxis
 									dataKey="userNameShort"
@@ -108,23 +115,20 @@ export default function EmployeePerformanceCard({
 						</ResponsiveContainer>
 					</div>
 				) : (
-					<div className="text-center text-sm text-muted-foreground mt-8">
-						No employee performance data yet.
+					<div className="rounded-xl border border-dashed px-5 py-12 text-center text-sm text-muted-foreground">
+						No team performance data yet.
 					</div>
 				)}
 
-				{/* Numeric list collapsible on mobile */}
-				<div
-					className={`${isMobile ? 'text-xs' : 'md:flex'} flex flex-col gap-2 mt-4`}
-				>
+				<div className="divide-y rounded-xl border bg-muted/10">
 					{data.map((emp) => (
 						<div
 							key={emp.userId}
-							className="flex justify-between text-sm md:text-base"
+							className="flex items-center justify-between gap-4 px-3 py-2.5 text-sm"
 						>
-							<span className="font-medium">{emp.userName}</span>
+							<span className="min-w-0 truncate font-medium">{emp.userName}</span>
 							<span className="text-right text-muted-foreground">
-								{emp.checkCount} checks •{' '}
+								{emp.checkCount} check{emp.checkCount === 1 ? '' : 's'} ·{' '}
 								{((emp.avgCompletionSeconds ?? 0) / 60).toFixed(1)} min avg
 							</span>
 						</div>
