@@ -128,6 +128,43 @@ export default function BlogPage() {
 							</div>
 						</div>
 					</article>
+
+					<article className="group mt-6 grid overflow-hidden rounded-3xl border bg-card shadow-sm transition-shadow hover:shadow-lg sm:grid-cols-[280px_1fr]">
+						<Link
+							href="/blog/restaurant-line-check-food-safety-case-study"
+							className="relative block min-h-56 overflow-hidden sm:min-h-full"
+						>
+							<Image
+								src="/blog/restaurant-line-check-food-safety-case-study.png"
+								alt="Kitchen employee checking food temperature while a manager records the line check on a tablet"
+								fill
+								className="object-cover transition-transform duration-500 group-hover:scale-[1.02]"
+								sizes="(min-width: 640px) 280px, 100vw"
+							/>
+						</Link>
+						<div className="p-7 sm:p-8">
+							<p className="text-sm font-semibold text-primary">Restaurant Food Safety Case Study</p>
+							<h2 className="mt-2 text-2xl font-bold tracking-tight">
+								<Link
+									href="/blog/restaurant-line-check-food-safety-case-study"
+									className="hover:text-primary"
+								>
+									A line check before dinner: from food-safety exception to corrective action
+								</Link>
+							</h2>
+							<p className="mt-3 leading-7 text-muted-foreground">
+								A transparent composite case study showing how a pre-service check can
+								identify an exception, document the response, and support next-day coaching.
+							</p>
+							<div className="mt-5 flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
+								<time dateTime="2026-07-09">July 9, 2026</time>
+								<span className="inline-flex items-center gap-1.5">
+									<Clock3 className="h-4 w-4" aria-hidden="true" />
+									7 min read
+								</span>
+							</div>
+						</div>
+					</article>
 				</div>
 			</section>
 		</div>

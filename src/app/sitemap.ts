@@ -24,6 +24,10 @@ export default function sitemap(): MetadataRoute.Sitemap {
 			lastModified: new Date('2026-08-24'),
 		},
 		{
+			url: `${SITE_URL}/blog/restaurant-line-check-food-safety-case-study`,
+			lastModified: new Date('2026-07-09'),
+		},
+		{
 			url: `${SITE_URL}/contact`,
 		},
 		{
