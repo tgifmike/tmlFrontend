@@ -1,14 +1,19 @@
 'use client';
 
-import Image from 'next/image';
-import { BarChart3, X } from 'lucide-react';
+import { AnimatePresence, motion, useInView, useReducedMotion } from 'framer-motion';
 import {
-	motion,
-	AnimatePresence,
-	easeInOut,
-	useReducedMotion,
-} from 'framer-motion';
-import { useEffect, useState } from 'react';
+	BarChart3,
+	Check,
+	ChevronLeft,
+	ChevronRight,
+	Maximize2,
+	X,
+} from 'lucide-react';
+import Image from 'next/image';
+import { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
+
+import { Button } from '@/components/ui/button';
 
 const dashboardImages = [
 	'/newDashboard1.png',
@@ -18,221 +23,227 @@ const dashboardImages = [
 
 const features = [
 	'Track completion trends across your team',
-	'Identify recurring food safety issues instantly',
+	'Identify recurring food safety issues',
 	'Spot weak completion days automatically',
 	'Monitor temperature violations before inspections',
-	'Understand exactly which items fail most often',
+	'Understand which items fail most often',
 ];
 
 export default function DashboardPreview() {
+	const carouselRef = useRef<HTMLDivElement>(null);
+	const isCarouselVisible = useInView(carouselRef, { amount: 0.3 });
 	const [index, setIndex] = useState(0);
 	const [paused, setPaused] = useState(false);
 	const [lightboxOpen, setLightboxOpen] = useState(false);
 	const reduceMotion = useReducedMotion();
 
-	const next = () => setIndex((prev) => (prev + 1) % dashboardImages.length);
+	const next = () => setIndex((previous) => (previous + 1) % dashboardImages.length);
+	const previous = () =>
+		setIndex((current) => (current === 0 ? dashboardImages.length - 1 : current - 1));
 
-	const prev = () =>
-		setIndex((prev) => (prev === 0 ? dashboardImages.length - 1 : prev - 1));
-
-	// Auto rotate
 	useEffect(() => {
-		if (paused || reduceMotion) return;
+		if (!isCarouselVisible || paused || reduceMotion || lightboxOpen) return;
 
-		const interval = setInterval(() => {
-			setIndex((prev) => (prev + 1) % dashboardImages.length);
+		const interval = window.setInterval(() => {
+			setIndex((previousIndex) => (previousIndex + 1) % dashboardImages.length);
 		}, 5000);
 
-		return () => clearInterval(interval);
-	}, [paused, reduceMotion]);
+		return () => window.clearInterval(interval);
+	}, [isCarouselVisible, lightboxOpen, paused, reduceMotion]);
 
-	// ESC closes lightbox
 	useEffect(() => {
-		const handler = (e: KeyboardEvent) => {
-			if (e.key === 'Escape') setLightboxOpen(false);
+		const handleKeyDown = (event: KeyboardEvent) => {
+			if (event.key === 'Escape') setLightboxOpen(false);
 		};
 
-		window.addEventListener('keydown', handler);
-		return () => window.removeEventListener('keydown', handler);
+		window.addEventListener('keydown', handleKeyDown);
+		return () => window.removeEventListener('keydown', handleKeyDown);
 	}, []);
 
 	return (
-		<section className="py-24 bg-muted">
-			<div className="max-w-7xl mx-auto px-6">
-				{/* Header */}
+		<section className="border-y py-20 sm:py-24">
+			<div className="mx-auto max-w-6xl px-6">
 				<motion.div
-					className="text-center mb-16"
-					initial={{ opacity: 0, y: 40 }}
+					initial={{ opacity: 0, y: 24 }}
 					whileInView={{ opacity: 1, y: 0 }}
-					transition={{ duration: 0.9, ease: easeInOut }}
+					transition={{ duration: 0.6 }}
 					viewport={{ once: true }}
+					className="mx-auto max-w-3xl text-center"
 				>
-					<div className="flex justify-center mb-4">
-						<BarChart3 className="w-10 h-10 text-primary" />
+					<div className="inline-flex items-center gap-2 rounded-full border bg-background px-3 py-1 text-xs font-semibold uppercase tracking-[0.14em] text-primary shadow-sm">
+						<BarChart3 className="size-3.5" aria-hidden="true" />
+						Manager visibility
 					</div>
-
-					<h3 className="text-4xl md:text-5xl font-bold text-primary">
-						See Exactly What’s Happening in Your Kitchen
-					</h3>
-
-					<p className="text-lg md:text-xl text-muted-foreground mt-4 max-w-3xl mx-auto">
-						Your dashboard turns line check data into clear insights so managers
-						can act quickly and keep standards consistent across every shift.
+					<h2 className="mt-5 text-4xl font-bold tracking-tight sm:text-5xl">
+						See what is happening.
+						<span className="mt-1 block text-destructive">Know where to act.</span>
+					</h2>
+					<p className="mx-auto mt-5 max-w-2xl text-lg leading-8 text-muted-foreground">
+						Turn every completed line check into clear trends managers can use to
+						coach teams, correct issues, and prepare for inspections.
 					</p>
 				</motion.div>
 
-				{/* Layout */}
-				<div className="flex flex-col lg:flex-row items-center gap-14">
-					{/* Carousel */}
+				<div className="mt-14 grid items-center gap-10 rounded-3xl border bg-card p-5 shadow-sm sm:p-8 lg:grid-cols-[1.2fr_0.8fr] lg:gap-12 lg:p-10">
 					<div
-						className="flex-1 relative"
+						ref={carouselRef}
+						className="min-w-0"
 						onMouseEnter={() => setPaused(true)}
 						onMouseLeave={() => setPaused(false)}
 					>
 						<button
 							type="button"
-							aria-label="Open the current dashboard screenshot"
-							className="relative rounded-3xl overflow-hidden shadow-2xl border bg-background cursor-zoom-in"
 							onClick={() => setLightboxOpen(true)}
+							className="group relative block aspect-[16/10] w-full overflow-hidden rounded-2xl border bg-muted/30 shadow-lg"
+							aria-label="Open the current dashboard screenshot"
 						>
-							<div className="absolute inset-0 bg-gradient-to-tr from-primary/10 via-transparent to-transparent" />
-
 							<AnimatePresence mode="wait">
 								<motion.div
 									key={index}
-									initial={{ opacity: 0, x: 40 }}
+									initial={{ opacity: 0, x: 24 }}
 									animate={{ opacity: 1, x: 0 }}
-									exit={{ opacity: 0, x: -40 }}
-									transition={{ duration: 0.45 }}
+									exit={{ opacity: 0, x: -24 }}
+									transition={{ duration: 0.4 }}
+									className="absolute inset-0"
 								>
 									<Image
 										src={dashboardImages[index]}
-										alt="Restaurant analytics dashboard preview"
-										width={900}
-										height={520}
-										className="object-cover w-full h-auto"
+										alt={`Restaurant line check analytics dashboard ${index + 1}`}
+										fill
+										className="object-contain p-2 sm:p-3"
+										sizes="(max-width: 1024px) 90vw, 640px"
 									/>
 								</motion.div>
 							</AnimatePresence>
+							<span className="absolute right-3 top-3 flex items-center gap-2 rounded-full border bg-background/90 px-3 py-2 text-xs font-semibold opacity-100 shadow-sm backdrop-blur transition sm:opacity-0 sm:group-hover:opacity-100">
+								<Maximize2 className="size-3.5" aria-hidden="true" />
+								Expand
+							</span>
 						</button>
 
-						{/* Controls */}
-						<div className="flex justify-center gap-4 mt-4">
-							<button
+						<div className="mt-5 flex items-center justify-between gap-4">
+							<Button
 								type="button"
-								aria-label="Show previous dashboard screenshot"
+								variant="outline"
+								size="icon"
 								onClick={() => {
-									prev();
+									previous();
 									setPaused(true);
 								}}
-								className="px-4 py-2 rounded-lg border bg-background shadow hover:bg-muted transition"
+								aria-label="Show previous dashboard screenshot"
 							>
-								←
-							</button>
+								<ChevronLeft aria-hidden="true" />
+							</Button>
 
-							<button
+							<div className="flex items-center gap-2" aria-label="Dashboard screenshots">
+								{dashboardImages.map((_, imageIndex) => (
+									<button
+										key={imageIndex}
+										type="button"
+										onClick={() => {
+											setIndex(imageIndex);
+											setPaused(true);
+										}}
+										aria-label={`Show dashboard screenshot ${imageIndex + 1}`}
+										aria-current={imageIndex === index ? 'true' : undefined}
+										className={`size-2.5 rounded-full transition-all ${
+											imageIndex === index
+												? 'scale-125 bg-primary'
+												: 'bg-muted-foreground/30 hover:bg-muted-foreground/50'
+										}`}
+									/>
+								))}
+							</div>
+
+							<Button
 								type="button"
-								aria-label="Show next dashboard screenshot"
+								variant="outline"
+								size="icon"
 								onClick={() => {
 									next();
 									setPaused(true);
 								}}
-								className="px-4 py-2 rounded-lg border bg-background shadow hover:bg-muted transition"
+								aria-label="Show next dashboard screenshot"
 							>
-								→
-							</button>
-						</div>
-
-						{/* Indicator dots */}
-						<div className="flex justify-center gap-2 mt-3">
-							{dashboardImages.map((_, i) => (
-								<button
-									key={i}
-									type="button"
-									aria-label={`Show dashboard screenshot ${i + 1}`}
-									aria-current={i === index ? 'true' : undefined}
-									onClick={() => {
-										setIndex(i);
-										setPaused(true);
-									}}
-									className={`h-2.5 w-2.5 rounded-full transition ${
-										i === index ? 'bg-primary' : 'bg-muted-foreground/30'
-									}`}
-								/>
-							))}
+								<ChevronRight aria-hidden="true" />
+							</Button>
 						</div>
 					</div>
 
-					{/* Feature List */}
 					<motion.div
-						role="dialog"
-						aria-modal="true"
-						aria-label="Dashboard screenshot preview"
-						className="flex-1"
-						initial={{ opacity: 0, y: 20 }}
-						whileInView={{ opacity: 1, y: 0 }}
-						transition={{ duration: 0.8 }}
+						initial={{ opacity: 0, x: 24 }}
+						whileInView={{ opacity: 1, x: 0 }}
+						transition={{ duration: 0.6 }}
 						viewport={{ once: true }}
 					>
-						<h4 className="text-2xl font-semibold text-primary mb-6">
-							Your dashboard helps managers:
-						</h4>
-
-						<ul className="space-y-5 text-lg text-primary">
-							{features.map((feature, i) => (
-								<li key={i} className="flex items-start gap-3">
-									<div className="mt-1 w-2.5 h-2.5 rounded-full bg-primary" />
-									{feature}
+						<p className="text-xs font-semibold uppercase tracking-[0.14em] text-primary">
+							From checks to decisions
+						</p>
+						<h3 className="mt-3 text-2xl font-semibold tracking-tight">
+							Your dashboard helps managers
+						</h3>
+						<ul className="mt-7 space-y-4">
+							{features.map((feature) => (
+								<li key={feature} className="flex items-start gap-3 text-sm leading-6">
+									<span className="mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+										<Check className="size-4" aria-hidden="true" />
+									</span>
+									<span>{feature}</span>
 								</li>
 							))}
 						</ul>
-
-						<p className="mt-8 text-lg italic text-muted-foreground">
-							Instead of guessing where problems happen, your team sees trends
-							immediately and fixes them before they impact guests.
-						</p>
+						<div className="mt-8 rounded-2xl border border-primary/15 bg-primary/5 p-4 text-sm leading-6 text-muted-foreground">
+							Replace guesswork with a record of what happened, when it happened,
+							and where the team needs support.
+						</div>
 					</motion.div>
 				</div>
 			</div>
 
-			{/* LIGHTBOX */}
-			<AnimatePresence>
-				{lightboxOpen && (
-					<motion.div
-						className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-6"
+			{typeof document !== 'undefined' && createPortal(
+				<AnimatePresence>
+					{lightboxOpen && (
+						<motion.div
 						initial={{ opacity: 0 }}
 						animate={{ opacity: 1 }}
 						exit={{ opacity: 0 }}
 						onClick={() => setLightboxOpen(false)}
+						className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm sm:p-6"
 					>
 						<motion.div
-							initial={{ scale: 0.9 }}
-							animate={{ scale: 1 }}
-							exit={{ scale: 0.9 }}
-							transition={{ duration: 0.3 }}
-							onClick={(e) => e.stopPropagation()}
-							className="relative max-w-6xl w-full"
+							initial={{ opacity: 0, scale: 0.96 }}
+							animate={{ opacity: 1, scale: 1 }}
+							exit={{ opacity: 0, scale: 0.96 }}
+							transition={{ duration: 0.25 }}
+							onClick={(event) => event.stopPropagation()}
+							role="dialog"
+							aria-modal="true"
+							aria-label="Dashboard screenshot preview"
+							className="relative w-full max-w-6xl"
 						>
-							<button
+							<Button
 								type="button"
-								aria-label="Close dashboard screenshot preview"
-								className="absolute top-4 right-4 bg-background rounded-full p-2 shadow"
+								variant="secondary"
+								size="icon"
 								onClick={() => setLightboxOpen(false)}
+								className="absolute right-3 top-3 z-10 shadow"
+								aria-label="Close dashboard screenshot preview"
 							>
-								<X />
-							</button>
-
+								<X aria-hidden="true" />
+							</Button>
 							<Image
 								src={dashboardImages[index]}
-								alt="Expanded dashboard preview"
+								alt={`Expanded restaurant analytics dashboard ${index + 1}`}
 								width={1600}
 								height={900}
-								className="rounded-xl w-full h-auto"
+								className="h-auto w-full rounded-2xl border bg-background"
 							/>
 						</motion.div>
-					</motion.div>
-				)}
-			</AnimatePresence>
+						</motion.div>
+					)}
+				</AnimatePresence>,
+				document.body,
+			)}
 		</section>
 	);
 }

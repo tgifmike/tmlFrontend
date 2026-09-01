@@ -1,107 +1,134 @@
 'use client';
 
-import Hero from '@/components/homePage/Hero';
-import Why from '@/components/homePage/Why';
+import {
+	MotionConfig,
+	motion,
+	useReducedMotion,
+	useScroll,
+	useSpring,
+	useTransform,
+} from 'framer-motion';
+import { usePathname } from 'next/navigation';
+import { useEffect, useRef, type ReactNode } from 'react';
+
+import DashboardPreview from '@/components/homePage/DashboardPreview';
 import Does from '@/components/homePage/Does';
 import Headlines from '@/components/homePage/Headlines';
-import { motion, MotionConfig } from 'framer-motion';
-import Pricing from './Pricing';
-import DashboardPreview from './DashboardPreview';
-import { useEffect } from 'react';
-import { usePathname } from 'next/navigation';
+import Hero from '@/components/homePage/Hero';
+import Pricing from '@/components/homePage/Pricing';
+import Why from '@/components/homePage/Why';
+
+const springOptions = {
+	stiffness: 135,
+	damping: 34,
+	mass: 0.45,
+};
+
+function HeroFrame({ children }: { children: ReactNode }) {
+	const frameRef = useRef<HTMLDivElement>(null);
+	const reduceMotion = useReducedMotion();
+	const { scrollYProgress } = useScroll({
+		target: frameRef,
+		offset: ['start start', 'end start'],
+	});
+	const smoothProgress = useSpring(scrollYProgress, springOptions);
+	const y = useTransform(smoothProgress, [0, 1], [0, 72]);
+	const scale = useTransform(smoothProgress, [0, 1], [1, 0.975]);
+	const opacity = useTransform(smoothProgress, [0, 0.85, 1], [1, 0.92, 0.78]);
+
+	return (
+		<div ref={frameRef} id="hero" className="relative scroll-mt-24">
+			<motion.div
+				style={reduceMotion ? undefined : { y, scale, opacity }}
+				className="transform-gpu will-change-transform"
+			>
+				<motion.div
+					initial={reduceMotion ? false : { opacity: 0, y: 24 }}
+					animate={reduceMotion ? undefined : { opacity: 1, y: 0 }}
+					transition={{ duration: 0.65, ease: [0.22, 1, 0.36, 1] }}
+				>
+					{children}
+				</motion.div>
+			</motion.div>
+		</div>
+	);
+}
+
+function ScrollFrame({
+	id,
+	children,
+	surfaceClassName = 'bg-background',
+}: {
+	id: string;
+	children: ReactNode;
+	surfaceClassName?: string;
+}) {
+	const frameRef = useRef<HTMLDivElement>(null);
+	const reduceMotion = useReducedMotion();
+	const { scrollYProgress } = useScroll({
+		target: frameRef,
+		offset: ['start 92%', 'end 8%'],
+	});
+	const smoothProgress = useSpring(scrollYProgress, springOptions);
+	const y = useTransform(smoothProgress, [0, 0.18, 0.82, 1], [52, 0, 0, -24]);
+	const scale = useTransform(smoothProgress, [0, 0.18, 0.82, 1], [0.985, 1, 1, 0.992]);
+	const opacity = useTransform(smoothProgress, [0, 0.16, 0.88, 1], [0.35, 1, 1, 0.82]);
+
+	return (
+		<div
+			ref={frameRef}
+			id={id}
+			className={`relative -mt-px overflow-clip scroll-mt-24 ${surfaceClassName}`}
+		>
+			<motion.div
+				style={reduceMotion ? undefined : { y, scale, opacity }}
+				className="transform-gpu will-change-transform"
+			>
+				{children}
+			</motion.div>
+		</div>
+	);
+}
 
 export default function Home() {
-	// Variants for section animation
-	const sectionVariant = {
-		hidden: { opacity: 0, y: 50 },
-		visible: { opacity: 1, y: 0, transition: { duration: 0.6 } },
-	};
-
 	const pathname = usePathname();
 
 	useEffect(() => {
 		const hash = window.location.hash;
 
 		if (hash) {
-			const el = document.querySelector(hash);
-			if (el) {
-				el.scrollIntoView({ behavior: 'smooth' });
-			}
+			const element = document.querySelector(hash);
+			if (element) element.scrollIntoView({ behavior: 'smooth' });
 		}
 	}, [pathname]);
 
 	return (
 		<MotionConfig reducedMotion="user">
-		<div className="w-full">
-			{/* Hero */}
-			<motion.div
-				id="hero"
-				variants={sectionVariant}
-				initial="hidden"
-				animate="visible"
-				className="scroll-mt-24"
-			>
-				<Hero />
-			</motion.div>
+			<div className="w-full overflow-x-clip">
+				<HeroFrame>
+					<Hero />
+				</HeroFrame>
 
-			{/* Why Section */}
-			<motion.div
-				id="why"
-				variants={sectionVariant}
-				initial="hidden"
-				whileInView="visible"
-				viewport={{ once: true, amount: 0.2 }}
-				className="scroll-mt-24"
-			>
-				<Why />
-			</motion.div>
+				<ScrollFrame id="why" surfaceClassName="bg-muted/40">
+					<Why />
+				</ScrollFrame>
 
-			{/* Does Section */}
-			<motion.div
-				id="features"
-				variants={sectionVariant}
-				initial="hidden"
-				whileInView="visible"
-				viewport={{ once: true, amount: 0.2 }}
-				className="scroll-mt-24"
-			>
-				<Does />
-			</motion.div>
+				<ScrollFrame id="features">
+					<Does />
+				</ScrollFrame>
 
-			<motion.div
-				id="dashboard"
-				variants={sectionVariant}
-				initial="hidden"
-				whileInView="visible"
-				viewport={{ once: true, amount: 0.2 }}
-				className="scroll-mt-24"
-			>
-				<DashboardPreview />
-			</motion.div>
+				<ScrollFrame id="dashboard" surfaceClassName="bg-muted/40">
+					<DashboardPreview />
+				</ScrollFrame>
 
-			<motion.div
-				id="pricing"
-				variants={sectionVariant}
-				initial="hidden"
-				whileInView="visible"
-				viewport={{ once: true, amount: 0.2 }}
-				className="scroll-mt-24"
-			>
-				<Pricing />
-			</motion.div>
+				<ScrollFrame id="pricing">
+					<Pricing />
+				</ScrollFrame>
 
-			{/* Headlines */}
-			<motion.div
-				id="headlines"
-				variants={sectionVariant}
-				initial="hidden"
-				whileInView="visible"
-				viewport={{ once: true, amount: 0.2 }}
-				className="scroll-mt-24"
-			>
-				<Headlines />
-			</motion.div>
-		</div>
+				<ScrollFrame id="headlines">
+					<Headlines />
+				</ScrollFrame>
+			</div>
 		</MotionConfig>
 	);
 }
