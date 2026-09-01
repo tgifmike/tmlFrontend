@@ -1,6 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
-import { ArrowRight, CirclePlay, Sparkles } from 'lucide-react';
+import { ArrowRight, CirclePlay, Sparkles, WifiOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 const Hero = () => {
@@ -14,16 +14,16 @@ const Hero = () => {
 					{/* LEFT */}
 					<div>
 						{/* badge */}
-						<div className="mb-6 inline-flex items-center gap-1.5 rounded-full border bg-background px-3 py-1 text-xs font-medium text-muted-foreground">
-							<Sparkles className="size-3.5 text-primary" aria-hidden="true" />
-							AI-Assisted Setup for Restaurant Operators
+						<div className="mb-6 inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-xs font-medium text-primary">
+							<WifiOff className="size-3.5" aria-hidden="true" />
+							New: Keep working with offline mode
 						</div>
 
 						{/* headline */}
 						<h1 className="text-4xl md:text-6xl font-bold tracking-tight leading-tight text-primary">
-							Run Every Kitchen Shift
+							Ditch the Paper.
 							<span className="block text-destructive mt-2">
-								Inspection-Ready by Default
+								Run Inspection-Ready Shifts.
 							</span>
 						</h1>
 

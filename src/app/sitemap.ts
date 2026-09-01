@@ -8,8 +8,16 @@ export default function sitemap(): MetadataRoute.Sitemap {
 			url: SITE_URL,
 		},
 		{
+			url: `${SITE_URL}/about`,
+			lastModified: new Date('2026-09-01'),
+		},
+		{
 			url: `${SITE_URL}/blog`,
-			lastModified: new Date('2026-08-24'),
+			lastModified: new Date('2026-09-01'),
+		},
+		{
+			url: `${SITE_URL}/blog/how-digital-line-checks-save-money`,
+			lastModified: new Date('2026-09-01'),
 		},
 		{
 			url: `${SITE_URL}/blog/why-line-checks-matter`,
