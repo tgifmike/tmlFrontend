@@ -3,7 +3,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { ArrowRight, Clock3, ShieldCheck } from 'lucide-react';
 
-const articleHref = '/blog/why-line-checks-matter';
+const articleHref = '/blog/how-digital-line-checks-save-money';
 
 export const metadata: Metadata = {
 	title: 'Restaurant Operations Blog',
@@ -18,7 +18,7 @@ export const metadata: Metadata = {
 			'Practical guidance for safer restaurant shifts and more consistent multi-location operations.',
 		url: '/blog',
 		type: 'website',
-		images: ['/blog/line-checks-restaurant-operations.png'],
+		images: ['/blog/digital-line-checks-save-money.png'],
 	},
 };
 
@@ -50,8 +50,8 @@ export default function BlogPage() {
 					<div className="grid lg:grid-cols-[1.15fr_0.85fr]">
 						<Link href={articleHref} className="relative block min-h-72 overflow-hidden lg:min-h-[440px]">
 							<Image
-								src="/blog/line-checks-restaurant-operations.png"
-								alt="Restaurant manager completing a digital line check while a cook checks food temperature"
+								src="/blog/digital-line-checks-save-money.png"
+								alt="Restaurant manager using a tablet beside a paper checklist damaged by spilled soup"
 								fill
 								priority
 								className="object-cover transition-transform duration-500 group-hover:scale-[1.02]"
@@ -60,23 +60,23 @@ export default function BlogPage() {
 						</Link>
 
 						<div className="flex flex-col justify-center p-7 sm:p-10">
-							<p className="text-sm font-semibold text-primary">Food Safety &amp; Operations</p>
+							<p className="text-sm font-semibold text-primary">Restaurant Costs &amp; Accountability</p>
 							<h2 className="mt-3 text-3xl font-bold tracking-tight sm:text-4xl">
 								<Link href={articleHref} className="hover:text-primary">
-									Why line checks matter: safer food, completed tasks, and cleaner locations
+									How digital line checks save restaurants money
 								</Link>
 							</h2>
 							<p className="mt-4 leading-7 text-muted-foreground">
-								The risks that hurt a shift are often ordinary: a missed temperature,
-								an empty soap dispenser, or a restroom check nobody owned. A well-designed
-								line check makes those details visible before they become incidents.
+								Paper savings are only the beginning. Digital checks protect shift
+								history, reduce administrative work, reveal recurring problems, and show
+								who completed each check, when it happened, and how long it took.
 							</p>
 
 							<div className="mt-6 flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
-								<time dateTime="2026-08-24">August 24, 2026</time>
+								<time dateTime="2026-09-01">September 1, 2026</time>
 								<span className="inline-flex items-center gap-1.5">
 									<Clock3 className="h-4 w-4" aria-hidden="true" />
-									8 min read
+									7 min read
 								</span>
 							</div>
 
@@ -90,6 +90,45 @@ export default function BlogPage() {
 						</div>
 					</div>
 				</article>
+
+				<div className="mt-14">
+					<p className="mb-6 text-sm font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+						More articles
+					</p>
+					<article className="group grid overflow-hidden rounded-3xl border bg-card shadow-sm transition-shadow hover:shadow-lg sm:grid-cols-[280px_1fr]">
+						<Link
+							href="/blog/why-line-checks-matter"
+							className="relative block min-h-56 overflow-hidden sm:min-h-full"
+						>
+							<Image
+								src="/blog/line-checks-restaurant-operations.png"
+								alt="Restaurant manager completing a digital line check while a cook checks food temperature"
+								fill
+								className="object-cover transition-transform duration-500 group-hover:scale-[1.02]"
+								sizes="(min-width: 640px) 280px, 100vw"
+							/>
+						</Link>
+						<div className="p-7 sm:p-8">
+							<p className="text-sm font-semibold text-primary">Food Safety &amp; Operations</p>
+							<h2 className="mt-2 text-2xl font-bold tracking-tight">
+								<Link href="/blog/why-line-checks-matter" className="hover:text-primary">
+									Why line checks matter: safer food, completed tasks, and cleaner locations
+								</Link>
+							</h2>
+							<p className="mt-3 leading-7 text-muted-foreground">
+								See how visible verification helps teams catch routine food-safety and
+								facility issues before they become incidents.
+							</p>
+							<div className="mt-5 flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
+								<time dateTime="2026-08-24">August 24, 2026</time>
+								<span className="inline-flex items-center gap-1.5">
+									<Clock3 className="h-4 w-4" aria-hidden="true" />
+									8 min read
+								</span>
+							</div>
+						</div>
+					</article>
+				</div>
 			</section>
 		</div>
 	);

@@ -4,7 +4,10 @@ export default function Footer() {
 			<div className="mx-auto max-w-7xl px-4 py-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-muted-foreground">
 				<p>© {new Date().getFullYear()} The Manager Life</p>
 
-				<div className="flex gap-6">
+				<div className="flex flex-wrap justify-center gap-6">
+					<a href="/about" className="hover:text-foreground transition">
+						About
+					</a>
 					<a href="/blog" className="hover:text-foreground transition">
 						Blog
 					</a>

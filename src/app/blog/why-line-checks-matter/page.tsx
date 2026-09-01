@@ -89,6 +89,7 @@ export default function LineChecksArticlePage() {
 		author: {
 			'@type': 'Organization',
 			name: 'The Manager Life',
+			url: 'https://www.themanagerlife.com/about',
 		},
 		publisher: {
 			'@type': 'Organization',
@@ -132,7 +133,9 @@ export default function LineChecksArticlePage() {
 						</p>
 
 						<div className="mt-7 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-muted-foreground">
-							<span className="font-semibold text-foreground">The Manager Life Team</span>
+							<Link href="/about" className="font-semibold text-foreground hover:text-primary">
+								The Manager Life Team
+							</Link>
 							<time dateTime="2026-08-24">August 24, 2026</time>
 							<span className="inline-flex items-center gap-1.5">
 								<Clock3 className="h-4 w-4" aria-hidden="true" />
@@ -227,8 +230,11 @@ export default function LineChecksArticlePage() {
 							That applies beyond kitchens: opening cash controls, promotional displays,
 							exit access, cooler temperatures, spill hazards, fitting rooms, and closing
 							security checks can all disappear into the space between a written procedure
-							and a completed shift. A shared digital line check turns those expectations
-							into the same observable workflow at every store.
+							and a completed shift. Using{' '}
+							<Link href="/" className="font-semibold text-primary hover:underline">
+								digital restaurant line check software
+							</Link>{' '}
+							turns those expectations into the same observable workflow at every store.
 						</p>
 						<p>
 							This consistency mirrors a benefit the FDA identifies for Food Code adoption:

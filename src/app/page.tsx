@@ -3,9 +3,9 @@ import HomeClient from '@/components/homePage/HomeClient';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-	title: 'Restaurant Line Check App for iPad Kitchens',
+	title: 'Digital Line Check App for Restaurants',
 	description:
-		'Build stations, assign food safety checks, and run digital restaurant line checks from iPad. Improve health inspection readiness and kitchen execution across locations.',
+		'Run digital restaurant line checks from any phone or tablet, even offline. Replace paper checklists, improve inspection readiness, and keep every kitchen shift consistent.',
 };
 
 export default function Page() {

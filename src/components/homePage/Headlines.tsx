@@ -17,11 +17,11 @@ export default function Headlines() {
 						Ready for your next shift?
 					</p>
 					<h2 className="text-4xl font-bold tracking-tight md:text-5xl">
-						Make every kitchen inspection-ready.
+						Ditch the paper. Run a safer shift.
 					</h2>
 					<p className="mt-5 max-w-2xl text-lg text-background/80">
 						Replace paper checklists with a workflow your team can complete from
-						any phone or tablet.
+						any phone or tablet—even when the internet drops.
 					</p>
 
 					<div className="mt-8 flex flex-col gap-3 sm:flex-row">

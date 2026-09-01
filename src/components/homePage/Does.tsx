@@ -1,7 +1,7 @@
 'use client';
 import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
-import { CircleCheck } from 'lucide-react';
+import { CircleCheck, WifiOff } from 'lucide-react';
 import Lightbox from 'yet-another-react-lightbox';
 // import 'yet-another-react-lightbox/styles.css';
 import { motion, useInView, useReducedMotion } from 'framer-motion';
@@ -181,6 +181,18 @@ export default function Does() {
 						<h3 className="text-3xl font-semibold mb-8 tracking-tight">
 							Key Features
 						</h3>
+
+						<div className="mb-7 flex items-start gap-3 rounded-2xl border border-primary/15 bg-primary/5 p-4">
+							<span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+								<WifiOff className="size-4" aria-hidden="true" />
+							</span>
+							<div>
+								<p className="font-semibold text-foreground">Built for unreliable kitchen Wi-Fi</p>
+								<p className="mt-1 text-sm leading-6 text-muted-foreground">
+									Teams can complete line checks offline and sync their work when the connection returns.
+								</p>
+							</div>
+						</div>
 
 						<ul className="space-y-5 text-lg text-muted-foreground">
 							{features.map((feature, i) => (
