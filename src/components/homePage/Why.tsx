@@ -1,135 +1,104 @@
 'use client';
-import React from 'react';
+
+import { motion } from 'framer-motion';
+import { Check, ShieldCheck } from 'lucide-react';
 import Image from 'next/image';
-import { CheckCircle } from 'lucide-react';
-import { motion, Variants, easeInOut } from 'framer-motion';
 
-const Why = () => {
-	// Variants for header animation
-	const headerVariants: Variants = {
-		hidden: { opacity: 0, y: 50 },
-		visible: {
-			opacity: 1,
-			y: 0,
-			transition: {
-				duration: 1, // slower
-				ease: easeInOut,
-			},
-		},
-	};
+const benefits = [
+	'Reduce the risk of foodborne illness',
+	'Catch food safety issues before inspectors do',
+	'Improve health inspection readiness',
+	'Maintain consistent food quality',
+	'Reduce food waste and spoilage',
+	'Protect your restaurant’s reputation',
+];
 
-	// Variants for the list container
-	const listVariants: Variants = {
-		hidden: {},
-		visible: {
-			transition: {
-				staggerChildren: 0.35, // slower stagger
-			},
-		},
-	};
-
-	// Variants for each list item
-	const itemVariants: Variants = {
-		hidden: { opacity: 0, x: 80 }, // fly in from farther right
-		visible: {
-			opacity: 1,
-			x: 0,
-			transition: {
-				type: 'spring',
-				stiffness: 100,
-				damping: 15,
-			},
-		},
-	};
-
-	const benefits = [
-		'Reduce the risk of foodborne illness',
-		'Catch food safety issues before inspectors do',
-		'Improve health inspection scores',
-		'Maintain consistent food quality',
-		'Reduce food waste and spoilage',
-		'Protect the restaurant’s reputation',
-	];
-
+export default function Why() {
 	return (
-		<section className="py-20 bg-ring">
-			<div className="max-w-6xl mx-auto px-6">
-				{/* Header */}
+		<section className="border-y py-20 sm:py-24">
+			<div className="mx-auto max-w-6xl px-6">
 				<motion.div
-					className="text-center mb-14"
-					initial="hidden"
-					whileInView="visible"
+					initial={{ opacity: 0, y: 24 }}
+					whileInView={{ opacity: 1, y: 0 }}
+					transition={{ duration: 0.6 }}
 					viewport={{ once: true }}
-					variants={headerVariants}
+					className="mx-auto max-w-3xl text-center"
 				>
-					<h3 className="text-4xl md:text-5xl font-bold text-primary">
-						Why Line Checks Matter
-					</h3>
-					<p className="text-lg md:text-xl text-background mt-4 max-w-3xl mx-auto">
-						Consistent line checks are one of the simplest ways to improve food
-						safety, maintain quality, and protect your restaurant's reputation.
+					<div className="inline-flex items-center gap-2 rounded-full border bg-background px-3 py-1 text-xs font-semibold uppercase tracking-[0.14em] text-primary shadow-sm">
+						<ShieldCheck className="size-3.5" aria-hidden="true" />
+						Safer shifts start here
+					</div>
+					<h2 className="mt-5 text-4xl font-bold tracking-tight sm:text-5xl">
+						Why line checks matter
+					</h2>
+					<p className="mx-auto mt-5 max-w-2xl text-lg leading-8 text-muted-foreground">
+						Consistent checks help restaurant teams find safety and quality
+						problems early—before they reach a guest or an inspector.
 					</p>
 				</motion.div>
 
-				{/* Content */}
-				<div className="flex flex-col md:flex-row items-center gap-12">
-					{/* Image */}
+				<div className="mt-14 grid overflow-hidden rounded-3xl border bg-card shadow-sm lg:grid-cols-[0.9fr_1.1fr]">
 					<motion.div
-						className="flex-1"
-						initial={{ opacity: 0, y: 20 }}
-						whileInView={{ opacity: 1, y: 0 }}
-						transition={{ duration: 0.8 }}
+						initial={{ opacity: 0, x: -24 }}
+						whileInView={{ opacity: 1, x: 0 }}
+						transition={{ duration: 0.6 }}
 						viewport={{ once: true }}
+						className="relative min-h-80 overflow-hidden lg:min-h-[520px]"
 					>
 						<Image
-							src="https://thumbs.wbm.im/pw/medium/88fe134a7a14d5da2316059e89cb2991.jpg"
-							alt="Restaurant line check process"
-							width={500}
-							height={500}
-							className="rounded-2xl shadow-xl object-cover"
+							src="/blog/line-checks-restaurant-operations.png"
+							alt="Restaurant team completing a food safety line check"
+							fill
+							className="object-cover"
+							sizes="(max-width: 1024px) 100vw, 45vw"
 						/>
+						<div className="absolute inset-0 bg-gradient-to-t from-black/45 via-transparent to-transparent" />
+						<p className="absolute bottom-5 left-5 right-5 max-w-md text-sm font-medium leading-6 text-white">
+							Verify temperatures, preparation, freshness, and availability at the
+							point where the work happens.
+						</p>
 					</motion.div>
 
-					{/* Text + List */}
 					<motion.div
-						className="flex-1"
-						initial={{ opacity: 0, y: 20 }}
-						whileInView={{ opacity: 1, y: 0 }}
-						transition={{ duration: 0.8, delay: 0.3 }}
+						initial={{ opacity: 0, x: 24 }}
+						whileInView={{ opacity: 1, x: 0 }}
+						transition={{ duration: 0.6, delay: 0.1 }}
 						viewport={{ once: true }}
+						className="p-6 sm:p-8 lg:p-10"
 					>
-						<h4 className="text-2xl font-semibold text-primary mb-6">
-							Restaurants that perform routine line checks can:
-						</h4>
+						<h3 className="text-2xl font-semibold tracking-tight">
+							A simple routine with a meaningful impact
+						</h3>
+						<p className="mt-3 leading-7 text-muted-foreground">
+							A well-run line check gives every shift the same clear standard and
+							gives managers the information they need to respond quickly.
+						</p>
 
-						<motion.ul
-							className="space-y-4 text-lg text-primary"
-							variants={listVariants}
-							initial="hidden"
-							whileInView="visible"
-							viewport={{ once: true }}
-						>
-							{benefits.map((benefit, i) => (
+						<ul className="mt-8 grid gap-4 sm:grid-cols-2">
+							{benefits.map((benefit, index) => (
 								<motion.li
-									key={i}
-									className="flex items-start gap-3"
-									variants={itemVariants}
+									key={benefit}
+									initial={{ opacity: 0, y: 12 }}
+									whileInView={{ opacity: 1, y: 0 }}
+									transition={{ delay: index * 0.06 }}
+									viewport={{ once: true }}
+									className="flex items-start gap-3 rounded-2xl border bg-background p-4 text-sm leading-6"
 								>
-									<CheckCircle className="text-destructive mt-1 w-5 h-5" />
-									{benefit}
+									<span className="mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+										<Check className="size-4" aria-hidden="true" />
+									</span>
+									<span>{benefit}</span>
 								</motion.li>
 							))}
-						</motion.ul>
+						</ul>
 
-						<p className="mt-8 text-lg text-primary italic">
-							When teams verify temperatures and product quality throughout the
-							day, problems are caught early — before they impact guests.
-						</p>
+						<div className="mt-8 rounded-2xl border border-primary/15 bg-primary/5 p-4 text-sm leading-6 text-muted-foreground">
+							When teams verify conditions throughout the day, problems can be
+							corrected before they affect service.
+						</div>
 					</motion.div>
 				</div>
 			</div>
 		</section>
 	);
-};
-
-export default Why;
+}

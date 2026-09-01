@@ -1,327 +1,225 @@
 'use client';
-import React, { useEffect, useState } from 'react';
-import Image from 'next/image';
-import { CircleCheck, WifiOff } from 'lucide-react';
-import Lightbox from 'yet-another-react-lightbox';
-// import 'yet-another-react-lightbox/styles.css';
+
 import { motion, useInView, useReducedMotion } from 'framer-motion';
-import { useRef } from 'react';
+import { CircleCheck, LayoutList, WifiOff, ZoomIn } from 'lucide-react';
+import Image from 'next/image';
+import { useEffect, useRef, useState } from 'react';
+import Lightbox from 'yet-another-react-lightbox';
+
+const screenshots = [
+	'/iPadLineCheckScreenShot.png',
+	'/backendLineCheckScreenShot.png',
+	'/iPhoneLineCheckScreenShot.png',
+	'/backendLineCheckScreenShot2.png',
+	'/iPhoneLineCheckTempCheckScreenShot.png',
+	'/newDashboard1.png',
+	'/newDashboard2.png',
+	'/newDashboard3.png',
+];
+
+const features = [
+	'Guided line check checklists',
+	'Temperature logging for every station',
+	'Expiration and freshness verification',
+	'Real-time alerts for unsafe temperatures',
+	'Digital records ready for inspections',
+	'Manager dashboards and reports',
+];
 
 export default function Does() {
-	// List of screenshots for the carousel and lightbox
-	// const carouselScreenshots = [
-	// 	'/iPadLineCheckScreenShot.png',
-	// 	'/iPhoneLineCheckScreenShot.png',
-	// 	'/iPhoneLineCheckTempCheckScreenShot.png',
-	// 	'/backendLineCheckScreenShot.png',
-	// 	'/backendLineCheckScreenShot2.png',
-	// 	'/Dashboard.png',
-	// ];
-	const carouselScreenshots = [
-		'/iPadLineCheckScreenShot.png',
-		'/backendLineCheckScreenShot.png',
-		'/iPhoneLineCheckScreenShot.png',
-		'/backendLineCheckScreenShot2.png',
-		'/iPhoneLineCheckTempCheckScreenShot.png',
-		'/newDashboard1.png',
-		'/newDashboard2.png',
-		'/newDashboard3.png',
-	];
-
-	const carouselRef = useRef(null);
+	const carouselRef = useRef<HTMLDivElement>(null);
 	const isCarouselVisible = useInView(carouselRef, { margin: '-120px' });
 	const reduceMotion = useReducedMotion();
-
-	//set state
-	const [open, setOpen] = useState(false);
-	const [index, setIndex] = useState(0);
+	const [lightboxOpen, setLightboxOpen] = useState(false);
+	const [lightboxIndex, setLightboxIndex] = useState(0);
 	const [carouselIndex, setCarouselIndex] = useState(0);
-	const [isLandscape, setIsLandscape] = useState(false);
 
-	// Framer Motion variants for staggered fade-in
-	const containerVariants = {
-		hidden: {},
-		visible: {
-			transition: { staggerChildren: 0.2 },
-		},
-	};
-
-	const itemVariants = {
-		hidden: { opacity: 0, y: 50 },
-		visible: { opacity: 1, y: 0 },
-	};
-
-	//list of features to display in the UI, mapped to CircleCheck icons
-	const features = [
-		'Guided line check checklists',
-		'Temperature logging for every station',
-		'Expiration and freshness verification',
-		'Real-time alerts for unsafe temperatures',
-		'Digital records ready for inspections',
-		'Manager dashboards and reports',
-	];
-
-	//useeffect to auto-cycle through carousel screenshots every 3.5 seconds
 	useEffect(() => {
-	if (!isCarouselVisible || reduceMotion) return;
+		if (!isCarouselVisible || reduceMotion) return;
 
-	const interval = setInterval(() => {
-		setCarouselIndex((prev) => (prev + 1) % carouselScreenshots.length);
-	}, 3500);
+		const interval = window.setInterval(() => {
+			setCarouselIndex((previous) => (previous + 1) % screenshots.length);
+		}, 4500);
 
-	return () => clearInterval(interval);
+		return () => window.clearInterval(interval);
 	}, [isCarouselVisible, reduceMotion]);
 
-	return (
-		<section className="py-24">
-			<div className="max-w-6xl mx-auto px-6">
-				{/* Header */}
-				<div className="text-center mb-16">
-					<h2 className="text-4xl md:text-5xl font-bold text-destructive">
-						What Our App Does
-					</h2>
-					<p className="mt-4 text-lg md:text-xl text-ring max-w-2xl mx-auto">
-						Our app makes line checks simple, fast, and consistent across every
-						shift.
-					</p>
-				</div>
+	const openPreview = (index: number) => {
+		setLightboxIndex(index);
+		setLightboxOpen(true);
+	};
 
-				{/* Main Content */}
-				<div className="grid md:grid-cols-2 gap-20 items-center py-20">
-					{/* Device Mockup Section */}
+	return (
+		<section className="py-20 sm:py-24">
+			<div className="mx-auto max-w-6xl px-6">
+				<motion.div
+					initial={{ opacity: 0, y: 24 }}
+					whileInView={{ opacity: 1, y: 0 }}
+					transition={{ duration: 0.6 }}
+					viewport={{ once: true }}
+					className="mx-auto max-w-3xl text-center"
+				>
+					<div className="inline-flex items-center gap-2 rounded-full border bg-background px-3 py-1 text-xs font-semibold uppercase tracking-[0.14em] text-primary shadow-sm">
+						<LayoutList className="size-3.5" aria-hidden="true" />
+						Built for every shift
+					</div>
+					<h2 className="mt-5 text-4xl font-bold tracking-tight sm:text-5xl">
+						Everything your team needs.
+						<span className="mt-1 block text-destructive">Nothing paper can lose.</span>
+					</h2>
+					<p className="mx-auto mt-5 max-w-2xl text-lg leading-8 text-muted-foreground">
+						Run fast, repeatable line checks from a phone or tablet and keep every
+						result available to managers.
+					</p>
+				</motion.div>
+
+				<div className="mt-14 grid items-center gap-10 lg:grid-cols-2 lg:gap-14">
 					<motion.div
-						initial={{ opacity: 0, x: -40 }}
+						initial={{ opacity: 0, x: -24 }}
 						whileInView={{ opacity: 1, x: 0 }}
-						transition={{ duration: 0.7 }}
+						transition={{ duration: 0.6 }}
 						viewport={{ once: true }}
-						className="relative flex justify-center bg-accent/40 backdrop-blur-lg rounded-3xl shadow-xl p-10"
+						className="relative min-h-[440px] overflow-hidden rounded-3xl border bg-muted/40 p-6 shadow-sm sm:min-h-[540px] sm:p-10"
 					>
-						{/* Tablet */}
-						<motion.button
+						<div className="absolute inset-x-16 top-16 h-44 rounded-full bg-primary/10 blur-3xl" />
+						<button
 							type="button"
-							aria-label="Open the tablet line-check preview"
-							animate={reduceMotion ? undefined : { y: [0, -8, 0] }}
-							transition={{
-								duration: 5,
-								repeat: Infinity,
-								ease: 'easeInOut',
-							}}
-							onClick={() => {
-								setIndex(0);
-								setOpen(true);
-							}}
+							onClick={() => openPreview(0)}
+							className="group relative mx-auto block h-[390px] w-[292px] overflow-hidden rounded-2xl border bg-background shadow-xl sm:h-[470px] sm:w-[352px]"
+							aria-label="Open tablet line check preview"
 						>
 							<Image
 								src="/iPadLineCheckScreenShot.png"
-								alt="Tablet dashboard showing kitchen line check reporting interface"
-								width={440}
-								height={320}
-								className="rounded-2xl shadow-2xl cursor-zoom-in hover:scale-[1.02]"
+								alt="Digital restaurant line check displayed on a tablet"
+								fill
+								className="object-cover object-top transition duration-300 group-hover:scale-[1.02]"
+								sizes="(max-width: 640px) 292px, 352px"
 							/>
-						</motion.button>
+							<span className="absolute right-3 top-3 flex size-9 items-center justify-center rounded-full border bg-background/90 text-foreground shadow-sm backdrop-blur">
+								<ZoomIn className="size-4" aria-hidden="true" />
+							</span>
+						</button>
 
-						{/* Right Phone */}
-						<motion.button
+						<button
 							type="button"
-							aria-label="Open the mobile line-check preview"
-							animate={reduceMotion ? undefined : { y: [0, 10, 0] }}
-							transition={{
-								duration: 4,
-								repeat: Infinity,
-								ease: 'easeInOut',
-							}}
-							className="absolute -right-12 bottom-[-25px]"
-							onClick={() => {
-								setIndex(2);
-								setOpen(true);
-							}}
+							onClick={() => openPreview(2)}
+							className="group absolute bottom-5 right-3 h-56 w-28 overflow-hidden rounded-2xl border bg-background shadow-xl sm:bottom-7 sm:right-7 sm:h-72 sm:w-36"
+							aria-label="Open mobile line check preview"
 						>
 							<Image
 								src="/iPhoneLineCheckScreenShot.png"
-								alt="Mobile kitchen line check checklist interface"
-								width={190}
-								height={380}
-								className="rounded-2xl shadow-2xl border border-gray-200 cursor-zoom-in hover:scale-[1.02]"
+								alt="Digital restaurant line check displayed on a phone"
+								fill
+								className="object-cover object-top transition duration-300 group-hover:scale-[1.03]"
+								sizes="(max-width: 640px) 112px, 144px"
 							/>
-						</motion.button>
-
-						{/* Left Phone */}
-						<motion.button
-							type="button"
-							aria-label="Open the mobile temperature-check preview"
-							animate={reduceMotion ? undefined : { y: [0, -12, 0] }}
-							transition={{
-								duration: 4.5,
-								repeat: Infinity,
-								ease: 'easeInOut',
-							}}
-							className="absolute -left-12 top-[-25px]"
-							onClick={() => {
-								setIndex(4);
-								setOpen(true);
-							}}
-						>
-							<Image
-								src="/iPhoneLineCheckTempCheckScreenShot.png"
-								alt="Mobile temperature logging screen"
-								width={190}
-								height={380}
-								className="rounded-2xl shadow-2xl border border-gray-200 cursor-zoom-in hover:scale-[1.02]"
-							/>
-						</motion.button>
+						</button>
 					</motion.div>
 
-					{/* Features Section */}
 					<motion.div
-						initial={{ opacity: 0, x: 40 }}
+						initial={{ opacity: 0, x: 24 }}
 						whileInView={{ opacity: 1, x: 0 }}
-						transition={{ duration: 0.7 }}
+						transition={{ duration: 0.6, delay: 0.1 }}
 						viewport={{ once: true }}
 					>
-						<h3 className="text-3xl font-semibold mb-8 tracking-tight">
-							Key Features
-						</h3>
+						<h3 className="text-2xl font-semibold tracking-tight">One clear workflow</h3>
+						<p className="mt-3 leading-7 text-muted-foreground">
+							Give team members a guided checklist and give managers reliable,
+							time-stamped records without chasing paper forms.
+						</p>
 
-						<div className="mb-7 flex items-start gap-3 rounded-2xl border border-primary/15 bg-primary/5 p-4">
+						<div className="mt-6 flex items-start gap-3 rounded-2xl border border-primary/15 bg-primary/5 p-4">
 							<span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
 								<WifiOff className="size-4" aria-hidden="true" />
 							</span>
 							<div>
-								<p className="font-semibold text-foreground">Built for unreliable kitchen Wi-Fi</p>
+								<p className="font-semibold">Works through unreliable kitchen Wi-Fi</p>
 								<p className="mt-1 text-sm leading-6 text-muted-foreground">
-									Teams can complete line checks offline and sync their work when the connection returns.
+									Complete checks offline and sync the work when the connection returns.
 								</p>
 							</div>
 						</div>
 
-						<ul className="space-y-5 text-lg text-muted-foreground">
-							{features.map((feature, i) => (
+						<ul className="mt-7 grid gap-3 sm:grid-cols-2">
+							{features.map((feature, index) => (
 								<motion.li
-									key={i}
-									initial={{ opacity: 0, y: 12 }}
+									key={feature}
+									initial={{ opacity: 0, y: 10 }}
 									whileInView={{ opacity: 1, y: 0 }}
-									transition={{ delay: i * 0.07 }}
+									transition={{ delay: index * 0.06 }}
 									viewport={{ once: true }}
-									className="flex gap-3 items-start"
+									className="flex items-start gap-3 rounded-2xl border p-4 text-sm leading-6"
 								>
-									<CircleCheck className="text-destructive w-5 h-5 mt-1 shrink-0" />
+									<CircleCheck className="mt-0.5 size-5 shrink-0 text-primary" aria-hidden="true" />
 									<span>{feature}</span>
 								</motion.li>
 							))}
 						</ul>
-
-						<motion.p
-							initial={{ opacity: 0 }}
-							whileInView={{ opacity: 1 }}
-							transition={{ delay: 0.35 }}
-							viewport={{ once: true }}
-							className="mt-10 text-3xl font-medium text-chart-2 italic leading-relaxed"
-						>
-							Complete a full kitchen line check in minutes — directly from a
-							phone or tablet.
-						</motion.p>
 					</motion.div>
 				</div>
 
-				{/* Line Check Screens - Framer Motion Carousel with Staggered Fade-In */}
-				<div className="mt-24">
-					{/* <h3 className="text-2xl font-semibold text-center mb-8">
-						Line Check in Action
-					</h3> */}
-
-					<motion.div
-						initial={{ opacity: 0, y: 25 }}
-						whileInView={{ opacity: 1, y: 0 }}
-						transition={{ duration: 0.7 }}
-						viewport={{ once: true }}
-						className="text-center mb-16"
-					>
-						<div className="inline-block px-4 py-1 mb-4 text-sm font-medium rounded-full bg-accent text-muted-foreground">
-							Real Workflow Preview
-						</div>
-
-						<h3 className="text-4xl md:text-5xl font-bold tracking-tight leading-tight">
-							See How Kitchen Teams Complete
-							<span className="block text-destructive">
-								Line Checks in Minutes
-							</span>
-						</h3>
-
-						<p className="mt-6 text-lg text-muted-foreground max-w-2xl mx-auto">
-							Tap through actual screens used by restaurants to verify
-							temperatures, log freshness checks, and stay inspection-ready
-							every shift.
+				<div ref={carouselRef} className="mt-20 rounded-3xl border bg-muted/40 p-5 sm:p-8 lg:p-10">
+					<div className="mx-auto max-w-3xl text-center">
+						<p className="text-xs font-semibold uppercase tracking-[0.14em] text-primary">
+							Real workflow preview
 						</p>
-					</motion.div>
+						<h3 className="mt-3 text-3xl font-bold tracking-tight sm:text-4xl">
+							See line checks in action
+						</h3>
+						<p className="mt-4 leading-7 text-muted-foreground">
+							Explore the screens teams use to verify temperatures, freshness,
+							preparation, and shift completion.
+						</p>
+					</div>
 
-					<motion.div
-						ref={carouselRef}
-						className="relative flex justify-center items-center"
-						initial={{ opacity: 0 }}
-						whileInView={{ opacity: 1 }}
-						viewport={{ once: true }}
+					<motion.button
+						key={carouselIndex}
+						type="button"
+						initial={{ opacity: 0, scale: 0.98 }}
+						animate={{ opacity: 1, scale: 1 }}
+						transition={{ duration: 0.4 }}
+						onClick={() => openPreview(carouselIndex)}
+						className="group relative mx-auto mt-10 block h-[420px] w-full max-w-4xl overflow-hidden rounded-2xl border bg-background shadow-sm sm:h-[560px]"
+						aria-label="Open the current line check screenshot"
 					>
-						{/* Carousel Image */}
-						<motion.div
-							key={carouselIndex}
-							initial={{ opacity: 0, scale: 0.95 }}
-							animate={{ opacity: 1, scale: 1 }}
-							transition={{ duration: 0.5 }}
-							className="cursor-zoom-in"
-							onClick={() => {
-								setIndex(carouselIndex);
-								setOpen(true);
-							}}
-						>
-							<motion.div
-								layout
-								className={`relative flex items-center justify-center
-								bg-accent/40 backdrop-blur-lg rounded-3xl shadow-xl p-6
-								transition-all duration-500
-								${isLandscape
-								? 'w-[640px] h-[420px] md:w-[720px] md:h-[480px]'
-								: 'w-[420px] h-[620px] md:w-[480px] md:h-[680px]'
-								}`}
-							>
-								<Image
-									src={carouselScreenshots[carouselIndex]}
-									fill
-									onLoadingComplete={(img) => {
-										setIsLandscape(img.naturalWidth > img.naturalHeight);
-									}}
-									alt="Line check preview"
-									className="object-contain rounded-xl"
-									sizes="(max-width: 768px) 90vw, (max-width: 1200px) 80vw, 480px"
-									priority
-								/>
-							</motion.div>
-						</motion.div>
-					</motion.div>
+						<Image
+							src={screenshots[carouselIndex]}
+							fill
+							alt={`Line check workflow screen ${carouselIndex + 1}`}
+							className="object-contain p-3 sm:p-5"
+							sizes="(max-width: 1024px) 90vw, 896px"
+						/>
+						<span className="absolute right-4 top-4 flex items-center gap-2 rounded-full border bg-background/90 px-3 py-2 text-xs font-semibold opacity-100 shadow-sm backdrop-blur transition sm:opacity-0 sm:group-hover:opacity-100">
+							<ZoomIn className="size-4" aria-hidden="true" />
+							Expand
+						</span>
+					</motion.button>
 
-					{/* Dots navigation */}
-					<div className="flex justify-center gap-3 mt-6">
-						{carouselScreenshots.map((_, i) => (
+					<div className="mt-6 flex flex-wrap justify-center gap-2" aria-label="Workflow screenshots">
+						{screenshots.map((_, index) => (
 							<button
-								key={i}
+								key={index}
 								type="button"
-								aria-label={`Show workflow screenshot ${i + 1}`}
-								aria-current={carouselIndex === i ? 'true' : undefined}
-								onClick={() => setCarouselIndex(i)}
-								className={`h-2.5 w-2.5 rounded-full transition-all ${
-									carouselIndex === i ? 'bg-destructive scale-125' : 'bg-muted'
+								aria-label={`Show workflow screenshot ${index + 1}`}
+								aria-current={carouselIndex === index ? 'true' : undefined}
+								onClick={() => setCarouselIndex(index)}
+								className={`size-2.5 rounded-full transition-all ${
+									carouselIndex === index
+										? 'scale-125 bg-primary'
+										: 'bg-muted-foreground/30 hover:bg-muted-foreground/50'
 								}`}
 							/>
 						))}
 					</div>
-
-					<Lightbox
-						open={open}
-						index={index}
-						close={() => setOpen(false)}
-						slides={carouselScreenshots.map((src) => ({ src }))}
-					/>
 				</div>
 			</div>
+
+			<Lightbox
+				open={lightboxOpen}
+				index={lightboxIndex}
+				close={() => setLightboxOpen(false)}
+				slides={screenshots.map((src) => ({ src }))}
+			/>
 		</section>
 	);
 }
