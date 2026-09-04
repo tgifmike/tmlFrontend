@@ -57,6 +57,8 @@ export const DeleteConfirmButton = <T extends { id: string }>({
 					variant="ghost"
 					disabled={loading}
 					className="text-destructive p-0 flex items-center justify-center !w-[50px] !h-[50px]"
+					aria-label={`Delete ${entityLabel} ${itemName}`}
+					title={`Delete ${entityLabel} ${itemName}`}
 				>
 					<DeleteIcon className="!w-[30px] !h-[30px]" />
 				</Button>

@@ -31,6 +31,7 @@ export interface User {
 	appleId?: string | null;
 	createdAt?: string | null;
 	updatedAt?: string | null;
+	pinConfigured?: boolean | null;
 }
 
 export interface Account {
@@ -41,6 +42,18 @@ export interface Account {
 	imageBase64?: string | null;
 	createdAt?: string | null;
 	updatedAt?: string | null;
+}
+
+export interface IpadDevice {
+	id: string;
+	accountId: string;
+	locationId?: string | null;
+	locationName?: string | null;
+	deviceName?: string | null;
+	active: boolean;
+	enrolledAt?: string | null;
+	lastSeenAt?: string | null;
+	revokedAt?: string | null;
 }
 
 export interface Locations {
