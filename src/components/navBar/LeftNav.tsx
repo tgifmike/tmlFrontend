@@ -7,6 +7,7 @@ import { usePathname } from 'next/navigation';
 import UploadAccountImagePopover from './UploadAccountImagePopover';
 import { getAccountById, getAccountsForUser } from '@/app/api/accountApi';
 import { useEffect, useState } from 'react';
+import { MonitorSmartphone } from 'lucide-react';
 
 type LeftNavProps = {
 	accountName: string | null;
@@ -21,6 +22,7 @@ const LeftNav = ({ accountName, accountImage, accountId, sessionUserRole }: Left
 	const AddImageIcon = Icons.addPicture;
 	const AccountsIcon = Icons.account;
 	const UserIcon = Icons.user;
+	const DeviceIcon = MonitorSmartphone;
 
 	//set stae
 	const [image, setImage] = useState<string | null>(null);
@@ -75,6 +77,14 @@ const LeftNav = ({ accountName, accountImage, accountId, sessionUserRole }: Left
 					href={`/accounts/${accountId}/accountUsers`}
 					label="Users For Account"
 					icon={<UserIcon />}
+					pathname={pathname}
+				/>
+			</div>
+			<div className="flex flex-col gap-2 px-4 mt-6">
+				<NavLink
+					href={`/accounts/${accountId}/devices`}
+					label="Devices"
+					icon={<DeviceIcon />}
 					pathname={pathname}
 				/>
 			</div>

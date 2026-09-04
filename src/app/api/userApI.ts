@@ -16,6 +16,43 @@ export const toggleUserActive = async (id: string, active: boolean) => {
 	});
 };
 
+export type UserPinLength = 4 | 6;
+
+export type UserPinResponse = {
+	pinConfigured: boolean;
+	pin?: string;
+	message?: string;
+};
+
+// The backend must enforce uniqueness and store only a secure hash of the PIN.
+export const setUserPin = async (accountId: string, userId: string, pin: string) => {
+	return request<UserPinResponse>({
+		method: 'PUT',
+		url: `/accounts/${accountId}/users/${userId}/pin`,
+		data: { pin },
+	});
+};
+
+// Generation and assignment should be atomic so another request cannot claim
+// the same PIN between an availability check and the save operation.
+export const generateUniqueUserPin = async (
+	accountId: string,
+	userId: string,
+	length: UserPinLength,
+) => {
+	return request<UserPinResponse>({
+		method: 'POST',
+		url: `/accounts/${accountId}/users/${userId}/pin/generate`,
+		data: { length },
+	});
+};
+
+export const revokeUserPin = async (accountId: string, userId: string) =>
+	request<void>({
+		method: 'DELETE',
+		url: `/accounts/${accountId}/users/${userId}/pin`,
+	});
+
 //update user access role
 export const updateUserAccessRole = async (id: string, accessRole: string) => {
 	return request<User>({

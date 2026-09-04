@@ -18,6 +18,7 @@ import { StatusSwitchOrBadge } from '@/components/tableComponents/StatusSwitchOr
 import { UserControls } from '@/components/tableComponents/UserControls';
 import { UserStatusSwitchOrBadge } from '@/components/tableComponents/UserStatusSwitch';
 import { UserInvitationStatus } from '@/components/tableComponents/UserInvitationStatus';
+import { UserPinDialog } from '@/components/tableComponents/UserPinDialog';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useSession } from '@/lib/auth/session-context';
 import { Icons } from '@/lib/icon';
@@ -73,6 +74,19 @@ const AccountUsersPage = () => {
 				// Fetch location access
 				const userRes = await getUsersForAccount(accountIdParam);
 				const fetchedUsers = userRes.data ?? [];
+				// The signed-in user must always be visible for an account they can access.
+				// This also keeps the page usable while older accounts are being backfilled
+				// with their owner/member access row on the backend.
+				if (user.id && !fetchedUsers.some((member) => member.id === user.id)) {
+					fetchedUsers.unshift({
+						id: user.id,
+						userName: user.name ?? user.email,
+						userEmail: user.email,
+						userActive: true,
+						appRole: user.appRole,
+						accessRole: user.accessRole,
+					});
+				}
 				
 
 
@@ -361,6 +375,20 @@ const AccountUsersPage = () => {
 									render: (u) =>
 										sessionUserRole === 'MANAGER' ? (
 											<div className="flex justify-center gap-4 items-center">
+														<UserPinDialog
+															accountId={accountIdParam}
+															user={u}
+															onPinRevoked={(id) => setUsers((previous) => previous.map((item) => item.id === id ? { ...item, pinConfigured: false } : item))}
+													onPinConfigured={(id) =>
+														setUsers((previous) =>
+															previous.map((existingUser) =>
+																existingUser.id === id
+																	? { ...existingUser, pinConfigured: true }
+																	: existingUser,
+															),
+														)
+													}
+												/>
 												<EditUserDialog
 													users={users}
 													user={u}
@@ -470,6 +498,24 @@ const AccountUsersPage = () => {
 								},
 							]}
 							actions={[
+								{
+									element: sessionUserRole === 'MANAGER' ? (
+										<UserPinDialog
+															accountId={accountIdParam}
+															user={user}
+															onPinRevoked={(id) => setUsers((previous) => previous.map((item) => item.id === id ? { ...item, pinConfigured: false } : item))}
+											onPinConfigured={(id) =>
+												setUsers((previous) =>
+													previous.map((existingUser) =>
+														existingUser.id === id
+															? { ...existingUser, pinConfigured: true }
+															: existingUser,
+													),
+												)
+											}
+										/>
+									) : null,
+								},
 								{
 									element: (
 										// <EditUserDialog user={user} onUpdate={handleUpdateUser} />
