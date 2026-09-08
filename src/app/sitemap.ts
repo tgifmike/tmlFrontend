@@ -28,6 +28,10 @@ export default function sitemap(): MetadataRoute.Sitemap {
 			lastModified: new Date('2026-07-09'),
 		},
 		{
+			url: `${SITE_URL}/blog/restaurant-closure-food-safety`,
+			lastModified: new Date('2026-06-18'),
+		},
+		{
 			url: `${SITE_URL}/contact`,
 		},
 		{

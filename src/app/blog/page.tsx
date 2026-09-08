@@ -165,6 +165,11 @@ export default function BlogPage() {
 							</div>
 						</div>
 					</article>
+
+					<article className="group mt-6 grid overflow-hidden rounded-3xl border bg-card shadow-sm transition-shadow hover:shadow-lg sm:grid-cols-[280px_1fr]">
+						<Link href="/blog/restaurant-closure-food-safety" className="relative block min-h-56 overflow-hidden sm:min-h-full"><Image src="/blog/restaurant-closure-food-safety.png" alt="Closed restaurant storefront at dawn" fill className="object-cover transition-transform duration-500 group-hover:scale-[1.02]" sizes="(min-width: 640px) 280px, 100vw" /></Link>
+						<div className="p-7 sm:p-8"><p className="text-sm font-semibold text-primary">Inspection Readiness</p><h2 className="mt-2 text-2xl font-bold tracking-tight"><Link href="/blog/restaurant-closure-food-safety" className="hover:text-primary">Restaurant closures often start with small food-safety misses</Link></h2><p className="mt-3 leading-7 text-muted-foreground">How missed temperatures, sanitation gaps, and undocumented corrections can turn into failed inspections and costly downtime.</p><div className="mt-5 flex flex-wrap items-center gap-4 text-sm text-muted-foreground"><time dateTime="2026-06-18">June 18, 2026</time><span className="inline-flex items-center gap-1.5"><Clock3 className="h-4 w-4" aria-hidden="true" />8 min read</span></div></div>
+					</article>
 				</div>
 			</section>
 		</div>
