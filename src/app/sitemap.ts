@@ -16,6 +16,10 @@ export default function sitemap(): MetadataRoute.Sitemap {
 			lastModified: new Date('2026-09-01'),
 		},
 		{
+			url: `${SITE_URL}/faq`,
+			lastModified: new Date('2026-09-09'),
+		},
+		{
 			url: `${SITE_URL}/blog/how-digital-line-checks-save-money`,
 			lastModified: new Date('2026-09-01'),
 		},

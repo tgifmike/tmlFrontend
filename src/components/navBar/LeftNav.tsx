@@ -1,13 +1,12 @@
 'use client';
 
 import { Icons } from '@/lib/icon';
-import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import UploadAccountImagePopover from './UploadAccountImagePopover';
-import { getAccountById, getAccountsForUser } from '@/app/api/accountApi';
 import { useEffect, useState } from 'react';
 import { MonitorSmartphone } from 'lucide-react';
+import { AccountAvatar } from '@/components/accounts/AccountAvatar';
 
 type LeftNavProps = {
 	accountName: string | null;
@@ -19,13 +18,15 @@ type LeftNavProps = {
 
 const LeftNav = ({ accountName, accountImage, accountId, sessionUserRole }: LeftNavProps) => {
 	//icons
-	const AddImageIcon = Icons.addPicture;
 	const AccountsIcon = Icons.account;
 	const UserIcon = Icons.user;
 	const DeviceIcon = MonitorSmartphone;
 
 	//set stae
 	const [image, setImage] = useState<string | null>(null);
+	useEffect(() => {
+		setImage(null);
+	}, [accountId, accountImage]);
 
 	const pathname = usePathname();
 
@@ -36,23 +37,11 @@ const LeftNav = ({ accountName, accountImage, accountId, sessionUserRole }: Left
 					{accountName}
 				</p>
 			</div>
-			<div>
-				{image || accountImage ? (
-					// <div className="relative mx-auto mt-4 w-24 h-24 sm:w-36 sm:h-36 md:w-44 md:h-44 rounded-full overflow-hidden">
-					<div className="relative mx-auto mt-4 w-32 h-32 sm:w-40 sm:h-40 md:w-44 md:h-44 lg:w-48 lg:h-48  overflow-hidden">
-						<Image
-							src={`data:image/png;base64,${image ?? accountImage}`}
-							alt="Account Logo"
-							fill
-							className="object-contain"
-						/>
-					</div>
-				) : (
-					<div className="mx-auto mt-4 rounded-full bg-ring flex items-center justify-center w-32 h-32 sm:w-40 sm:h-40 md:w-44 md:h-44 lg:w-48 lg:h-48">
-						<AddImageIcon className="text-background h-12 w-12 sm:h-16 sm:w-16 md:h-18 md:w-18 lg:h-22 lg:w-22" />
-					</div>
-				)}
-			</div>
+			<AccountAvatar
+				image={image ?? accountImage}
+				name={accountName}
+				className="mx-auto mt-4 size-32 max-w-full rounded-2xl sm:size-40 lg:size-48"
+			/>
 			{sessionUserRole === 'MANAGER' && (
 				<div className="flex justify-center mt-4">
 					<UploadAccountImagePopover

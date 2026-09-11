@@ -32,6 +32,7 @@ export interface User {
 	createdAt?: string | null;
 	updatedAt?: string | null;
 	pinConfigured?: boolean | null;
+	authenticationMode?: 'OAUTH' | 'PIN_ONLY' | string | null;
 }
 
 export interface Account {

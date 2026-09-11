@@ -207,6 +207,13 @@ export const inviteUserToAccount = async (
 	});
 };
 
+export const createPinEmployee = async (accountId: string, userName: string, locationIds: string[]) =>
+	request<User>({
+		method: 'POST',
+		url: `/accounts/${accountId}/pin-employees`,
+		data: { userName, locationIds },
+	});
+
 //get user history
 export const getAllUserHistory = async (): Promise<UserHistory[]> => {
 	const response = await request<UserHistory[]>({

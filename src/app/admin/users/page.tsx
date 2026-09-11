@@ -190,8 +190,9 @@ const AdminUsersPage = () => {
 				</div>
 
 				<Card className="mt-6 hidden gap-0 overflow-hidden py-0 shadow-sm md:block">
-					<div className="grid grid-cols-[minmax(260px,2fr)_minmax(130px,1fr)_minmax(110px,0.8fr)_minmax(155px,1fr)_minmax(155px,1fr)_minmax(130px,0.8fr)] items-center bg-muted/60 px-6 py-4 text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+					<div className="grid grid-cols-[minmax(260px,2fr)_minmax(120px,0.9fr)_minmax(130px,1fr)_minmax(110px,0.8fr)_minmax(155px,1fr)_minmax(155px,1fr)_minmax(130px,0.8fr)] items-center bg-muted/60 px-6 py-4 text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">
 						<span>User</span>
+						<span className="text-center">Sign-in</span>
 						<span>Invitation</span>
 						<span className="text-center">Status</span>
 						<span className="text-center">Access role</span>
@@ -202,9 +203,10 @@ const AdminUsersPage = () => {
 					{paginatedUsers.map((user) => (
 						<div
 							key={user.id ?? user.userEmail}
-							className="grid min-h-24 grid-cols-[minmax(260px,2fr)_minmax(130px,1fr)_minmax(110px,0.8fr)_minmax(155px,1fr)_minmax(155px,1fr)_minmax(130px,0.8fr)] items-center border-t px-6 transition-colors hover:bg-muted/30"
+							className="grid min-h-24 grid-cols-[minmax(260px,2fr)_minmax(120px,0.9fr)_minmax(130px,1fr)_minmax(110px,0.8fr)_minmax(155px,1fr)_minmax(155px,1fr)_minmax(130px,0.8fr)] items-center border-t px-6 transition-colors hover:bg-muted/30"
 						>
 							<UserIdentity user={user} />
+							<div className="flex justify-center"><SignInBadge user={user} /></div>
 							<div><UserInvitationStatus user={user} /></div>
 							<div className="flex flex-col items-center gap-1.5">
 								<StatusSwitchOrBadge
@@ -258,6 +260,9 @@ const AdminUsersPage = () => {
 								<UserIdentity user={user} />
 								<div className="mt-4">
 									<UserInvitationStatus user={user} />
+								</div>
+								<div className="mt-3">
+									<SignInBadge user={user} />
 								</div>
 							</div>
 
@@ -430,6 +435,26 @@ const isPendingInvite = (user: User) =>
 
 function displayName(user: User) {
 	return user.userName || user.userEmail || 'Unknown user';
+}
+
+function isPinOnlyUser(user: User) {
+	const mode = String(user.authenticationMode ?? '').toUpperCase();
+	return mode === 'PIN_ONLY' || (!user.userEmail && user.invited === false);
+}
+
+function SignInBadge({ user }: { user: User }) {
+	return isPinOnlyUser(user) ? (
+		<Badge variant="secondary" className="border-amber-200 bg-amber-50 text-amber-800">
+			PIN user
+		</Badge>
+	) : (
+		<Badge
+			variant="outline"
+			className="border-sky-500 bg-sky-500/10 text-sky-700 dark:text-sky-300"
+		>
+			Auth user
+		</Badge>
+	);
 }
 
 function initials(name?: string | null) {

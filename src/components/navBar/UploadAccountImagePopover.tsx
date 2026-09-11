@@ -40,13 +40,14 @@ const UploadAccountImagePopover: React.FC<Props> = ({
 		setLoading(true);
 		const reader = new FileReader();
 
-		reader.onloadend = async () => {
+		reader.onload = async () => {
 			const base64 = (reader.result as string).split(',')[1];
 
 			try {
-				await updateAccountImage(accountId, base64);
+				const response = await updateAccountImage(accountId, base64);
+				if (response.error) throw new Error(response.error);
 				toast.success('Image uploaded successfully');
-				onUploadSuccess?.(base64);
+				onUploadSuccess?.(reader.result as string);
 				setOpen(false); // close the dialog
 			} catch (err) {
 				console.error('Upload failed:', err);
@@ -54,6 +55,10 @@ const UploadAccountImagePopover: React.FC<Props> = ({
 			} finally {
 				setLoading(false);
 			}
+		};
+		reader.onerror = () => {
+			toast.error('Failed to read image');
+			setLoading(false);
 		};
 
 		reader.readAsDataURL(file);

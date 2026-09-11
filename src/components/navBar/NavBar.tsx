@@ -95,15 +95,16 @@ const NavBar = () => {
 				<div className="flex justify-center">
 					{showPublicNavigation && (
 						<>
-							<div className="hidden md:flex">
+							<div className="hidden lg:flex">
 								<SectionNav />
 							</div>
 
-							<div className="md:hidden">
+							<div className="lg:hidden">
 								<MobileDrawerNav
 									open={drawerOpen}
 									setOpen={setDrawerOpen}
 									title="Menu"
+									triggerClassName="lg:hidden"
 								>
 									<LandingSectionLinks
 										onNavigate={() => setDrawerOpen(false)}

@@ -29,7 +29,7 @@ export default function Headlines() {
 							</h2>
 							<p className="mt-5 max-w-2xl text-lg leading-8 text-background/75">
 								Replace paper checklists with a workflow your team can complete from
-								any phone or tablet—even when the internet drops.
+								an iPad or iPhone—even when the internet drops.
 							</p>
 
 							<div className="mt-8 flex flex-col gap-3 sm:flex-row">

@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 120 120" fill="none">
+  <defs>
+    <linearGradient id="screen" x1="14" y1="25" x2="106" y2="96" gradientUnits="userSpaceOnUse"><stop stop-color="#5EEAD4"/><stop offset="1" stop-color="#0E7490"/></linearGradient>
+    <clipPath id="clip"><rect x="14" y="26" width="92" height="68" rx="5"/></clipPath>
+  </defs>
+  <ellipse cx="60" cy="102" rx="49" ry="4" fill="#0F172A" opacity=".12"/>
+  <rect x="6" y="18" width="108" height="84" rx="10" fill="#64748B"/>
+  <rect x="8" y="20" width="104" height="80" rx="8" fill="#0F172A"/>
+  <rect x="14" y="26" width="92" height="68" rx="5" fill="url(#screen)"/>
+  <g clip-path="url(#clip)"><circle cx="104" cy="91" r="46" fill="#99F6E4" opacity=".4"/><circle cx="31" cy="115" r="53" fill="#155E75" opacity=".4"/></g>
+  <circle cx="60" cy="23" r="1.5" fill="#475569"/>
+  <path d="m49 87-3 2 3 2v-4Z" stroke="white" stroke-opacity=".85" stroke-linejoin="round"/>
+  <circle cx="60" cy="89" r="2" stroke="white" stroke-opacity=".85"/>
+  <rect x="71" y="87" width="4" height="4" rx=".5" stroke="white" stroke-opacity=".85"/>
+  <rect x="86" y="16" width="13" height="2" rx="1" fill="#64748B"/>
+</svg>

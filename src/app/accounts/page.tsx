@@ -18,8 +18,9 @@ import CreateAccountDialog from '@/components/tableComponents/CreateAccountForm'
 import Link from 'next/link';
 import AccountHistoryFeed from '@/components/tableComponents/AccountHistoryFeed';
 import { useSession } from '@/lib/auth/session-context';
-import { Building2, ChevronRight } from 'lucide-react';
+import { ChevronRight } from 'lucide-react';
 import { Card } from '@/components/ui/card';
+import { AccountAvatar } from '@/components/accounts/AccountAvatar';
 
 
 
@@ -204,9 +205,7 @@ const MainAccountPage = () => {
 									href={`/accounts/${a.id}`}
 									className="group inline-flex items-center gap-3 font-semibold text-foreground transition-colors hover:text-chart-3"
 								>
-									<span className="flex size-10 items-center justify-center rounded-xl bg-chart-3/10 text-chart-3">
-										<Building2 className="size-5" aria-hidden="true" />
-									</span>
+									<AccountAvatar image={a.imageBase64 || a.accountImage} name={a.accountName} className="size-10" />
 									<span>{a.accountName}</span>
 									<ChevronRight
 										className="size-4 opacity-0 transition-all group-hover:translate-x-0.5 group-hover:opacity-100"
@@ -295,9 +294,7 @@ const MainAccountPage = () => {
 							className="group flex items-center justify-between gap-4 p-5 transition-colors hover:bg-muted/40"
 						>
 							<div className="flex min-w-0 items-center gap-3">
-								<span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-chart-3/10 text-chart-3">
-									<Building2 className="size-5" aria-hidden="true" />
-								</span>
+								<AccountAvatar image={account.imageBase64 || account.accountImage} name={account.accountName} />
 								<div className="min-w-0">
 									<p className="truncate font-semibold text-foreground">
 										{account.accountName}
