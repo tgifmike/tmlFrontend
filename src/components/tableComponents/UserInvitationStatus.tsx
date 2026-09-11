@@ -1,6 +1,6 @@
 import type { User } from '@/app/types';
 import { Badge } from '@/components/ui/badge';
-import { CircleCheck, Mail } from 'lucide-react';
+import { CircleCheck, KeyRound, Mail} from 'lucide-react';
 
 type UserInvitationStatusProps = {
 	user: User;
@@ -10,6 +10,21 @@ export const isUserPendingInvite = (user: User) =>
 	user.invited === true && user.firstLogin === true;
 
 export function UserInvitationStatus({ user }: UserInvitationStatusProps) {
+	const pinOnly = String(user.authenticationMode ?? '').toUpperCase() === 'PIN_ONLY'
+		|| (!user.userEmail && user.invited === false);
+	if (pinOnly) {
+		return (
+			<Badge
+				variant="outline"
+				className="gap-1.5 border-sky-500/40 bg-sky-500/10 text-sky-700 dark:text-sky-300"
+			>
+				<KeyRound className="size-3.5" aria-hidden="true" />
+				{/* No invitation — PIN access */}
+				No invitation sent
+			</Badge>
+		);
+	}
+
 	if (isUserPendingInvite(user)) {
 		return (
 			<Badge

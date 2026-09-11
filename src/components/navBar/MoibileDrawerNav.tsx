@@ -16,6 +16,7 @@ interface MobileDrawerNavProps {
 	open: boolean;
 	setOpen: (open: boolean) => void;
 	title?: string;
+	triggerClassName?: string;
 	children: ReactNode;
 }
 
@@ -26,6 +27,7 @@ const MobileDrawerNav: React.FC<MobileDrawerNavProps> = ({
 	open,
 	setOpen,
 	title = 'Navigation',
+	triggerClassName = 'md:hidden',
 	children,
 }) => {
 	return (
@@ -35,7 +37,7 @@ const MobileDrawerNav: React.FC<MobileDrawerNavProps> = ({
 				<Button
 					variant="ghost"
 					size={'icon'}
-					className="md:hidden"
+					className={triggerClassName}
 					aria-label="Open menu"
 				>
 					<Menu className="w-[25px]! h-[25px]!" />

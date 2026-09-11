@@ -5,6 +5,7 @@ import { deleteUser, getUsersForAccount, toggleUserActive, updateUser, updateUse
 import { AccessRole, AppRole, User } from '@/app/types';
 import { DataCard } from '@/components/cards/DataCard';
 import { InviteUserDialog } from '@/components/invite/InviteUserDialog';
+import { CreatePinEmployeeDialog } from '@/components/invite/CreatePinEmployeeDialog';
 import LeftNav from '@/components/navBar/LeftNav';
 import MobileDrawerNav from '@/components/navBar/MoibileDrawerNav';
 import Spinner from '@/components/spinner/Spinner';
@@ -16,156 +17,117 @@ import { Pagination } from '@/components/tableComponents/Pagination';
 import { ReusableTable } from '@/components/tableComponents/ReusableTableProps';
 import { StatusSwitchOrBadge } from '@/components/tableComponents/StatusSwitchOrBadge';
 import { UserControls } from '@/components/tableComponents/UserControls';
-import { UserStatusSwitchOrBadge } from '@/components/tableComponents/UserStatusSwitch';
 import { UserInvitationStatus } from '@/components/tableComponents/UserInvitationStatus';
 import { UserPinDialog } from '@/components/tableComponents/UserPinDialog';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
+import { Card } from '@/components/ui/card';
 import { useSession } from '@/lib/auth/session-context';
-import { Icons } from '@/lib/icon';
-import { useParams } from 'next/navigation';
-import router from 'next/router';
+import { useParams, useRouter } from 'next/navigation';
 import React, { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 
-const AccountUsersPage = () => {
-	//icons
-		const UserIcon = Icons.user;
+const isPinOnlyUser = (user: User) => {
+	const mode = String(user.authenticationMode ?? '').toUpperCase();
+	return mode === 'PIN_ONLY' || (!user.userEmail && user.invited === false);
+};
 
-	//session
-	const { user, loading, logout } = useSession();
-	const currentUser = user as User | undefined;
-	const sessionUserRole = user?.appRole;
-	const canToggle = currentUser?.appRole === AppRole.MANAGER;
-	
+const AccountUsersPage = () => {
+	const { user: sessionUser, loading: sessionLoading } = useSession();
+	const currentUser = sessionUser as User | undefined;
+	const currentUserId = currentUser?.id;
+	const sessionUserRole = currentUser?.appRole;
+	const canManage = currentUser?.appRole === AppRole.MANAGER;
+	const router = useRouter();
 	const params = useParams<{ accountId: string; locationId: string }>();
 	const accountIdParam = params.accountId;
-
-	//set state
 	const [loadingAccess, setLoadingAccess] = useState(true);
 	const [hasAccess, setHasAccess] = useState(false);
 	const [showActiveOnly, setShowActiveOnly] = useState(true);
 	const [accountName, setAccountName] = useState<string | null>(null);
-    const [accountImage, setAccountImage] = useState<string | null>(null);
+	const [accountImage, setAccountImage] = useState<string | null>(null);
 	const [users, setUsers] = useState<User[]>([]);
-		const [searchTerm, setSearchTerm] = useState('');
-		const [currentPage, setCurrentPage] = useState(1);
+	const [searchTerm, setSearchTerm] = useState('');
+	const [currentPage, setCurrentPage] = useState(1);
 	const [pageSize, setPageSize] = useState(10);
 	const [drawerOpen, setDrawerOpen] = useState(false);
 
 	useEffect(() => {
-		if (loading || !user?.id || !accountIdParam)
+		if (sessionLoading) return;
+		setHasAccess(false);
+		if (!currentUserId || !accountIdParam) {
+			setLoadingAccess(false);
 			return;
-		if (hasAccess) return; // prevent rerun
+		}
 
+		let cancelled = false;
 		const verifyAccess = async () => {
+			setLoadingAccess(true);
 			try {
-				// Fetch accounts for user
-				const accountsRes = await getAccountsForUser(user.id);
-				const account = accountsRes.data?.find(
-					(acc) => acc.id?.toString() === accountIdParam
-				);
-
+				const accountsRes = await getAccountsForUser(currentUserId);
+				if (cancelled) return;
+				if (accountsRes.error) throw new Error(accountsRes.error);
+				const account = accountsRes.data?.find((item) => item.id?.toString() === accountIdParam);
 				if (!account) {
 					toast.error('You do not have access to this account.');
 					router.push('/accounts');
 					return;
 				}
-
-				// Fetch location access
 				const userRes = await getUsersForAccount(accountIdParam);
-				const fetchedUsers = userRes.data ?? [];
-				// The signed-in user must always be visible for an account they can access.
-				// This also keeps the page usable while older accounts are being backfilled
-				// with their owner/member access row on the backend.
-				if (user.id && !fetchedUsers.some((member) => member.id === user.id)) {
-					fetchedUsers.unshift({
-						id: user.id,
-						userName: user.name ?? user.email,
-						userEmail: user.email,
-						userActive: true,
-						appRole: user.appRole,
-						accessRole: user.accessRole,
-					});
-				}
-				
-
-
+				if (cancelled) return;
+				if (userRes.error) throw new Error(userRes.error);
 				setHasAccess(true);
 				setAccountName(account.accountName);
-                setAccountImage(account.imageBase64 || account.accountImage || null);
-                setUsers(fetchedUsers)
-			} catch (err) {
-				toast.error('You do not have access to this location.');
+				setAccountImage(account.imageBase64 || account.accountImage || null);
+				setUsers(userRes.data ?? []);
+			} catch (error) {
+				if (cancelled) return;
+				toast.error(error instanceof Error ? error.message : 'Failed to load account users.');
 				router.push('/accounts');
 			} finally {
-				setLoadingAccess(false);
+				if (!cancelled) setLoadingAccess(false);
 			}
 		};
-
 		verifyAccess();
-	}, [loading, user, accountIdParam, hasAccess, router]);
-
-	// Load pagination settings from localStorage safely
-		useEffect(() => {
-			if (typeof window !== 'undefined') {
-				const storedPage = Number(localStorage.getItem('accountUsersCurrentPage')) || 1;
-				const storedPageSize =
-					Number(localStorage.getItem('accountUsersPageSize')) || 10;
-				setCurrentPage(storedPage);
-				setPageSize(storedPageSize);
-			}
-		}, []);
-	
-		// Persist pagination to localStorage
-		useEffect(() => {
-			if (typeof window !== 'undefined') {
-				localStorage.setItem('accountUsersCurrentPage', String(currentPage));
-			}
-		}, [currentPage]);
-	
-		useEffect(() => {
-			if (typeof window !== 'undefined') {
-				localStorage.setItem('accountUsersPageSize', String(pageSize));
-			}
-		}, [pageSize]);
-	
-	//toggle showing only active users and search
-		const filteredUsers = (users ?? []).filter((user) => {
-			const name = user.userName ?? '';
-			const email = user.userEmail ?? '';
-	
-			const matchesSearch =
-				name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-				email.toLowerCase().includes(searchTerm.toLowerCase());
-	
-			const matchesActive = showActiveOnly ? user.userActive : true;
-	
-			return matchesSearch && matchesActive;
-		});
-	
-	//toggle user active status
-		const handleToggleActive = async (userId: string, checked: boolean) => {
-			try {
-				await toggleUserActive(userId, checked);
-	
-				setUsers((prev) =>
-					prev.map((u) => (u.id === userId ? { ...u, userActive: checked } : u))
-				);
-	
-				const updatedUser = users.find((u) => u.id === userId);
-				// toast.success(
-				// 	`User:  ${updatedUser?.userName ?? 'unknown'} is now ${
-				// 		checked ? 'active' : 'inactive'
-				// 	}`
-				// );
-			} catch (error: any) {
-				toast.error('Failed to update user status: ' + error.message);
-			}
+		return () => {
+			cancelled = true;
 		};
-	
-		//update user access role
-		const handleAccessRoleChange = async (
-			userId: string,
+	}, [sessionLoading, currentUserId, accountIdParam, router]);
+
+	useEffect(() => {
+		if (typeof window !== 'undefined') {
+			setCurrentPage(Number(localStorage.getItem('accountUsersCurrentPage')) || 1);
+			setPageSize(Number(localStorage.getItem('accountUsersPageSize')) || 10);
+		}
+	}, []);
+
+	useEffect(() => {
+		if (typeof window !== 'undefined') {
+			localStorage.setItem('accountUsersCurrentPage', String(currentPage));
+			localStorage.setItem('accountUsersPageSize', String(pageSize));
+		}
+	}, [currentPage, pageSize]);
+
+	const filteredUsers = users.filter((item) => {
+		const query = searchTerm.toLowerCase();
+		return (item.userName ?? '').toLowerCase().includes(query) || (item.userEmail ?? '').toLowerCase().includes(query);
+	}).filter((item) => !showActiveOnly || item.userActive);
+
+	const handleToggleActive = async (userId: string, checked: boolean) => {
+		if (!canManage || userId === currentUserId) return;
+		const response = await toggleUserActive(userId, checked);
+		if (response.error) throw new Error(response.error);
+		setUsers((prev) => prev.map((item) => item.id === userId ? { ...item, userActive: checked } : item));
+	};
+
+	useEffect(() => {
+		setCurrentPage(1);
+	}, [searchTerm, showActiveOnly, pageSize]);
+
+	const paginatedUsers = filteredUsers.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+
+	const handleAccessRoleChange = async (
+		userId: string,
 			newRole: AccessRole
 		) => {
 			try {
@@ -235,7 +197,7 @@ const AccountUsersPage = () => {
 		}, [pageSize]);
 	
 		// slice for current page
-		const paginatedUsers = filteredUsers.slice(
+		const renderedUsers = filteredUsers.slice(
 			(currentPage - 1) * pageSize,
 			currentPage * pageSize
 		);
@@ -244,6 +206,17 @@ const AccountUsersPage = () => {
 	
 		
 	
+
+	if (sessionLoading || loadingAccess) {
+		return (
+			<div className="flex items-center justify-center py-40 text-xl text-chart-3">
+				<Spinner />
+				<span className="ml-4">Loading users…</span>
+			</div>
+		);
+	}
+
+	if (!currentUserId || !hasAccess) return null;
 
 	return (
 		<div className="flex">
@@ -279,12 +252,7 @@ const AccountUsersPage = () => {
 
 						<h1 className="text-2xl font-semibold">Account Users Page</h1>
 					</div>
-					<InviteUserDialog
-						accountId={accountIdParam}
-						onUserCreated={(user: User) => {
-							setUsers((prev) => [...prev, user]);
-						}}
-					/>
+					<div className="flex flex-wrap justify-end gap-2"><InviteUserDialog accountId={accountIdParam} onUserCreated={(user: User) => setUsers((prev) => [...prev, user])} />{canManage && <CreatePinEmployeeDialog accountId={accountIdParam} onUserCreated={(user) => setUsers((prev) => [...prev, user])} />}</div>
 				</header>
 
 				{/* Controls */}
@@ -297,25 +265,22 @@ const AccountUsersPage = () => {
 					/>
 				</div>
 				{/* Desktop Table */}
-				<div className="hidden md:block mt-8 px-2">
-					<div className="bg-accent p-2 rounded-2xl text-chart-3 overflow-x-auto">
+				<Card className="mx-2 mt-6 hidden gap-0 overflow-hidden py-0 shadow-sm md:block">
 						<ReusableTable
 							data={paginatedUsers}
 							rowKey={(u) => u.id!}
+							headerRowClassName="bg-muted/60 text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground hover:bg-muted/60"
+							rowClassName="border-t text-sm transition-colors hover:bg-muted/30"
 							columns={[
 								{
-									header: '',
-									render: (u) => (
-										<Avatar>
-											<AvatarImage src={u.userImage ?? undefined} />
-											<AvatarFallback>
-												<UserIcon className="h-6 w-6" />
-											</AvatarFallback>
-										</Avatar>
-									),
-								},
-								{ header: 'User Name', render: (u) => u.userName },
-								{ header: 'Email', render: (u) => u.userEmail },
+								header: 'User',
+								render: (u) => <UserIdentity user={u} />,
+							},
+				{
+					header: 'Sign-in',
+					className: 'text-center',
+					render: (u) => <SignInBadge user={u} />,
+				},
 								{
 									header: 'Invitation',
 									className: 'text-center',
@@ -332,7 +297,7 @@ const AccountUsersPage = () => {
 											}}
 											getLabel={() => `User: ${u.userName}`}
 											onToggle={handleToggleActive}
-											canToggle={canToggle}
+											canToggle={canManage && u.id !== currentUserId}
 										/>
 									),
 								},
@@ -373,7 +338,7 @@ const AccountUsersPage = () => {
 									header: 'Actions',
 									className: 'text-center',
 									render: (u) =>
-										sessionUserRole === 'MANAGER' ? (
+										canManage ? (
 											<div className="flex justify-center gap-4 items-center">
 														<UserPinDialog
 															accountId={accountIdParam}
@@ -406,7 +371,7 @@ const AccountUsersPage = () => {
 														)
 													}
 												/>
-												{u.id && (
+												{u.id && u.id !== currentUserId ? (
 													<DeleteConfirmButton
 														item={{ id: u.id }}
 														entityLabel="user"
@@ -418,6 +383,8 @@ const AccountUsersPage = () => {
 														}}
 														getItemName={() => u.userName ?? 'Unknown'} // guarantee a string
 													/>
+												) : (
+													<Badge variant="outline">You</Badge>
 												)}
 											</div>
 										) : (
@@ -426,8 +393,7 @@ const AccountUsersPage = () => {
 								},
 							]}
 						/>
-					</div>
-				</div>
+				</Card>
 
 				{/* Mobile Cards */}
 				<div className="block md:hidden mt-6 space-y-4 p-2">
@@ -439,8 +405,8 @@ const AccountUsersPage = () => {
 							avatar={
 								<Avatar>
 									<AvatarImage src={user.userImage ?? undefined} />
-									<AvatarFallback>
-										<UserIcon className="h-5 w-5 text-chart-3" />
+									<AvatarFallback className="font-semibold text-chart-3">
+										{initials(user.userName || user.userEmail)}
 									</AvatarFallback>
 								</Avatar>
 							}
@@ -450,19 +416,17 @@ const AccountUsersPage = () => {
 									value: <UserInvitationStatus user={user} />,
 								},
 								{
+									label: 'Sign-in',
+									value: <SignInBadge user={user} />,
+								},
+								{
 									label: 'Status',
 									value: (
-										<UserStatusSwitchOrBadge
-											user={user}
-											onStatusChange={(id, checked) =>
-												setUsers((prev) =>
-													prev.map((user) =>
-														user.id === id
-															? { ...user, userActive: checked }
-															: user,
-													),
-												)
-											}
+										<StatusSwitchOrBadge
+											entity={{ id: user.id!, active: user.userActive ?? false }}
+											getLabel={() => `User: ${user.userName}`}
+											onToggle={handleToggleActive}
+											canToggle={canManage && user.id !== currentUserId}
 										/>
 									),
 								},
@@ -499,7 +463,7 @@ const AccountUsersPage = () => {
 							]}
 							actions={[
 								{
-									element: sessionUserRole === 'MANAGER' ? (
+									element: canManage ? (
 										<UserPinDialog
 															accountId={accountIdParam}
 															user={user}
@@ -517,8 +481,7 @@ const AccountUsersPage = () => {
 									) : null,
 								},
 								{
-									element: (
-										// <EditUserDialog user={user} onUpdate={handleUpdateUser} />
+									element: canManage ? (
 										<EditUserDialog
 											users={users}
 											user={user}
@@ -532,10 +495,10 @@ const AccountUsersPage = () => {
 												)
 											}
 										/>
-									),
+									) : null,
 								},
 								{
-									element: user.id ? (
+									element: canManage ? (user.id && user.id !== currentUserId ? (
 										<DeleteConfirmButton
 											item={{ id: user.id }}
 											entityLabel="user"
@@ -545,7 +508,7 @@ const AccountUsersPage = () => {
 											}}
 											getItemName={() => user.userName ?? 'Unknown'} // always returns string
 										/>
-									) : null,
+									) : <Badge variant="outline">You</Badge>) : null,
 								},
 							]}
 						/>
@@ -570,5 +533,48 @@ const AccountUsersPage = () => {
 		</div>
 	);
 };
+
+function UserIdentity({ user }: { user: User }) {
+	return (
+		<div className="flex min-w-0 items-center gap-3">
+			<Avatar className="size-11 border">
+				<AvatarImage src={user.userImage ?? undefined} alt="" />
+				<AvatarFallback className="font-semibold text-chart-3">
+					{initials(user.userName || user.userEmail)}
+				</AvatarFallback>
+			</Avatar>
+			<div className="min-w-0">
+				<p className="truncate font-semibold">
+					{user.userName || user.userEmail || 'Unknown user'}
+				</p>
+				<p className="mt-1 truncate text-xs text-muted-foreground">
+					{user.userEmail || 'No email address'}
+				</p>
+			</div>
+		</div>
+	);
+}
+
+function SignInBadge({ user }: { user: User }) {
+	return isPinOnlyUser(user) ? (
+		<Badge variant="secondary" className="border-amber-200 bg-amber-50 text-amber-800">
+			PIN user
+		</Badge>
+	) : (
+		<Badge
+			variant="outline"
+			className="border-sky-500 bg-sky-500/10 text-sky-700 dark:text-sky-300"
+		>
+			Auth user
+		</Badge>
+	);
+}
+
+function initials(name?: string | null) {
+	if (!name) return 'U';
+	const parts = name.trim().split(/\s+/).filter(Boolean);
+	if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+	return `${parts[0][0]}${parts[parts.length - 1][0]}`.toUpperCase();
+}
 
 export default AccountUsersPage;

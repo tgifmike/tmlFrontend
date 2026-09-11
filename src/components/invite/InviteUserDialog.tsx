@@ -81,7 +81,7 @@ export const InviteUserDialog = ({
 				<Button
 					variant="outline"
 					disabled={loading}
-					className="text-chart-3 font-bold text-sm md:text-lg px-3 py-1 md:px-4 md:py-2 flex items-center gap-2"
+					className="h-10 rounded-xl px-4 text-sm font-bold text-chart-3"
 				>
 					<Add_User className="!w-[25px] !h-[25px]" />
 					<span className="hidden md:inline">Invite User</span>

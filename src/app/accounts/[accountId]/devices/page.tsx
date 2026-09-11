@@ -8,8 +8,9 @@ import { toast } from 'sonner';
 import { getDevicesForAccount, revokeIpadDevice } from '@/app/api/deviceApi';
 import { getAccountsForUser } from '@/app/api/accountApi';
 import { getLocationsByAccountId } from '@/app/api/locationApi';
-import type { IpadDevice, User } from '@/app/types';
+import type { IpadDevice } from '@/app/types';
 import LeftNav from '@/components/navBar/LeftNav';
+import { DeviceIdentity } from '@/components/devices/DeviceIdentity';
 import MobileDrawerNav from '@/components/navBar/MoibileDrawerNav';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -67,7 +68,7 @@ export default function AccountDevicesPage() {
 	};
 
 	const revoke = async (device: IpadDevice) => {
-		if (!isManager || !window.confirm(`Revoke ${device.deviceName || 'this iPad'}? It will no longer be able to perform line checks.`)) return;
+		if (!isManager || !window.confirm(`Revoke ${device.deviceName || 'this device'}? It will no longer be able to perform line checks.`)) return;
 		const response = await revokeIpadDevice(device.id);
 		if (response.error) {
 			toast.error(response.error);
@@ -108,7 +109,7 @@ export default function AccountDevicesPage() {
 						<div>
 							<p className="text-sm text-muted-foreground">{accountName}</p>
 							<h1 className="mt-1 text-3xl font-semibold tracking-tight">Account devices</h1>
-							<p className="mt-2 text-sm text-muted-foreground">Enrolled iPads that can perform offline line checks for this account.</p>
+							<p className="mt-2 text-sm text-muted-foreground">Manage enrolled devices and their line check access for this account.</p>
 						</div>
 						<div className="flex flex-wrap justify-end gap-2">
 						{isManager && devices.some((device) => device.revokedAt) && <Button variant="outline" size="sm" onClick={removeRevokedFromView}><Trash2 className="mr-2 size-4" /> Remove revoked</Button>}
@@ -121,8 +122,46 @@ export default function AccountDevicesPage() {
 					<Card>
 						<CardHeader><CardTitle className="flex items-center gap-2"><MonitorSmartphone className="size-5" /> {devices.length} total device{devices.length === 1 ? '' : 's'}</CardTitle></CardHeader>
 						<CardContent>
-							{devices.filter((device) => !device.revokedAt).length === 0 ? <div className="py-12 text-center text-sm text-muted-foreground">No active iPads are enrolled for this account.</div> : <div className="space-y-3">{devices.filter((device) => !device.revokedAt).map((device) => <div key={device.id} className="flex flex-col gap-3 rounded-xl border p-4 sm:flex-row sm:items-center sm:justify-between"><div><p className="font-semibold">{device.deviceName || 'Unnamed iPad'}</p><p className="text-sm text-muted-foreground">{device.locationName || 'No location assigned'}</p><p className="mt-1 text-xs text-muted-foreground">Enrolled {formatDate(device.enrolledAt)} · Last seen {formatDate(device.lastSeenAt)}</p></div><div className="flex items-center gap-3"><Badge variant="default">Pin Access Active</Badge>{isManager && <Button variant="outline" size="sm" className="text-destructive" onClick={() => revoke(device)} aria-label={`Revoke ${device.deviceName || 'device'}`} title={`Revoke ${device.deviceName || 'device'}`}>Revoke</Button>}</div></div>)}</div>}
-							{devices.some((device) => device.revokedAt) && <div className="mt-5 border-t pt-3"><Button type="button" variant="ghost" className="w-full justify-between" onClick={() => setShowRevoked((open) => !open)}><span>Show revoked devices ({devices.filter((device) => device.revokedAt).length})</span><ChevronDown className={`size-4 transition-transform ${showRevoked ? 'rotate-180' : ''}`} /></Button>{showRevoked && <div className="mt-3 space-y-3">{devices.filter((device) => device.revokedAt).map((device) => <div key={device.id} className="flex items-center justify-between rounded-xl border border-dashed p-4"><div><p className="font-semibold">{device.deviceName || 'Unnamed iPad'}</p><p className="text-sm text-muted-foreground">{device.locationName || 'No location assigned'}</p><p className="text-xs text-muted-foreground">Revoked {formatDate(device.revokedAt)}</p></div><div className="flex items-center gap-3"><Badge variant="secondary">Pin Access Revoked</Badge>{isManager && <Button variant="ghost" size="icon" className="text-destructive" onClick={removeRevokedFromView} aria-label="Remove revoked devices" title="Remove revoked devices"><Trash2 className="size-5" /></Button>}</div></div>)}</div>}</div>}
+							{devices.filter((device) => !device.revokedAt).length === 0 ? (
+								<div className="py-12 text-center text-sm text-muted-foreground">No active devices are enrolled for this account.</div>
+							) : (
+								<div className="space-y-3">
+									{devices.filter((device) => !device.revokedAt).map((device) => (
+										<div key={device.id} className="flex flex-col gap-4 rounded-2xl border p-4 lg:flex-row lg:items-center lg:justify-between">
+											<DeviceIdentity name={device.deviceName} location={device.locationName}>
+												<p className="mt-2 text-xs leading-5 text-muted-foreground">Enrolled {formatDate(device.enrolledAt)} · Last seen {formatDate(device.lastSeenAt)}</p>
+											</DeviceIdentity>
+											<div className="flex shrink-0 flex-wrap items-center gap-3">
+												<Badge variant="default">Pin Access Active</Badge>
+												{isManager && (
+													<Button variant="outline" size="sm" className="text-destructive" onClick={() => revoke(device)} aria-label={`Revoke ${device.deviceName || 'device'}`} title={`Revoke ${device.deviceName || 'device'}`}>Revoke</Button>
+												)}
+											</div>
+										</div>
+									))}
+								</div>
+							)}
+							{devices.some((device) => device.revokedAt) && (
+								<div className="mt-5 border-t pt-3">
+									<Button type="button" variant="ghost" className="w-full justify-between" onClick={() => setShowRevoked((open) => !open)} aria-expanded={showRevoked} aria-controls="revoked-devices">
+										<span>{showRevoked ? 'Hide' : 'Show'} revoked devices ({devices.filter((device) => device.revokedAt).length})</span>
+										<ChevronDown className={`size-4 transition-transform ${showRevoked ? 'rotate-180' : ''}`} />
+									</Button>
+									<div id="revoked-devices" hidden={!showRevoked} className="mt-3 space-y-3">
+										{devices.filter((device) => device.revokedAt).map((device) => (
+											<div key={device.id} className="flex flex-col gap-4 rounded-2xl border border-dashed p-4 lg:flex-row lg:items-center lg:justify-between">
+												<DeviceIdentity name={device.deviceName} location={device.locationName}>
+													<p className="mt-2 text-xs leading-5 text-muted-foreground">Revoked {formatDate(device.revokedAt)}</p>
+												</DeviceIdentity>
+												<div className="flex shrink-0 flex-wrap items-center gap-3">
+													<Badge variant="secondary">Pin Access Revoked</Badge>
+													{isManager && <Button variant="ghost" size="icon" className="text-destructive" onClick={removeRevokedFromView} aria-label="Remove revoked devices" title="Remove revoked devices"><Trash2 className="size-5" /></Button>}
+												</div>
+											</div>
+										))}
+									</div>
+								</div>
+							)}
 						</CardContent>
 					</Card>
 				</div>
