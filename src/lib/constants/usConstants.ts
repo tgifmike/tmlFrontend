@@ -66,14 +66,18 @@ export const US_STATES = [
 	'WY',
 ];
 
-export const US_TIME_ZONES = [
-	'Pacific Time (GMT-8)',
-	'Mountain Time (GMT-7)',
-	'Central Time (GMT-6)',
-	'Eastern Time (GMT-5)',
-	'Alaska Time (GMT-9)',
-	'Hawaii-Aleutian Time (GMT-10)',
-];
+export const US_TIME_ZONE_OPTIONS = [
+	{ value: 'America/New_York', label: 'Eastern Time' },
+	{ value: 'America/Chicago', label: 'Central Time' },
+	{ value: 'America/Denver', label: 'Mountain Time' },
+	{ value: 'America/Phoenix', label: 'Arizona Time (no daylight saving)' },
+	{ value: 'America/Los_Angeles', label: 'Pacific Time' },
+	{ value: 'America/Anchorage', label: 'Alaska Time' },
+	{ value: 'America/Adak', label: 'Hawaii–Aleutian Time (Aleutian Islands)' },
+	{ value: 'Pacific/Honolulu', label: 'Hawaii Time' },
+] as const;
+
+export const US_TIME_ZONES = US_TIME_ZONE_OPTIONS.map((option) => option.value);
 
 export const toolOptions = [
 	{ label: '3oz Scoop(Ivory #10)', value: '3oz Scoop' },

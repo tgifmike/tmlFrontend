@@ -38,7 +38,7 @@ export const createLocation = async (
 		locationTown: data.town,
 		locationState: data.state,
 		locationZipCode: data.zipCode,
-		locationTimeZone: data.timeZone,
+		locationTimeZoneMode: 'AUTO',
 	};
 
 	return request<Locations>({
@@ -68,6 +68,7 @@ export const updateLocation = async (id: string, userId: string, data: any) => {
 		locationTown: data.locationTown,
 		locationState: data.locationState,
 		locationZipCode: data.locationZipCode,
+		locationTimeZoneMode: data.locationTimeZoneMode,
 		locationTimeZone: data.locationTimeZone,
 	};
 
@@ -133,6 +134,7 @@ export const updateLineCheckSettings = async (
 	const payload = {
 		dayOfWeek: data.dayOfWeek.toLowerCase(),
 		dailyGoal: data.dailyGoal,
+		endOfDay: data.endOfDay,
 	};
 
 	return request<LineCheckFormValues>({

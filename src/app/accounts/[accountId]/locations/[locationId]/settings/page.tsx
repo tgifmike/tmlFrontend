@@ -5,6 +5,7 @@ import { getUserLocationAccess, toggleLocationActive, updateLocation } from '@/a
 import { AccessRole, AppRole, Locations, User } from '@/app/types';
 import LineCheckSettingsForm from '@/components/locaitons/LineCheckSettingsForm';
 import TemperatureCategorySettings from '@/components/settings/TemperatureCategorySettings';
+import SettingsSectionNav from '@/components/settings/SettingsSectionNav';
 import LocationNav from '@/components/navBar/LocationNav';
 import LocationPageHeader from '@/components/navBar/LocationPageHeader';
 import LocationHistoryFeed from '@/components/tableComponents/LocationHistoryFeed';
@@ -32,7 +33,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Separator } from '@/components/ui/separator';
 import { useSession } from '@/lib/auth/session-context';
 
-import { US_STATES, US_TIME_ZONES } from '@/lib/constants/usConstants';
+import { US_STATES, US_TIME_ZONE_OPTIONS } from '@/lib/constants/usConstants';
 import { Icons } from '@/lib/icon';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Activity, MapPin, MapPinned } from 'lucide-react';
@@ -59,10 +60,16 @@ const LocationSettingsPage = () => {
 		currentUser?.accessRole === AccessRole.SRADMIN;
 	const canToggle = currentUser?.appRole === AppRole.MANAGER;
 	const isManager = user?.appRole === AppRole.MANAGER;
-	const params = useParams<{ accountId: string; locationId: string }>();
+	const params = useParams<{ accountId: string; locationId: string; section?: string }>();
 	const accountIdParam = params.accountId;
 	const locationIdParam = params.locationId;
+	const settingsSection = getSettingsSection(params.section);
+	const invalidSettingsSection = Boolean(
+		params.section && !ROUTED_SETTINGS_SECTIONS.includes(params.section as RoutedSettingsSection),
+	);
 	const router = useRouter();
+	const canViewActivity = MANAGER || SRADMIN;
+	const sectionCopy = SETTINGS_SECTION_COPY[settingsSection];
 
 	// state
 	const [hasAccess, setHasAccess] = useState(false);
@@ -108,12 +115,21 @@ const LocationSettingsPage = () => {
 				.min(5, 'ZIP code must be 5 digits')
 				.max(10, 'ZIP code cannot exceed 10 characters')
 				.regex(/^\d+$/, 'ZIP code must contain only digits'),
-			locationTimeZone: z
-				.string()
-				.min(1, 'Time zone is required')
-				.refine((val) => US_TIME_ZONES.includes(val), {
+			locationTimeZoneMode: z.enum(['AUTO', 'MANUAL']),
+			locationTimeZone: z.string(),
+		}).superRefine((values, context) => {
+			if (
+				values.locationTimeZoneMode === 'MANUAL' &&
+				!US_TIME_ZONE_OPTIONS.some(
+					(option) => option.value === values.locationTimeZone,
+				)
+			) {
+				context.addIssue({
+					code: 'custom',
+					path: ['locationTimeZone'],
 					message: 'Select a valid time zone',
-				}),
+				});
+			}
 		});
 
 	useEffect(() => {
@@ -165,6 +181,21 @@ const LocationSettingsPage = () => {
 		verifyAccess();
 	}, [user?.id, accountIdParam, locationIdParam, hasAccess, router]);
 
+	useEffect(() => {
+		if (!invalidSettingsSection) return;
+		router.replace(
+			`/accounts/${accountIdParam}/locations/${locationIdParam}/settings`,
+		);
+	}, [accountIdParam, invalidSettingsSection, locationIdParam, router]);
+
+	useEffect(() => {
+		if (!user || settingsSection !== 'activity' || canViewActivity) return;
+		toast.error('Activity history is available to managers only.');
+		router.replace(
+			`/accounts/${accountIdParam}/locations/${locationIdParam}/settings`,
+		);
+	}, [accountIdParam, canViewActivity, locationIdParam, router, settingsSection, user]);
+
 	const schema = useMemo(
 		() => getSchema(locations, locationIdParam),
 		[locations, locationIdParam]
@@ -178,6 +209,7 @@ const LocationSettingsPage = () => {
 			locationTown: '',
 			locationState: '',
 			locationZipCode: '',
+			locationTimeZoneMode: 'AUTO',
 			locationTimeZone: '',
 		},
 	});
@@ -193,7 +225,8 @@ const LocationSettingsPage = () => {
 			locationTown: currentLocation.locationTown ?? '',
 			locationState: currentLocation.locationState ?? '',
 			locationZipCode: currentLocation.locationZipCode ?? '',
-			locationTimeZone: currentLocation.locationTimeZone ?? '',
+			locationTimeZoneMode: currentLocation.locationTimeZoneMode ?? 'AUTO',
+			locationTimeZone: normalizeLegacyTimeZone(currentLocation.locationTimeZone),
 		});
 	}, [currentLocation, form]);
 
@@ -204,7 +237,11 @@ const LocationSettingsPage = () => {
 		watchedValues.locationTown !== currentLocation?.locationTown ||
 		watchedValues.locationState !== currentLocation?.locationState ||
 		watchedValues.locationZipCode !== currentLocation?.locationZipCode ||
-		watchedValues.locationTimeZone !== currentLocation?.locationTimeZone;
+		watchedValues.locationTimeZoneMode !==
+			(currentLocation?.locationTimeZoneMode ?? 'AUTO') ||
+		(watchedValues.locationTimeZoneMode === 'MANUAL' &&
+			watchedValues.locationTimeZone !==
+				normalizeLegacyTimeZone(currentLocation?.locationTimeZone));
 
 	const onSubmit = async (values: z.infer<typeof schema>) => {
 		// Ensure currentLocation is loaded before proceeding
@@ -228,11 +265,22 @@ const LocationSettingsPage = () => {
 			const updates: Partial<Record<string, any>> = {};
 			(Object.keys(values) as Array<keyof typeof values>).forEach((key) => {
 				const newValue = values[key];
-				const oldValue = (currentLocation as any)[key];
+				const oldValue = key === 'locationTimeZoneMode'
+					? currentLocation.locationTimeZoneMode ?? 'AUTO'
+					: key === 'locationTimeZone'
+						? normalizeLegacyTimeZone(currentLocation.locationTimeZone)
+						: (currentLocation as any)[key];
 				if (newValue != null && newValue !== oldValue) {
 					updates[key as string] = newValue;
 				}
 			});
+			if (
+				values.locationTimeZoneMode === 'MANUAL' &&
+				('locationTimeZoneMode' in updates || 'locationTimeZone' in updates)
+			) {
+				updates.locationTimeZoneMode = 'MANUAL';
+				updates.locationTimeZone = values.locationTimeZone;
+			}
 
 			
 
@@ -335,7 +383,11 @@ const LocationSettingsPage = () => {
 					accountName={accountName}
 					accountImage={accountImage}
 					locationName={locationName}
-					pageName="Settings"
+					pageName={settingsSection === 'general' ? 'Settings' : SETTINGS_SECTION_LABELS[settingsSection]}
+					parentCrumb={settingsSection === 'general' ? undefined : {
+						label: 'Settings',
+						href: `/accounts/${accountIdParam}/locations/${locationIdParam}/settings`,
+					}}
 					sessionUserRole={sessionUserRole}
 					drawerOpen={drawerOpen}
 					setDrawerOpen={setDrawerOpen}
@@ -343,12 +395,20 @@ const LocationSettingsPage = () => {
 				<div className="flex-1 overflow-y-auto bg-muted/20">
 					<div className="mx-auto w-full max-w-6xl space-y-6 px-4 py-6 sm:px-6 lg:px-8">
 						<div>
-							<h2 className="text-2xl font-semibold tracking-tight">Location settings</h2>
+							<h2 className="text-2xl font-semibold tracking-tight">{sectionCopy.title}</h2>
 							<p className="mt-1 text-sm text-muted-foreground">
-								Manage this location’s identity, operational targets, and compliance rules.
+								{sectionCopy.description}
 							</p>
 						</div>
 
+						<SettingsSectionNav
+							accountId={accountIdParam}
+							locationId={locationIdParam}
+							canViewActivity={canViewActivity}
+						/>
+
+						{settingsSection === 'general' && (
+						<>
 						<Card className="rounded-2xl border-border/60 bg-card shadow-sm">
 							<CardHeader className="gap-4 border-b border-border/50 sm:flex sm:flex-row sm:items-start sm:justify-between">
 							<div>
@@ -357,7 +417,7 @@ const LocationSettingsPage = () => {
 									Location information
 								</CardTitle>
 								<CardDescription className="mt-2">
-									Update the location name, address, and operating time zone.
+									Update the location name and address. The time zone is detected from its coordinates.
 								</CardDescription>
 							</div>
 							<CardAction>
@@ -523,35 +583,62 @@ const LocationSettingsPage = () => {
 											<Separator />
 
 											<div className="px-4 py-3">
-												<FormField
-													control={form.control}
-													name="locationTimeZone"
-													render={({ field }) => (
-														<FormItem className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_minmax(14rem,1fr)] sm:items-center">
-															<FormLabel>Time Zone</FormLabel>
-															<FormControl>
-																<Select
-																	key={field.value}
-																	onValueChange={field.onChange}
-																	value={field.value}
-																	disabled={!isManager}
-																>
-																		<SelectTrigger className="w-full bg-background sm:justify-end">
-																		<SelectValue placeholder="Select a time zone" />
-																	</SelectTrigger>
+											<div className="space-y-3">
+												<div className="flex flex-wrap items-center justify-between gap-3">
+													<div>
+														<p className="text-sm font-medium">Time Zone</p>
+														<p className="mt-1 text-xs text-muted-foreground">
+															{form.watch('locationTimeZoneMode') === 'AUTO'
+																? 'Automatically detected from verified coordinates'
+																: 'Manual override is active'}
+														</p>
+													</div>
+													<Button
+														type="button"
+														variant="outline"
+														size="sm"
+														disabled={!isManager}
+														onClick={() => {
+															const manual = form.getValues('locationTimeZoneMode') === 'MANUAL';
+															form.setValue('locationTimeZoneMode', manual ? 'AUTO' : 'MANUAL', { shouldDirty: true });
+															if (!manual && !US_TIME_ZONE_OPTIONS.some((option) => option.value === form.getValues('locationTimeZone'))) {
+																form.setValue('locationTimeZone', 'America/New_York', { shouldDirty: true });
+															}
+														}}
+													>
+														{form.watch('locationTimeZoneMode') === 'AUTO' ? 'Change manually' : 'Use automatic'}
+													</Button>
+												</div>
+
+												{form.watch('locationTimeZoneMode') === 'MANUAL' ? (
+													<FormField
+														control={form.control}
+														name="locationTimeZone"
+														render={({ field }) => (
+															<FormItem>
+																<Select onValueChange={field.onChange} value={field.value} disabled={!isManager}>
+																	<FormControl>
+																		<SelectTrigger className="w-full bg-background">
+																			<SelectValue placeholder="Select a time zone" />
+																		</SelectTrigger>
+																	</FormControl>
 																	<SelectContent>
-																		{US_TIME_ZONES.map((tz) => (
-																			<SelectItem key={tz} value={tz}>
-																				{tz}
-																			</SelectItem>
+																		{US_TIME_ZONE_OPTIONS.map((option) => (
+																			<SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>
 																		))}
 																	</SelectContent>
 																</Select>
-															</FormControl>
-															<FormMessage />
-														</FormItem>
-													)}
-												/>
+																<FormMessage />
+															</FormItem>
+														)}
+													/>
+												) : (
+													<div className="rounded-lg border bg-background px-4 py-3">
+														<p className="font-medium">{formatTimeZone(currentLocation?.locationTimeZone)}</p>
+														{currentLocation?.locationTimeZone && <p className="mt-1 text-xs text-muted-foreground">{currentLocation.locationTimeZone}</p>}
+													</div>
+												)}
+											</div>
 											</div>
 										</div>
 									</div>
@@ -632,17 +719,23 @@ const LocationSettingsPage = () => {
 								</CardContent>
 							</Card>
 						</div>
+						</>
+						)}
 
-						<LineCheckSettingsForm locationId={locationIdParam} userId={user?.id} />
+						{settingsSection === 'line-checks' && (
+							<LineCheckSettingsForm locationId={locationIdParam} userId={user?.id} />
+						)}
 
-						<TemperatureCategorySettings
-							locationId={locationIdParam}
-							userId={user?.id}
-							canManage={canManageTemperatureCategories}
-							onHistoryChange={refreshLocationHistory}
-						/>
+						{settingsSection === 'temperature-categories' && (
+							<TemperatureCategorySettings
+								locationId={locationIdParam}
+								userId={user?.id}
+								canManage={canManageTemperatureCategories}
+								onHistoryChange={refreshLocationHistory}
+							/>
+						)}
 
-						{(SRADMIN || MANAGER) && (
+						{settingsSection === 'activity' && canViewActivity && (
 							<LocationHistoryFeed
 								locationId={locationIdParam}
 								refreshKey={historyRefreshKey}
@@ -656,3 +749,62 @@ const LocationSettingsPage = () => {
 };
 
 export default LocationSettingsPage;
+
+type RoutedSettingsSection = 'line-checks' | 'temperature-categories' | 'activity';
+type SettingsSection = 'general' | RoutedSettingsSection;
+
+const ROUTED_SETTINGS_SECTIONS: readonly RoutedSettingsSection[] = [
+	'line-checks',
+	'temperature-categories',
+	'activity',
+];
+
+const SETTINGS_SECTION_COPY: Record<
+	SettingsSection,
+	{ title: string; description: string }
+> = {
+	general: {
+		title: 'General settings',
+		description: 'Manage this location’s identity, address, status, coordinates, and time zone.',
+	},
+	'line-checks': {
+		title: 'Line check settings',
+		description: 'Set the reporting week, daily completion target, and operating-day cutoff.',
+	},
+	'temperature-categories': {
+		title: 'Temperature category settings',
+		description: 'Manage the acceptable temperature ranges available to this location’s items.',
+	},
+	activity: {
+		title: 'Settings activity',
+		description: 'Review manager-level location changes and audit history.',
+	},
+};
+
+const SETTINGS_SECTION_LABELS: Record<RoutedSettingsSection, string> = {
+	'line-checks': 'Line Checks',
+	'temperature-categories': 'Temperature Categories',
+	activity: 'Activity',
+};
+
+function getSettingsSection(value?: string): SettingsSection {
+	return ROUTED_SETTINGS_SECTIONS.includes(value as RoutedSettingsSection)
+		? (value as RoutedSettingsSection)
+		: 'general';
+}
+
+function normalizeLegacyTimeZone(value?: string | null) {
+	if (!value) return '';
+	if (US_TIME_ZONE_OPTIONS.some((option) => option.value === value)) return value;
+
+	const legacyMatch = US_TIME_ZONE_OPTIONS.find((option) =>
+		value.toLocaleLowerCase().includes(option.label.split(' Time')[0].toLocaleLowerCase()),
+	);
+	return legacyMatch?.value ?? value;
+}
+
+function formatTimeZone(value?: string | null) {
+	if (!value) return 'Waiting for automatic detection';
+	const normalized = normalizeLegacyTimeZone(value);
+	return US_TIME_ZONE_OPTIONS.find((option) => option.value === normalized)?.label ?? value;
+}

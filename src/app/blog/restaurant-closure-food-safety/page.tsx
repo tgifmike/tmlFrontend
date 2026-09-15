@@ -129,7 +129,7 @@ export default function RestaurantClosureFoodSafetyPage() {
 					<p>
 						Paper can support a process, but pages get wet, lost, illegible, or
 						separated from the corrective-action story.{' '}
-						<Link href="/">Digital restaurant line check software</Link> keeps
+						<Link href="/restaurant-digital-line-check-software">Digital restaurant line check software</Link> keeps
 						the history organized, time-stamped, and available for coaching.
 						Managers can see who completed the check, when it was completed,
 						what took the longest, and whether the same issue keeps returning.

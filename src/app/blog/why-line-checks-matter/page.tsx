@@ -231,7 +231,7 @@ export default function LineChecksArticlePage() {
 							exit access, cooler temperatures, spill hazards, fitting rooms, and closing
 							security checks can all disappear into the space between a written procedure
 							and a completed shift. Using{' '}
-							<Link href="/" className="font-semibold text-primary hover:underline">
+							<Link href="/restaurant-digital-line-check-software" className="font-semibold text-primary hover:underline">
 								digital restaurant line check software
 							</Link>{' '}
 							turns those expectations into the same observable workflow at every store.

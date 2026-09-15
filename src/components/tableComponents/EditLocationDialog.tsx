@@ -1,7 +1,7 @@
 'use client';
 
 import { Locations } from '@/app/types';
-import { US_STATES, US_TIME_ZONES } from '@/lib/constants/usConstants';
+import { US_STATES, US_TIME_ZONE_OPTIONS } from '@/lib/constants/usConstants';
 import { Icons } from '@/lib/icon';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Dialog, DialogTrigger } from '@radix-ui/react-dialog';
@@ -35,14 +35,7 @@ type EditLocationProps = {
 	userId: string
 	onUpdate: (
 		id: string,
-		updatedFields: {
-			locationName: string;
-			locationStreet: string;
-			locationTown: string;
-			locationState: string;
-			locationZipCode: string;
-			locationTimeZone: string;
-		}
+		updatedLocation: Locations,
 	) => void;
 };
 
@@ -74,12 +67,19 @@ const getSchema = (locations: Locations[] = [], currentLocationId: string) =>
 			.min(5, 'ZIP code must be 5 digits')
             .max(10, 'ZIP code cannot exceed 10 characters')
             .regex(/^\d+$/, 'ZIP code must contain only digits'),
-		locationTimeZone: z
-			.string()
-			.min(1, 'Time zone is required')
-			.refine((val) => US_TIME_ZONES.includes(val), {
+		locationTimeZoneMode: z.enum(['AUTO', 'MANUAL']),
+		locationTimeZone: z.string(),
+	}).superRefine((values, context) => {
+		if (
+			values.locationTimeZoneMode === 'MANUAL' &&
+			!US_TIME_ZONE_OPTIONS.some((option) => option.value === values.locationTimeZone)
+		) {
+			context.addIssue({
+				code: 'custom',
+				path: ['locationTimeZone'],
 				message: 'Select a valid time zone',
-			}),
+			});
+		}
 	});
 
 export function EditLocationDialog({
@@ -104,6 +104,7 @@ export function EditLocationDialog({
 			locationTown: '',
 			locationState: '',
 			locationZipCode: '',
+			locationTimeZoneMode: 'AUTO',
 			locationTimeZone: '',
 		},
 	});
@@ -121,7 +122,8 @@ export function EditLocationDialog({
 				locationTown: location.locationTown ?? '',
 				locationState: location.locationState ?? '',
 				locationZipCode: location.locationZipCode ?? '',
-				locationTimeZone: location.locationTimeZone ?? '',
+				locationTimeZoneMode: location.locationTimeZoneMode ?? 'AUTO',
+				locationTimeZone: normalizeLegacyTimeZone(location.locationTimeZone),
 			});
 		});
 	}, [open, location?.id]); // only re-run when opening or switching locations
@@ -133,7 +135,9 @@ export function EditLocationDialog({
 		watchedValues.locationTown !== location.locationTown ||
 		watchedValues.locationState !== location.locationState ||
 		watchedValues.locationZipCode !== location.locationZipCode ||
-		watchedValues.locationTimeZone !== location.locationTimeZone;
+		watchedValues.locationTimeZoneMode !== (location.locationTimeZoneMode ?? 'AUTO') ||
+		(watchedValues.locationTimeZoneMode === 'MANUAL' &&
+			watchedValues.locationTimeZone !== normalizeLegacyTimeZone(location.locationTimeZone));
 
 	const onSubmit = async (values: z.infer<typeof schema>) => {
 		// Check for duplicate location name
@@ -148,19 +152,30 @@ export function EditLocationDialog({
 		}
 
 		try {
-			const updates: Partial<typeof values> = {};
+			const updates: Record<string, unknown> = {};
 			(Object.keys(values) as Array<keyof typeof values>).forEach((key) => {
 				const newValue = values[key];
-				const oldValue = location[key];
+				const oldValue = key === 'locationTimeZoneMode'
+					? location.locationTimeZoneMode ?? 'AUTO'
+					: key === 'locationTimeZone'
+						? normalizeLegacyTimeZone(location.locationTimeZone)
+						: location[key];
 				if (newValue != null && newValue !== oldValue) {
 					updates[key] = newValue;
 				}
-            });
+			});
+			if (
+				values.locationTimeZoneMode === 'MANUAL' &&
+				('locationTimeZoneMode' in updates || 'locationTimeZone' in updates)
+			) {
+				updates.locationTimeZoneMode = 'MANUAL';
+				updates.locationTimeZone = values.locationTimeZone;
+			}
             
            // console.log('Updates going to backend:', updates);
 
 
-			const { error } = await updateLocation(location.id!, userId, updates);
+			const { data, error } = await updateLocation(location.id!, userId, updates);
 
 			if (error) {
 				if (error.toLowerCase().includes('exists')) {
@@ -171,15 +186,12 @@ export function EditLocationDialog({
 				return;
 			}
 
-			// Update local state
-	onUpdate(location.id!, {
-		locationName: values.locationName,
-		locationStreet: values.locationStreet,
-		locationTown: values.locationTown,
-		locationState: values.locationState,
-		locationZipCode: values.locationZipCode,
-		locationTimeZone: values.locationTimeZone,
-	});
+			if (!data) {
+				toast.error('The server did not return the updated location.');
+				return;
+			}
+
+			onUpdate(location.id!, data);
 
 			//toast.success('Location updated successfully');
 			setOpen(false);
@@ -294,33 +306,52 @@ export function EditLocationDialog({
 							)}
 						/>
 
-						<FormField
-							control={form.control}
-							name="locationTimeZone"
-							render={({ field }) => (
-								<FormItem>
-									<FormLabel>Time Zone</FormLabel>
-									<Select
-										onValueChange={field.onChange}
-										value={field.value}
-									>
-										<FormControl>
-											<SelectTrigger>
-												<SelectValue placeholder="Select a time zone" />
-											</SelectTrigger>
-										</FormControl>
-										<SelectContent>
-											{US_TIME_ZONES.map((tz) => (
-												<SelectItem key={tz} value={tz}>
-													{tz}
-												</SelectItem>
-											))}
-										</SelectContent>
-									</Select>
-									<FormMessage />
-								</FormItem>
+						<div className="space-y-3 rounded-xl border p-4">
+							<div className="flex items-center justify-between gap-3">
+								<div>
+									<p className="text-sm font-medium">Time Zone</p>
+									<p className="text-xs text-muted-foreground">
+										{form.watch('locationTimeZoneMode') === 'AUTO' ? 'Detected from coordinates' : 'Manual override'}
+									</p>
+								</div>
+								<Button
+									type="button"
+									variant="outline"
+									size="sm"
+									onClick={() => {
+										const manual = form.getValues('locationTimeZoneMode') === 'MANUAL';
+										form.setValue('locationTimeZoneMode', manual ? 'AUTO' : 'MANUAL', { shouldDirty: true });
+										if (!manual && !US_TIME_ZONE_OPTIONS.some((option) => option.value === form.getValues('locationTimeZone'))) {
+											form.setValue('locationTimeZone', 'America/New_York', { shouldDirty: true });
+										}
+									}}
+								>
+									{form.watch('locationTimeZoneMode') === 'AUTO' ? 'Change manually' : 'Use automatic'}
+								</Button>
+							</div>
+
+							{form.watch('locationTimeZoneMode') === 'MANUAL' ? (
+								<FormField
+									control={form.control}
+									name="locationTimeZone"
+									render={({ field }) => (
+										<FormItem>
+											<Select onValueChange={field.onChange} value={field.value}>
+												<FormControl><SelectTrigger><SelectValue placeholder="Select a time zone" /></SelectTrigger></FormControl>
+												<SelectContent>
+													{US_TIME_ZONE_OPTIONS.map((option) => (
+														<SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>
+													))}
+												</SelectContent>
+											</Select>
+											<FormMessage />
+										</FormItem>
+									)}
+								/>
+							) : (
+								<p className="text-sm font-medium">{formatTimeZone(location.locationTimeZone)}</p>
 							)}
-						/>
+						</div>
 
 						<DialogFooter>
 							<Button
@@ -335,4 +366,19 @@ export function EditLocationDialog({
 			</DialogContent>
 		</Dialog>
 	);
+}
+
+function normalizeLegacyTimeZone(value?: string | null) {
+	if (!value) return '';
+	if (US_TIME_ZONE_OPTIONS.some((option) => option.value === value)) return value;
+	const match = US_TIME_ZONE_OPTIONS.find((option) =>
+		value.toLocaleLowerCase().includes(option.label.split(' Time')[0].toLocaleLowerCase()),
+	);
+	return match?.value ?? value;
+}
+
+function formatTimeZone(value?: string | null) {
+	if (!value) return 'Waiting for automatic detection';
+	const normalized = normalizeLegacyTimeZone(value);
+	return US_TIME_ZONE_OPTIONS.find((option) => option.value === normalized)?.label ?? value;
 }

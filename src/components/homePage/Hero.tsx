@@ -21,15 +21,15 @@ const Hero = () => {
 
 						{/* headline */}
 						<h1 className="text-4xl md:text-6xl font-bold tracking-tight leading-tight text-primary">
-							Ditch the Paper.
+							Digital Restaurant Line Check Software
 							<span className="block text-destructive mt-2">
-								Run Inspection-Ready Shifts.
+								For Inspection-Ready Shifts.
 							</span>
 						</h1>
 
 						{/* subheadline */}
 						<p className="mt-6 text-lg text-muted-foreground leading-relaxed max-w-xl">
-							Digital line checks, temperature logs, prep accountability, and
+							Run digital restaurant line checks, temperature logs, prep accountability, and
 							real-time compliance tracking—without paper binders or missed
 							steps.
 						</p>
@@ -80,7 +80,14 @@ const Hero = () => {
 							Built for independent restaurants and{' '}
 							<span className="text-primary font-semibold">
 								multi-location teams
-							</span>
+							</span>{' '}
+							·{' '}
+							<Link
+								href="/restaurant-digital-line-check-software"
+								className="font-semibold text-primary hover:underline"
+							>
+								Explore the line-check software
+							</Link>
 						</p>
 					</div>
 

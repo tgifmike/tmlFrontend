@@ -19,6 +19,7 @@ import { refresh } from 'next/cache';
 import { IoCog } from 'react-icons/io5';
 import { ImExit } from 'react-icons/im';
 import { CiMail } from 'react-icons/ci';
+import { BookOpenCheck } from 'lucide-react';
 
 
 type User = {
@@ -107,7 +108,7 @@ const UserAccountNav: React.FC<UserAccountNavProps> = ({ user }) => {
 				<DropdownMenuItem asChild>
 					<Link href="/dashboard">
 						<DashboardIcon size={16} className="ml-2" />
-						<p className="text-lg">Dashboard</p>
+						<p className="text-lg">Admin Dashboard</p>
 					</Link>
 				</DropdownMenuItem>
 
@@ -124,6 +125,13 @@ const UserAccountNav: React.FC<UserAccountNavProps> = ({ user }) => {
 					<Link href="/settings">
 						<IoCog className="ml-2" />
 						<p className="text-lg">Settings</p>
+					</Link>
+				</DropdownMenuItem>
+
+				<DropdownMenuItem asChild>
+					<Link href="/how-to">
+						<BookOpenCheck className="ml-2" />
+						<p className="text-lg">How To</p>
 					</Link>
 				</DropdownMenuItem>
 

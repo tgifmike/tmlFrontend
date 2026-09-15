@@ -178,7 +178,7 @@ export default function DigitalLineCheckSavingsArticlePage() {
 							The larger expense is labor. Someone creates the form, prints it,
 							distributes it, reminds the team to complete it, files it, searches for
 							it later, and manually reviews pages for patterns. The right{' '}
-							<Link href="/" className="font-semibold text-primary hover:underline">
+							<Link href="/restaurant-digital-line-check-software" className="font-semibold text-primary hover:underline">
 								digital restaurant line check software
 							</Link>{' '}
 							removes much of that handling and makes the record immediately useful.
