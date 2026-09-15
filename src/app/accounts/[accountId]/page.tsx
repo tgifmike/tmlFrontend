@@ -15,6 +15,14 @@ import { UserControls } from '@/components/tableComponents/UserControls';
 import CreateLocationDialog from '@/components/tableComponents/CreateLocationForm';
 import { EditLocationDialog } from '@/components/tableComponents/EditLocationDialog';
 import { Card } from '@/components/ui/card';
+import {
+	Breadcrumb,
+	BreadcrumbItem,
+	BreadcrumbLink,
+	BreadcrumbList,
+	BreadcrumbPage,
+	BreadcrumbSeparator,
+} from '@/components/ui/breadcrumb';
 import { AccessRole, AppRole, Locations, User } from '@/app/types';
 import { getAccountsForUser } from '@/app/api/accountApi';
 import {
@@ -114,27 +122,14 @@ const AccountPage = () => {
 	};
 
 	// Update location
-const handleUpdateLocation = async (
+const handleUpdateLocation = (
 	id: string,
-	updatedFields: Partial<Locations>
+	updatedLocation: Locations,
 ) => {
-	if (!userId) return;
-
-	try {
-		const response = await updateLocation(id, userId, updatedFields);
-		const updated = response.data;
-
-		if (!updated) {
-			toast.error('Failed to update location.');
-			return;
-		}
-
-		setLocations((prev) => prev.map((l) => (l.id === id ? updated : l)));
-
-		toast.success(`Location ${updated.locationName} updated successfully.`);
-	} catch (error: any) {
-		toast.error(error?.message || 'Failed to update location.');
-	}
+	setLocations((prev) =>
+		prev.map((location) => (location.id === id ? updatedLocation : location)),
+	);
+	toast.success(`Location ${updatedLocation.locationName} updated successfully.`);
 };
 
 
@@ -181,8 +176,8 @@ const handleUpdateLocation = async (
 			{/* Main Content */}
 			<section className="flex-1 flex flex-col">
 				{/* Header */}
-				<header className="flex justify-between items-center px-4 py-3 border-b bg-background/70 backdrop-blur-md sticky top-0 z-20">
-					<div className="flex gap-8">
+				<header className="sticky top-0 z-20 flex flex-wrap items-center justify-between gap-3 border-b bg-background/70 px-4 py-3 backdrop-blur-md">
+					<div className="flex items-center gap-4">
 						<MobileDrawerNav
 							open={drawerOpen}
 							setOpen={setDrawerOpen}
@@ -196,12 +191,22 @@ const handleUpdateLocation = async (
 							/>
 						</MobileDrawerNav>
 
-						{/* <h1 className="text-2xl font-semibold">
-							Location's for {accountName}
-						</h1> */}
-						<h1 className="text-2xl font-semibold">
-							Location List:
-						</h1>
+						<div>
+							<Breadcrumb>
+								<BreadcrumbList>
+									<BreadcrumbItem>
+										<BreadcrumbLink asChild>
+											<Link href="/accounts">Accounts</Link>
+										</BreadcrumbLink>
+									</BreadcrumbItem>
+									<BreadcrumbSeparator />
+									<BreadcrumbItem>
+										<BreadcrumbPage>{accountName || 'Locations'}</BreadcrumbPage>
+									</BreadcrumbItem>
+								</BreadcrumbList>
+							</Breadcrumb>
+							{/* <h1 className="mt-1 text-2xl font-semibold">Locations</h1> */}
+						</div>
 					</div>
 
 					<CreateLocationDialog

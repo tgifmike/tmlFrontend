@@ -13,11 +13,19 @@ export default function sitemap(): MetadataRoute.Sitemap {
 		},
 		{
 			url: `${SITE_URL}/blog`,
-			lastModified: new Date('2026-09-01'),
+			lastModified: new Date('2026-09-15'),
 		},
 		{
 			url: `${SITE_URL}/faq`,
 			lastModified: new Date('2026-09-09'),
+		},
+		{
+			url: `${SITE_URL}/how-to`,
+			lastModified: new Date('2026-09-15'),
+		},
+		{
+			url: `${SITE_URL}/restaurant-digital-line-check-software`,
+			lastModified: new Date('2026-09-15'),
 		},
 		{
 			url: `${SITE_URL}/blog/how-digital-line-checks-save-money`,
@@ -34,6 +42,10 @@ export default function sitemap(): MetadataRoute.Sitemap {
 		{
 			url: `${SITE_URL}/blog/restaurant-closure-food-safety`,
 			lastModified: new Date('2026-06-18'),
+		},
+		{
+			url: `${SITE_URL}/blog/real-world-cost-of-missed-restaurant-line-checks`,
+			lastModified: new Date('2026-09-15'),
 		},
 		{
 			url: `${SITE_URL}/contact`,

@@ -40,6 +40,7 @@ import type {
 	User,
 } from '@/app/types';
 import { CreateOptionDialog } from '@/components/options/CreateOptionDialog';
+import { CreatePinEmployeeDialog } from '@/components/invite/CreatePinEmployeeDialog';
 import { InviteUserDialog } from '@/components/invite/InviteUserDialog';
 import LineCheckSettingsForm from '@/components/locaitons/LineCheckSettingsForm';
 import LocationBlueprintBuilder, {
@@ -59,6 +60,15 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogFooter,
+	DialogHeader,
+	DialogTitle,
+	DialogTrigger,
+} from '@/components/ui/dialog';
 import { Progress } from '@/components/ui/progress';
 import {
 	Select,
@@ -67,14 +77,7 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from '@/components/ui/select';
-import {
-	Sheet,
-	SheetContent,
-	SheetDescription,
-	SheetHeader,
-	SheetTitle,
-	SheetTrigger,
-} from '@/components/ui/sheet';
+import { howToGuides } from '@/content/how-to-guides';
 
 type SetupAssistantProps = {
 	accounts: Account[];
@@ -89,6 +92,8 @@ const SETUP_OPTION_TYPES = [
 	OptionType.PAN_SIZE,
 	OptionType.PORTION_SIZE,
 ] as const;
+
+const howToById = new Map(howToGuides.map((guide) => [guide.id, guide]));
 
 type SetupSelection = {
 	accountId?: string;
@@ -168,6 +173,7 @@ export default function SetupAssistant({
 	canManage,
 }: SetupAssistantProps) {
 	const [open, setOpen] = useState(false);
+	const [activeStep, setActiveStep] = useState(1);
 	const [selectedAccountId, setSelectedAccountId] = useState('');
 	const [selectedLocationId, setSelectedLocationId] = useState('');
 	const [selectedStationId, setSelectedStationId] = useState('');
@@ -461,11 +467,30 @@ export default function SetupAssistant({
 		Number(operationalReadiness.goalsConfirmed) +
 		Number(operationalReadiness.accessConfirmed);
 	const progress = Math.round((completedSteps / 8) * 100);
+	const stepCompletion = [
+		Boolean(selectedAccountId),
+		Boolean(selectedLocationId),
+		optionsConfigured,
+		Boolean(selectedStationId),
+		items.length > 0,
+		operationalReadiness.temperatureReviewed,
+		operationalReadiness.goalsConfirmed,
+		operationalReadiness.accessConfirmed,
+	];
+	const currentStepComplete = stepCompletion[activeStep - 1];
 	const setupUser: User = {
 		id: userId,
 		userName,
 		appRole: 'MANAGER',
 	};
+
+	useEffect(() => {
+		if (completedSteps !== 8) return;
+
+		setOpen(false);
+		setMinimized(true);
+		window.localStorage.setItem(getSetupMinimizedKey(userId), 'true');
+	}, [completedSteps, userId]);
 
 	const handleAccountChange = (accountId: string) => {
 		savedSelection.current = { accountId };
@@ -608,7 +633,7 @@ export default function SetupAssistant({
 		);
 	};
 
-	const handleUserInvited = (invitedUser: User) => {
+	const handleAccountUserCreated = (invitedUser: User) => {
 		setAccountUsers((current) =>
 			current.some((existing) => existing.id === invitedUser.id)
 				? current.map((existing) =>
@@ -650,6 +675,23 @@ export default function SetupAssistant({
 			getSetupMinimizedKey(userId),
 			String(nextMinimized),
 		);
+	};
+
+	const handleOpenChange = (nextOpen: boolean) => {
+		setOpen(nextOpen);
+		if (!nextOpen) return;
+
+		const firstIncompleteStep = stepCompletion.findIndex((complete) => !complete);
+		setActiveStep(firstIncompleteStep === -1 ? 8 : firstIncompleteStep + 1);
+	};
+
+	const handleContinue = () => {
+		if (!currentStepComplete) return;
+		if (activeStep === 8) {
+			setOpen(false);
+			return;
+		}
+		setActiveStep((current) => Math.min(current + 1, 8));
 	};
 
 	if (minimized) {
@@ -710,8 +752,8 @@ export default function SetupAssistant({
 				</div>
 
 				<div className="flex flex-wrap items-center gap-2">
-					<Sheet open={open} onOpenChange={setOpen}>
-						<SheetTrigger asChild>
+					<Dialog open={open} onOpenChange={handleOpenChange}>
+						<DialogTrigger asChild>
 							<Button>
 								{progress === 100
 									? 'Review setup'
@@ -719,28 +761,28 @@ export default function SetupAssistant({
 										? 'Continue setup'
 										: 'Start setup'}
 							</Button>
-						</SheetTrigger>
-						<SheetContent className="w-full overflow-y-auto sm:max-w-2xl">
-							<SheetHeader className="border-b pb-4 pr-10">
+						</DialogTrigger>
+						<DialogContent className="flex max-h-[90vh] w-[calc(100%-2rem)] flex-col gap-0 overflow-hidden p-0 sm:max-w-3xl">
+							<DialogHeader className="border-b px-6 py-5 pr-12">
 								<div className="flex items-center gap-2 text-primary">
 									<Bot className="size-5" aria-hidden="true" />
-									<SheetTitle>Manager Life setup assistant</SheetTitle>
+									<DialogTitle>Manager Life setup assistant</DialogTitle>
 								</div>
-								<SheetDescription>
+								<DialogDescription>
 									Hi {userName?.split(' ')[0] || 'there'}! I’ll guide you
 									through the structure used by every line check.
-								</SheetDescription>
-								<div className="space-y-1.5 pt-2">
-									<div className="flex justify-between text-xs text-muted-foreground">
-										<span>Setup progress</span>
-										<span>{progress}%</span>
-									</div>
-									<Progress value={progress} />
-								</div>
-							</SheetHeader>
+								</DialogDescription>
+								<Link
+									href="/how-to#recommended-setup-order"
+									className="inline-flex w-fit items-center gap-1.5 text-sm font-medium text-primary hover:underline"
+								>
+									Open the How To library
+									<ExternalLink className="size-3.5" aria-hidden="true" />
+								</Link>
+							</DialogHeader>
 
-							<div className="space-y-4 px-4 pb-8">
-								<WizardStep
+							<div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-6 py-5">
+								{activeStep === 1 && <WizardStep
 									complete={Boolean(selectedAccountId)}
 									icon={<Building2 className="size-4" />}
 									title="Choose an account"
@@ -767,9 +809,9 @@ export default function SetupAssistant({
 											No accounts are assigned to you yet.
 										</p>
 									)}
-								</WizardStep>
+								</WizardStep>}
 
-								<WizardStep
+								{activeStep === 2 && <WizardStep
 									complete={Boolean(selectedLocationId)}
 									disabled={!selectedAccountId}
 									icon={<MapPin className="size-4" />}
@@ -833,9 +875,9 @@ export default function SetupAssistant({
 											)}
 										</div>
 									)}
-								</WizardStep>
+								</WizardStep>}
 
-								{canManage && selectedAccountId && selectedLocationId && (
+								{activeStep === 2 && canManage && selectedAccountId && selectedLocationId && (
 									<LocationBlueprintBuilder
 										accountId={selectedAccountId}
 										accountName={selectedAccount?.accountName}
@@ -849,7 +891,7 @@ export default function SetupAssistant({
 									/>
 								)}
 
-								<WizardStep
+								{activeStep === 3 && <WizardStep
 									complete={optionsConfigured}
 									disabled={!selectedLocationId}
 									icon={<SlidersHorizontal className="size-4" />}
@@ -934,9 +976,9 @@ export default function SetupAssistant({
 											</Button>
 										)}
 									</div>
-								</WizardStep>
+								</WizardStep>}
 
-								<WizardStep
+								{activeStep === 4 && <WizardStep
 									complete={Boolean(selectedStationId)}
 									disabled={!selectedLocationId || !optionsConfigured}
 									icon={<ChefHat className="size-4" />}
@@ -976,9 +1018,9 @@ export default function SetupAssistant({
 											)}
 										</div>
 									)}
-								</WizardStep>
+								</WizardStep>}
 
-								<WizardStep
+								{activeStep === 5 && <WizardStep
 									complete={items.length > 0}
 									disabled={!selectedStationId || !optionsConfigured}
 									icon={<ListChecks className="size-4" />}
@@ -1033,9 +1075,9 @@ export default function SetupAssistant({
 											)}
 										</div>
 									)}
-								</WizardStep>
+								</WizardStep>}
 
-								{!canManage && (
+								{activeStep <= 5 && !canManage && (
 									<Alert>
 										<AlertTitle>Manager access required for setup</AlertTitle>
 										<AlertDescription>
@@ -1045,7 +1087,7 @@ export default function SetupAssistant({
 									</Alert>
 								)}
 
-								{initialStructureComplete && selectedAccount && selectedLocation && (
+								{activeStep === 6 && initialStructureComplete && selectedAccount && selectedLocation && (
 									<Alert className="border-primary/20 bg-primary/5">
 										<CheckCircle2 className="size-4 text-emerald-700" />
 										<AlertTitle>Initial structure complete</AlertTitle>
@@ -1056,7 +1098,7 @@ export default function SetupAssistant({
 									</Alert>
 								)}
 
-								<WizardStep
+								{activeStep === 6 && <WizardStep
 									complete={operationalReadiness.temperatureReviewed}
 									disabled={!initialStructureComplete}
 									icon={<Thermometer className="size-4" />}
@@ -1088,41 +1130,42 @@ export default function SetupAssistant({
 											</AccordionContent>
 										</AccordionItem>
 									</Accordion>
-								</WizardStep>
+								</WizardStep>}
 
-								<WizardStep
+								{activeStep === 7 && <WizardStep
 									complete={operationalReadiness.goalsConfirmed}
 									disabled={!operationalReadiness.temperatureReviewed}
 									icon={<Target className="size-4" />}
-									title="Step 7: Confirm daily goals"
-									description="Set the reporting week and expected line checks per day."
+									title="Step 7: Confirm reporting schedule and goals"
+									description={howToById.get('start-of-week-and-daily-goal')?.summary ?? 'Set the reporting week, daily goal, and operating-day cutoff.'}
 								>
 									<Accordion type="single" collapsible className="rounded-xl border px-3">
 										<AccordionItem value="goals">
 											<AccordionTrigger className="hover:no-underline">
-												Open line-check goal settings
+												Open line-check schedule settings
 											</AccordionTrigger>
-											<AccordionContent>
+											<AccordionContent className="space-y-3">
 												{selectedLocation && (
 													<LineCheckSettingsForm
 														locationId={selectedLocation.id!}
 														userId={userId}
 														allowConfirmUnchanged
-														submitLabel="Save and confirm goals"
+														submitLabel="Save and confirm schedule"
 														onSaved={() => confirmOperationalStep('goalsConfirmed')}
 													/>
 												)}
+												<HowToGuideLink guideId="start-of-week-and-daily-goal" />
 											</AccordionContent>
 										</AccordionItem>
 									</Accordion>
-								</WizardStep>
+								</WizardStep>}
 
-								<WizardStep
+								{activeStep === 8 && <WizardStep
 									complete={operationalReadiness.accessConfirmed}
 									disabled={!operationalReadiness.goalsConfirmed}
 									icon={<Users className="size-4" />}
-									title="Step 8: Confirm team access"
-									description="Review assigned users and send any needed invitations."
+									title="Step 8: Add and confirm team access"
+									description="Create PIN-only employees for shared devices and invite managers or members who need web access."
 								>
 									<Accordion type="single" collapsible className="rounded-xl border px-3">
 										<AccordionItem value="access">
@@ -1153,8 +1196,11 @@ export default function SetupAssistant({
 																		</span>
 																	)}
 																</span>
-																<div className="flex shrink-0 gap-1.5">
-																	{(accountUser.firstLogin || accountUser.invited) && (
+															<div className="flex shrink-0 gap-1.5">
+																<Badge variant="outline">
+																	{isPinOnlyUser(accountUser) ? 'PIN only' : 'Web access'}
+																</Badge>
+																{(accountUser.firstLogin || accountUser.invited) && (
 																		<Badge variant="outline">Pending</Badge>
 																	)}
 																	<Badge variant="secondary">
@@ -1173,20 +1219,30 @@ export default function SetupAssistant({
 												<div className="flex flex-wrap gap-2">
 													<InviteUserDialog
 														accountId={selectedAccount?.id ?? selectedAccountId}
-														onUserCreated={handleUserInvited}
+														onUserCreated={handleAccountUserCreated}
 													/>
+													{canManage && (
+														<CreatePinEmployeeDialog
+															accountId={selectedAccount?.id ?? selectedAccountId}
+															onUserCreated={handleAccountUserCreated}
+														/>
+													)}
 													<Button
 														onClick={() => confirmOperationalStep('accessConfirmed')}
 													>
 														Confirm team access
 													</Button>
 												</div>
+												<div className="flex flex-wrap gap-x-4 gap-y-2">
+													<HowToGuideLink guideId="create-pin-user" label="PIN user guide" />
+													<HowToGuideLink guideId="invite-user" label="Web user guide" />
+												</div>
 											</AccordionContent>
 										</AccordionItem>
 									</Accordion>
-								</WizardStep>
+								</WizardStep>}
 
-								{progress === 100 && selectedAccount && selectedLocation && (
+								{activeStep === 8 && progress === 100 && selectedAccount && selectedLocation && (
 									<Alert className="border-emerald-200 bg-emerald-50/70 text-emerald-950">
 										<Tablet className="size-4 text-emerald-700" />
 										<AlertTitle>Web setup complete</AlertTitle>
@@ -1207,7 +1263,7 @@ export default function SetupAssistant({
 									</Alert>
 								)}
 
-								{!initialStructureComplete &&
+								{activeStep === 5 && !initialStructureComplete &&
 									selectedAccount &&
 									selectedLocation &&
 									selectedStation && (
@@ -1221,8 +1277,27 @@ export default function SetupAssistant({
 										</Button>
 									)}
 							</div>
-						</SheetContent>
-					</Sheet>
+							<DialogFooter className="border-t bg-muted/20 px-6 py-4 sm:items-center sm:justify-between">
+								<Button
+									variant="outline"
+									onClick={() => setActiveStep((current) => Math.max(current - 1, 1))}
+									disabled={activeStep === 1}
+								>
+									Back
+								</Button>
+								<div className="min-w-0 flex-1 space-y-1.5 sm:px-4">
+									<div className="flex items-center justify-between gap-3 text-xs text-muted-foreground">
+										<span>Step {activeStep} of 8</span>
+										<span>{completedSteps} complete</span>
+									</div>
+									<Progress value={progress} />
+								</div>
+								<Button onClick={handleContinue} disabled={!currentStepComplete}>
+									{activeStep === 8 ? 'Finish setup' : 'Continue'}
+								</Button>
+							</DialogFooter>
+						</DialogContent>
+					</Dialog>
 					<Button
 						variant="ghost"
 						size="sm"
@@ -1283,4 +1358,31 @@ function WizardStep({
 			</div>
 		</section>
 	);
+}
+
+function HowToGuideLink({
+	guideId,
+	label,
+}: {
+	guideId: string;
+	label?: string;
+}) {
+	const guide = howToById.get(guideId);
+	if (!guide) return null;
+
+	return (
+		<Link
+			href={`/how-to#${guide.id}`}
+			title={guide.summary}
+			className="inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline"
+		>
+			{label ?? `Read: ${guide.title}`}
+			<ExternalLink className="size-3" aria-hidden="true" />
+		</Link>
+	);
+}
+
+function isPinOnlyUser(user: User) {
+	const mode = String(user.authenticationMode ?? '').toUpperCase();
+	return mode === 'PIN_ONLY' || (!user.userEmail && user.invited === false);
 }

@@ -55,6 +55,12 @@ type Period = 'daily' | 'weekly' | 'monthly';
 type Severity = 'good' | 'minor' | 'high' | 'critical';
 
 const EMPTY_METRICS: DashboardMetrics = {
+	operationalDate: '',
+	timeZone: 'UTC',
+	endOfDay: '00:00',
+	startOfWeek: 'MONDAY',
+	daysElapsedWeek: 1,
+	daysElapsedMonth: 1,
 	totalChecksToday: 0,
 	totalChecksYesterday: 0,
 	totalChecksWeekToDate: 0,
@@ -142,11 +148,15 @@ const RobustLineCheckDashboard = ({ locationId, dailyGoal }: Props) => {
 		fetchMetrics(true);
 	}, [fetchMetrics]);
 
-	const today = new Date();
-	const weekday = today.getDay();
-	const daysElapsedWeek = weekday === 0 ? 7 : weekday;
+	const daysElapsedWeek = Math.max(1, metrics.daysElapsedWeek);
+	const daysElapsedMonth = Math.max(1, metrics.daysElapsedMonth);
 	const weekGoal = dailyGoal * daysElapsedWeek;
-	const monthGoal = dailyGoal * today.getDate();
+	const monthGoal = dailyGoal * daysElapsedMonth;
+	const daysRemainingWeek = Math.max(0, 7 - daysElapsedWeek);
+	const daysRemainingMonth = Math.max(
+		0,
+		getDaysInOperationalMonth(metrics.operationalDate) - daysElapsedMonth,
+	);
 
 	const dailyTrend = trendIndicator(metrics.totalChecksToday, dailyGoal);
 	const weeklyTrend = trendIndicator(metrics.totalChecksWeekToDate, weekGoal);
@@ -167,7 +177,7 @@ const RobustLineCheckDashboard = ({ locationId, dailyGoal }: Props) => {
 					<div>
 						<h2 className="text-xl font-semibold tracking-tight sm:text-2xl">Operational overview</h2>
 						<p className="mt-1 text-sm text-muted-foreground">
-							Goals are measured against the days elapsed in the current week and month.
+							Goals follow {formatStartDay(metrics.startOfWeek)} weeks and a {formatCutoff(metrics.endOfDay)} operating-day cutoff in {formatTimeZone(metrics.timeZone)}.
 						</p>
 					</div>
 					<div className="flex items-center gap-3">
@@ -203,10 +213,8 @@ const RobustLineCheckDashboard = ({ locationId, dailyGoal }: Props) => {
 				<div className="grid gap-4 md:grid-cols-3">
 					<GoalCard
 						title="Today"
-						subtitle={today.toLocaleDateString(undefined, {
-							weekday: 'long',
-							month: 'short',
-							day: 'numeric',
+						subtitle={formatOperationalDate(metrics.operationalDate, {
+							weekday: 'long', month: 'short', day: 'numeric',
 						})}
 						icon={CalendarDays}
 						actual={metrics.totalChecksToday}
@@ -223,15 +231,17 @@ const RobustLineCheckDashboard = ({ locationId, dailyGoal }: Props) => {
 						expected={weekGoal}
 						trend={weeklyTrend}
 						period="weekly"
+						daysRemaining={daysRemainingWeek}
 					/>
 					<GoalCard
 						title="Month to date"
-						subtitle={today.toLocaleDateString(undefined, { month: 'long', year: 'numeric' })}
+						subtitle={formatOperationalDate(metrics.operationalDate, { month: 'long', year: 'numeric' })}
 						icon={ClipboardCheck}
 						actual={metrics.totalChecksMonthToDate}
 						expected={monthGoal}
 						trend={monthlyTrend}
 						period="monthly"
+						daysRemaining={daysRemainingMonth}
 					/>
 				</div>
 			</section>
@@ -305,7 +315,7 @@ const RobustLineCheckDashboard = ({ locationId, dailyGoal }: Props) => {
 						{orderedLineChecks.length > 0 ? (
 							<Accordion type="single" collapsible className="divide-y">
 								{orderedLineChecks.map((lineCheck) => (
-									<LineCheckSummary key={lineCheck.lineCheckId} lineCheck={lineCheck} />
+									<LineCheckSummary key={lineCheck.lineCheckId} lineCheck={lineCheck} timeZone={metrics.timeZone} />
 								))}
 							</Accordion>
 						) : (
@@ -332,6 +342,7 @@ function GoalCard({
 	trend,
 	period,
 	previousActual,
+	daysRemaining,
 }: {
 	title: string;
 	subtitle: string;
@@ -341,6 +352,7 @@ function GoalCard({
 	trend: TrendResult;
 	period: Period;
 	previousActual?: number;
+	daysRemaining?: number;
 }) {
 	const TrendIcon = trend.icon;
 
@@ -373,6 +385,7 @@ function GoalCard({
 					expected={expected}
 					period={period}
 					previousActual={previousActual}
+					daysRemaining={daysRemaining}
 				/>
 			</CardContent>
 		</Card>
@@ -384,15 +397,17 @@ function GoalProgress({
 	expected,
 	period,
 	previousActual,
+	daysRemaining,
 }: {
 	actual: number;
 	expected: number;
 	period: Period;
 	previousActual?: number;
+	daysRemaining?: number;
 }) {
 	const percent = expected > 0 ? Math.round((actual / expected) * 100) : 0;
 	const remaining = Math.max(expected - actual, 0);
-	const insight = getGoalInsight({ actual, expected, period, previousActual });
+	const insight = getGoalInsight({ actual, expected, period, previousActual, daysRemaining });
 
 	return (
 		<div className="space-y-2.5">
@@ -501,7 +516,7 @@ function SeverityLegend({
 	);
 }
 
-function LineCheckSummary({ lineCheck }: { lineCheck: LineCheckItemIssuesDto }) {
+function LineCheckSummary({ lineCheck, timeZone }: { lineCheck: LineCheckItemIssuesDto; timeZone: string }) {
 	const severity = getSeverity(lineCheck);
 	const outOfTempItems = lineCheck.outOfTempItems ?? [];
 	const incorrectPrepItems = lineCheck.incorrectPrepItems ?? [];
@@ -515,7 +530,7 @@ function LineCheckSummary({ lineCheck }: { lineCheck: LineCheckItemIssuesDto }) 
 						<p className="truncate font-semibold">{lineCheck.employeeName || 'Unknown team member'}</p>
 						<p className="mt-1 inline-flex items-center gap-1.5 text-xs text-muted-foreground">
 							<Clock3 className="size-3.5" aria-hidden="true" />
-							{formatCheckTime(lineCheck.checkTime)}
+							{formatCheckTime(lineCheck.checkTime, timeZone)}
 						</p>
 					</div>
 					<div className="flex items-center gap-2">
@@ -618,11 +633,13 @@ const getGoalInsight = ({
 	expected,
 	period,
 	previousActual,
+	daysRemaining,
 }: {
 	actual: number;
 	expected: number;
 	period: Period;
 	previousActual?: number;
+	daysRemaining?: number;
 }) => {
 	const remaining = Math.max(expected - actual, 0);
 	if (period === 'daily') {
@@ -633,16 +650,10 @@ const getGoalInsight = ({
 		return `Even with yesterday; ${remaining} remaining today.`;
 	}
 
-	const now = new Date();
-	const daysRemaining = period === 'weekly'
-		? Math.max(0, 7 - (now.getDay() === 0 ? 7 : now.getDay()))
-		: Math.max(
-			0,
-			new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate() - now.getDate(),
-		);
-	const neededPerDay = daysRemaining > 0 ? Math.ceil(remaining / daysRemaining) : remaining;
-	if (daysRemaining === 0) return `${remaining} remaining before this period closes.`;
-	return `${neededPerDay} per day needed across the next ${daysRemaining} day${daysRemaining === 1 ? '' : 's'}.`;
+	const remainingDays = Math.max(0, daysRemaining ?? 0);
+	const neededPerDay = remainingDays > 0 ? Math.ceil(remaining / remainingDays) : remaining;
+	if (remainingDays === 0) return `${remaining} remaining before this period closes.`;
+	return `${neededPerDay} per day needed across the next ${remainingDays} day${remainingDays === 1 ? '' : 's'}.`;
 };
 
 const progressColorClass = (percent: number) => {
@@ -657,12 +668,47 @@ const dateValue = (value?: string | null) => {
 	return Number.isNaN(timestamp) ? 0 : timestamp;
 };
 
-const formatCheckTime = (value?: string | null) => {
+const formatCheckTime = (value: string | null | undefined, timeZone: string) => {
 	if (!value) return 'Time not recorded';
 	const date = new Date(value);
 	return Number.isNaN(date.getTime())
 		? 'Time not recorded'
-		: date.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+		: date.toLocaleTimeString([], {
+				hour: 'numeric', minute: '2-digit', timeZone,
+			});
 };
+
+function formatOperationalDate(
+	value: string,
+	options: Intl.DateTimeFormatOptions,
+) {
+	const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
+	if (!match) return 'Operational date unavailable';
+	const date = new Date(Date.UTC(Number(match[1]), Number(match[2]) - 1, Number(match[3])));
+	return new Intl.DateTimeFormat(undefined, { ...options, timeZone: 'UTC' }).format(date);
+}
+
+function getDaysInOperationalMonth(value: string) {
+	const match = /^(\d{4})-(\d{2})-\d{2}$/.exec(value);
+	if (!match) return 1;
+	return new Date(Date.UTC(Number(match[1]), Number(match[2]), 0)).getUTCDate();
+}
+
+function formatStartDay(value: DashboardMetrics['startOfWeek']) {
+	return `${value.charAt(0)}${value.slice(1).toLocaleLowerCase()}`;
+}
+
+function formatCutoff(value: string) {
+	const match = /^([01]\d|2[0-3]):([0-5]\d)/.exec(value);
+	if (!match) return value || 'midnight';
+	const hour = Number(match[1]);
+	if (hour === 0 && match[2] === '00') return 'midnight';
+	const hour12 = hour % 12 || 12;
+	return `${hour12}:${match[2]} ${hour >= 12 ? 'PM' : 'AM'}`;
+}
+
+function formatTimeZone(value: string) {
+	return value.replaceAll('_', ' ');
+}
 
 export default RobustLineCheckDashboard;

@@ -114,12 +114,33 @@ export default function LocationBlueprintBuilder({
 		guideItemIsPresent(description, item),
 	).length;
 
-	const addExampleToDescription = (item: BlueprintGuideItem, example: string) => {
-		if (description.toLocaleLowerCase().includes(example.toLocaleLowerCase())) {
-			return;
-		}
-
+	const toggleExampleInDescription = (
+		item: BlueprintGuideItem,
+		example: string,
+	) => {
 		setDescription((current) => {
+			const normalizedCurrent = current.toLocaleLowerCase();
+			const normalizedExample = example.toLocaleLowerCase();
+			const generatedText = `${item.label}: ${example}.`;
+			const generatedIndex = normalizedCurrent.indexOf(
+				generatedText.toLocaleLowerCase(),
+			);
+
+			if (generatedIndex >= 0) {
+				return cleanDescriptionAfterRemoval(
+					current.slice(0, generatedIndex) +
+						current.slice(generatedIndex + generatedText.length),
+				);
+			}
+
+			const exampleIndex = normalizedCurrent.indexOf(normalizedExample);
+			if (exampleIndex >= 0) {
+				return cleanDescriptionAfterRemoval(
+					current.slice(0, exampleIndex) +
+						current.slice(exampleIndex + example.length),
+				);
+			}
+
 			const separator = current.trim() ? ' ' : '';
 			return `${current.trim()}${separator}${item.label}: ${example}.`;
 		});
@@ -316,7 +337,8 @@ export default function LocationBlueprintBuilder({
 											<button
 												type="button"
 												key={example}
-												onClick={() => addExampleToDescription(item, example)}
+												onClick={() => toggleExampleInDescription(item, example)}
+												aria-pressed={included}
 												className={`rounded-full border px-2 py-1 text-xs transition-colors ${
 													included
 														? 'border-emerald-300 bg-emerald-100 text-emerald-800'
@@ -928,6 +950,15 @@ function guideItemIsPresent(
 	return item.keywords.some((keyword) =>
 		normalizedDescription.includes(normalizeName(keyword)),
 	);
+}
+
+function cleanDescriptionAfterRemoval(description: string) {
+	return description
+		.replace(/[ \t]+([,.;!?])/g, '$1')
+		.replace(/([,.;!?])\1+/g, '$1')
+		.replace(/[ \t]{2,}/g, ' ')
+		.replace(/^\s*[,.;:]\s*/, '')
+		.trim();
 }
 
 function uniqueValues(values: string[]) {

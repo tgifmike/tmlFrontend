@@ -12,7 +12,7 @@ import { Button } from '../ui/button';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '../ui/form';
 import { Input } from '../ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
-import { US_STATES, US_TIME_ZONES } from '@/lib/constants/usConstants';
+import { US_STATES } from '@/lib/constants/usConstants';
 import {
   Dialog,
   DialogContent,
@@ -23,6 +23,7 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { Icons } from '@/lib/icon';
+import { MapPinned } from 'lucide-react';
 
 type CreateLocationDialogProps = {
   onLocationCreated: (location: Locations) => void;
@@ -47,10 +48,6 @@ const getSchema = (locations: Locations[] = []) =>
       message: 'Select a valid state',
     }),
     zipCode: z.string().min(5, 'ZIP code must be 5 digits').max(10),
-    timeZone: z
-      .string()
-      .min(1, 'Time zone is required')
-      .refine((val) => US_TIME_ZONES.includes(val), { message: 'Select a valid time zone' }),
   });
 
 export default function CreateLocationDialog({
@@ -74,7 +71,6 @@ export default function CreateLocationDialog({
       town: '',
       state: '',
       zipCode: '',
-      timeZone: '',
     },
     mode: 'onChange',
   });
@@ -217,33 +213,15 @@ export default function CreateLocationDialog({
 								</FormItem>
 							)}
 						/>
-						<FormField
-							control={form.control}
-							name="timeZone"
-							render={({ field }) => (
-								<FormItem>
-									<FormLabel>Time Zone</FormLabel>
-									<FormControl>
-										<Select
-											onValueChange={field.onChange}
-											defaultValue={field.value}
-										>
-											<SelectTrigger>
-												<SelectValue placeholder="Select a time zone" />
-											</SelectTrigger>
-											<SelectContent>
-												{US_TIME_ZONES.map((tz) => (
-													<SelectItem key={tz} value={tz}>
-														{tz}
-													</SelectItem>
-												))}
-											</SelectContent>
-										</Select>
-									</FormControl>
-									<FormMessage />
-								</FormItem>
-							)}
-						/>
+						<div className="flex gap-3 rounded-xl border border-primary/20 bg-primary/5 p-4">
+							<MapPinned className="mt-0.5 size-5 shrink-0 text-primary" aria-hidden="true" />
+							<div>
+								<p className="text-sm font-medium">Time zone detected automatically</p>
+								<p className="mt-1 text-xs leading-5 text-muted-foreground">
+									We’ll use the verified address coordinates to choose the location’s time zone. You can override it later in Location Settings.
+								</p>
+							</div>
+						</div>
 
 						<DialogFooter>
 							<Button

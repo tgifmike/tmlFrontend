@@ -67,6 +67,7 @@ export interface Locations {
 	locationState: string;
 	locationZipCode: string;
 	locationTimeZone: string;
+	locationTimeZoneMode?: 'AUTO' | 'MANUAL';
 	locationLatitude: number;
 	locationLongitude: number;
 	geocodedFromZipFallback: boolean;
@@ -430,6 +431,19 @@ export interface StationHistoryEntity {
 
 // types/dashboard.ts
 export interface DashboardMetrics {
+	operationalDate: string;
+	timeZone: string;
+	endOfDay: string;
+	startOfWeek:
+		| 'SUNDAY'
+		| 'MONDAY'
+		| 'TUESDAY'
+		| 'WEDNESDAY'
+		| 'THURSDAY'
+		| 'FRIDAY'
+		| 'SATURDAY';
+	daysElapsedWeek: number;
+	daysElapsedMonth: number;
 	totalChecksToday: number;
 	totalChecksYesterday: number;
 	totalChecksWeekToDate: number;

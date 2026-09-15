@@ -259,7 +259,7 @@ export default function RestaurantLineCheckCaseStudyPage() {
 						</p>
 						<p>
 							That is where{' '}
-							<Link href="/" className="font-semibold text-primary hover:underline">
+							<Link href="/restaurant-digital-line-check-software" className="font-semibold text-primary hover:underline">
 								digital restaurant line check software
 							</Link>{' '}
 							adds value beyond replacing paper. It turns separate shift observations

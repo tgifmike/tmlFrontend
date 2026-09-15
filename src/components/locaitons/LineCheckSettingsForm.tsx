@@ -38,6 +38,9 @@ export const lineCheckSchema = z.object({
 		'SUNDAY',
 	]),
 	dailyGoal: z.number().min(1, 'Daily goal must be at least 1'),
+	endOfDay: z
+		.string()
+		.regex(/^([01]\d|2[0-3]):[0-5]\d$/, 'Enter a valid end-of-day time'),
 });
 
 
@@ -63,6 +66,7 @@ export default function LineCheckSettingsForm({
 		defaultValues: {
 			dayOfWeek: 'MONDAY',
 			dailyGoal: 1,
+			endOfDay: '00:00',
 		},
 	});
 
@@ -97,9 +101,11 @@ export default function LineCheckSettingsForm({
 						typeof data.dailyGoal === 'number' && data.dailyGoal > 0
 							? data.dailyGoal
 							: 1;
+					const endOfDay = normalizeTime(data.endOfDay);
 
 					setValue('dayOfWeek', day, { shouldDirty: false });
-                    setValue('dailyGoal', goal, { shouldDirty: false });
+					setValue('dailyGoal', goal, { shouldDirty: false });
+					setValue('endOfDay', endOfDay, { shouldDirty: false });
                    
 				}
             } catch (err) {
@@ -143,7 +149,7 @@ export default function LineCheckSettingsForm({
 					Line check settings
 				</CardTitle>
 				<CardDescription>
-					Set the weekly reporting cycle and daily completion target.
+					Set the weekly reporting cycle, operating-day cutoff, and daily completion target.
 				</CardDescription>
 			</CardHeader>
 
@@ -198,7 +204,7 @@ export default function LineCheckSettingsForm({
 					</div>
 
 					{/* DAILY GOAL */}
-					<div className="grid gap-4 py-4 sm:grid-cols-[minmax(0,1fr)_minmax(14rem,1fr)] sm:items-center">
+					<div className="grid gap-4 border-b border-border/50 py-4 sm:grid-cols-[minmax(0,1fr)_minmax(14rem,1fr)] sm:items-center">
 						{/* LEFT SIDE */}
 						<div className="space-y-1">
 							<Label className="text-sm font-medium text-muted-foreground">
@@ -227,6 +233,37 @@ export default function LineCheckSettingsForm({
 							</p>
 						)}
 					</div>
+
+					{/* END OF DAY */}
+					<div className="grid gap-4 py-4 sm:grid-cols-[minmax(0,1fr)_minmax(14rem,1fr)] sm:items-center">
+						<div className="space-y-1">
+							<Label htmlFor="line-check-end-of-day" className="text-sm font-medium text-muted-foreground">
+								End of Day
+							</Label>
+							<p className="text-xs text-muted-foreground">
+								Time when one operating day ends and the next begins
+							</p>
+						</div>
+
+						<div className="flex sm:justify-end">
+							<EndOfDayPicker
+								value={watch('endOfDay')}
+								onChange={(value) =>
+									setValue('endOfDay', value, {
+										shouldDirty: true,
+										shouldValidate: true,
+									})
+								}
+								disabled={loading}
+							/>
+						</div>
+
+						{errors.endOfDay && (
+							<p className="col-span-2 pt-1 text-xs text-destructive">
+								{errors.endOfDay.message}
+							</p>
+						)}
+					</div>
 				</CardContent>
 
 				<CardFooter className="justify-end border-t border-border/50 pt-6">
@@ -240,4 +277,85 @@ export default function LineCheckSettingsForm({
 			</form>
 		</Card>
 	);
+}
+
+function normalizeTime(value?: string | null) {
+	if (typeof value !== 'string') return '00:00';
+	const match = value.match(/^([01]\d|2[0-3]):([0-5]\d)/);
+	return match ? `${match[1]}:${match[2]}` : '00:00';
+}
+
+const HOURS = Array.from({ length: 12 }, (_, index) => String(index + 1));
+const MINUTES = Array.from({ length: 60 }, (_, index) =>
+	String(index).padStart(2, '0'),
+);
+
+function EndOfDayPicker({
+	value,
+	onChange,
+	disabled,
+}: {
+	value: string;
+	onChange: (value: string) => void;
+	disabled: boolean;
+}) {
+	const { hour, minute, period } = toTwelveHourParts(value);
+	const selectClassName =
+		'h-10 rounded-md border border-input bg-background px-3 text-sm shadow-xs outline-none transition-colors focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50';
+
+	const update = (next: Partial<{ hour: string; minute: string; period: 'AM' | 'PM' }>) => {
+		onChange(toTwentyFourHourTime(next.hour ?? hour, next.minute ?? minute, next.period ?? period));
+	};
+
+	return (
+		<fieldset id="line-check-end-of-day" className="flex w-full items-center justify-end gap-2 sm:max-w-64">
+			<legend className="sr-only">End of day time</legend>
+			<select
+				aria-label="End of day hour"
+				value={hour}
+				onChange={(event) => update({ hour: event.target.value })}
+				disabled={disabled}
+				className={`${selectClassName} min-w-16 flex-1`}
+			>
+				{HOURS.map((option) => <option key={option} value={option}>{option}</option>)}
+			</select>
+			<span aria-hidden="true" className="font-semibold text-muted-foreground">:</span>
+			<select
+				aria-label="End of day minute"
+				value={minute}
+				onChange={(event) => update({ minute: event.target.value })}
+				disabled={disabled}
+				className={`${selectClassName} min-w-16 flex-1`}
+			>
+				{MINUTES.map((option) => <option key={option} value={option}>{option}</option>)}
+			</select>
+			<select
+				aria-label="End of day AM or PM"
+				value={period}
+				onChange={(event) => update({ period: event.target.value as 'AM' | 'PM' })}
+				disabled={disabled}
+				className={`${selectClassName} min-w-20`}
+			>
+				<option value="AM">AM</option>
+				<option value="PM">PM</option>
+			</select>
+		</fieldset>
+	);
+}
+
+function toTwelveHourParts(value: string) {
+	const normalized = normalizeTime(value);
+	const [hourValue, minute] = normalized.split(':');
+	const hour24 = Number(hourValue);
+	return {
+		hour: String(hour24 % 12 || 12),
+		minute,
+		period: (hour24 >= 12 ? 'PM' : 'AM') as 'AM' | 'PM',
+	};
+}
+
+function toTwentyFourHourTime(hour: string, minute: string, period: 'AM' | 'PM') {
+	const hour12 = Number(hour);
+	const hour24 = (hour12 % 12) + (period === 'PM' ? 12 : 0);
+	return `${String(hour24).padStart(2, '0')}:${minute}`;
 }

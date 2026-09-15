@@ -358,6 +358,17 @@ function OptionField({
 	label: string;
 	options: OptionEntity[];
 }) {
+	const uniqueOptions = Array.from(
+		new Map(
+			options
+				.filter((option) => option.optionName?.trim())
+				.map((option) => [
+					option.optionName.trim().toLocaleLowerCase(),
+					option,
+				]),
+		).values(),
+	);
+
 	return (
 		<FormField control={form.control} name={name} render={({ field }) => (
 			<FormItem>
@@ -365,7 +376,14 @@ function OptionField({
 				<Select value={field.value} onValueChange={field.onChange}>
 					<FormControl><SelectTrigger className="w-full"><SelectValue placeholder={`Select ${label.toLowerCase()}`} /></SelectTrigger></FormControl>
 					<SelectContent>
-						{options.map((option) => <SelectItem key={option.id} value={option.optionName}>{option.optionName}</SelectItem>)}
+						{uniqueOptions.map((option) => {
+							const optionName = option.optionName.trim();
+							return (
+								<SelectItem key={`${name}-${optionName.toLocaleLowerCase()}`} value={optionName}>
+									{optionName}
+								</SelectItem>
+							);
+						})}
 					</SelectContent>
 				</Select>
 				<FormMessage />
