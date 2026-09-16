@@ -68,7 +68,7 @@ const Hero = () => {
 								asChild
 								className="hover:bg-muted transition"
 							>
-								<Link href="#features">
+								<Link href="/demo">
 									See How It Works
 									<CirclePlay aria-hidden="true" />
 								</Link>
@@ -96,24 +96,8 @@ const Hero = () => {
 						{/* glow ring */}
 						<div className="absolute -inset-10 bg-primary/10 blur-3xl rounded-3xl" />
 
-						{/* KPI floating cards */}
-						<div className="hidden xl:block absolute -top-6 -left-10 bg-background border shadow-xl rounded-xl px-4 py-3 z-20 w-44">
-							<p className="text-xs text-muted-foreground">Compliance</p>
-							<p className="text-lg font-semibold text-destructive">Improved</p>
-						</div>
-
-						<div className="hidden xl:block absolute bottom-10 -left-14 bg-background border shadow-xl rounded-xl px-4 py-3 z-20 w-44">
-							<p className="text-xs text-muted-foreground">Issues Caught Early</p>
-							<p className="text-lg font-semibold text-primary">Resolved Fast</p>
-						</div>
-
-						<div className="hidden xl:block absolute top-1/2 -right-14 -translate-y-1/2 bg-background border shadow-xl rounded-xl px-4 py-3 z-20 w-44">
-							<p className="text-xs text-muted-foreground">Inspections</p>
-							<p className="text-lg font-semibold text-green-600">Passed</p>
-						</div>
-
 						{/* VIDEO FRAME */}
-						<div className="relative z-10 max-w-[380px] rounded-3xl overflow-hidden border shadow-2xl bg-black">
+						<div className="relative z-10 w-full max-w-[620px] rounded-3xl overflow-hidden border shadow-2xl bg-black">
 							{/* subtle top bar (iOS feel) */}
 							<div className="h-6 bg-muted flex items-center px-3 gap-1">
 								<span className="w-2 h-2 rounded-full bg-red-400" />
@@ -127,11 +111,11 @@ const Hero = () => {
 								loop
 								playsInline
 								preload="metadata"
-								poster="/iPadLineCheckScreenShot.png"
-								aria-label="The Manager Life line-check workflow demonstration"
-								className="w-full h-auto"
+								poster="/videos/the-manager-life-commercial-poster.jpg"
+								aria-label="Silent preview of The Manager Life restaurant line-check workflow"
+								className="aspect-video w-full object-cover"
 							>
-								<source src="/videos/iPadDemo.mp4" type="video/mp4" />
+								<source src="/videos/homepage-commercial-preview.mp4" type="video/mp4" />
 							</video>
 						</div>
 					</div>

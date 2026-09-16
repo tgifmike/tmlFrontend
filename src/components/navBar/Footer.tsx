@@ -11,6 +11,9 @@ export default function Footer() {
 					<a href="/restaurant-digital-line-check-software" className="hover:text-foreground transition">
 						Line Check Software
 					</a>
+					<a href="/demo" className="hover:text-foreground transition">
+						Demo
+					</a>
 					<a href="/blog" className="hover:text-foreground transition">
 						Blog
 					</a>
