@@ -1,14 +1,13 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
-import { useState } from 'react';
-// import { loginWithBackend } from '@/lib/auth/login';
-import { emitAuthChange } from '@/lib/auth/authEvents';
+import { useSearchParams } from 'next/navigation';
+import { useEffect, useState } from 'react';
 
 
 type Provider = 'google' | 'apple' | 'passkey' | null;
 
 type Errors = {
+	auth?: string;
 	google?: string;
 	apple?: string;
 	passkey?: string;
@@ -21,11 +20,32 @@ type UserPreview = {
 } | null;
 
 export function useAuthLogin() {
-	const router = useRouter();
+	const searchParams = useSearchParams();
 
 	const [loading, setLoading] = useState<Provider>(null);
 	const [errors, setErrors] = useState<Errors>({});
 	const [userPreview, setUserPreview] = useState<UserPreview>(null);
+
+	useEffect(() => {
+		const authError = searchParams.get('authError') ?? searchParams.get('error');
+
+		if (!authError) return;
+
+		const normalizedError = authError.toLowerCase();
+		const wasCancelled = [
+			'access_denied',
+			'cancelled',
+			'oauth_cancelled',
+			'user_cancelled_authorize',
+		].includes(normalizedError);
+
+		setErrors((current) => ({
+			...current,
+			auth: wasCancelled
+				? 'Sign-in was cancelled. You can try again whenever you’re ready.'
+				: 'Sign-in could not be completed. Please try again.',
+		}));
+	}, [searchParams]);
 
 	/**
 	 * GOOGLE LOGIN (Spring redirect flow)

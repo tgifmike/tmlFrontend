@@ -284,9 +284,11 @@ export default function LoginCard() {
 				{/* CONTENT */}
 				<CardContent className="space-y-4 px-6 pb-6">
 					{/* ERROR */}
-					{errors.google && (
+					{(errors.auth || errors.google || errors.apple) && (
 						<Alert variant="destructive">
-							<AlertDescription>{errors.google}</AlertDescription>
+							<AlertDescription>
+								{errors.auth || errors.google || errors.apple}
+							</AlertDescription>
 						</Alert>
 					)}
 
