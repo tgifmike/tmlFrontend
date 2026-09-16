@@ -12,9 +12,11 @@ const screenshots = [
 	'/iPhoneLineCheckScreenShot.png',
 	'/backendLineCheckScreenShot2.png',
 	'/iPhoneLineCheckTempCheckScreenShot.png',
-	'/newDashboard1.png',
-	'/newDashboard2.png',
-	'/newDashboard3.png',
+	'/images/dashboard/operational-overview.png',
+	'/images/dashboard/todays-attention.png',
+	'/images/dashboard/weekday-trends.png',
+	'/images/dashboard/recurring-item-issues.png',
+	'/images/dashboard/team-performance.png',
 ];
 
 const features = [

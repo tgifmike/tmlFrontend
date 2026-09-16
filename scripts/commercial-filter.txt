@@ -1,0 +1,100 @@
+[2:v]trim=duration=3.8,setpts=PTS-STARTPTS,fps=30,scale=2100:-2,
+zoompan=z='min(zoom+0.00075,1.07)':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':d=1:s=1920x1080:fps=30,
+drawbox=x=0:y=0:w=1920:h=1080:color=black@0.12:t=fill,
+drawbox=x=85:y=695:w=1160:h=245:color=black@0.72:t=fill,
+drawbox=x=120:y=738:w=88:h=7:color=0xef4444:t=fill,
+drawtext=fontfile='/System/Library/Fonts/Supplemental/Arial Bold.ttf':text='KITCHENS MOVE FAST.':fontcolor=white:fontsize=66:x=120:y=775,
+drawtext=fontfile='/System/Library/Fonts/Supplemental/Arial Bold.ttf':text='YOUR STANDARDS SHOULD KEEP UP.':fontcolor=white:fontsize=48:x=120:y=852
+[s0];
+
+[0:v]trim=start=1:end=5,setpts=0.75*(PTS-STARTPTS),fps=30,scale=1920:1080:force_original_aspect_ratio=increase,crop=1920:1080,gblur=sigma=34,eq=brightness=-0.46:saturation=0.55[bg1];
+[0:v]trim=start=1:end=5,setpts=0.75*(PTS-STARTPTS),fps=30,scale=-2:940[fg1];
+[bg1][fg1]overlay=(W-w)/2:(H-h)/2,
+drawbox=x=64:y=64:w=735:h=112:color=black@0.82:t=fill,
+drawtext=fontfile='/System/Library/Fonts/Supplemental/Arial Bold.ttf':text='Start the right check in seconds.':fontcolor=white:fontsize=42:x=96:y=98
+[s1];
+
+[0:v]trim=start=5:end=17,setpts=0.32*(PTS-STARTPTS),fps=30,scale=1920:1080:force_original_aspect_ratio=increase,crop=1920:1080,gblur=sigma=34,eq=brightness=-0.46:saturation=0.55[bg2];
+[0:v]trim=start=5:end=17,setpts=0.32*(PTS-STARTPTS),fps=30,scale=-2:940[fg2];
+[bg2][fg2]overlay=(W-w)/2:(H-h)/2,
+drawbox=x=64:y=64:w=720:h=112:color=black@0.82:t=fill,
+drawtext=fontfile='/System/Library/Fonts/Supplemental/Arial Bold.ttf':text='Clear standards. Fast answers.':fontcolor=white:fontsize=42:x=96:y=98
+[s2];
+
+[1:v]trim=start=5:end=17,setpts=0.32*(PTS-STARTPTS),fps=30,scale=1920:1080:force_original_aspect_ratio=increase,crop=1920:1080,gblur=sigma=34,eq=brightness=-0.46:saturation=0.55[bg3];
+[1:v]trim=start=5:end=17,setpts=0.32*(PTS-STARTPTS),fps=30,scale=-2:940[fg3];
+[bg3][fg3]overlay=(W-w)/2:(H-h)/2,
+drawbox=x=64:y=64:w=720:h=112:color=black@0.82:t=fill,
+drawtext=fontfile='/System/Library/Fonts/Supplemental/Arial Bold.ttf':text='Log temperatures as you go.':fontcolor=white:fontsize=42:x=96:y=98
+[s3];
+
+[3:v]trim=duration=3.4,setpts=PTS-STARTPTS,fps=30,scale=2100:-2,
+zoompan=z='min(zoom+0.0007,1.065)':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':d=1:s=1920x1080:fps=30,
+drawbox=x=0:y=0:w=1920:h=1080:color=black@0.08:t=fill,
+drawbox=x=1040:y=735:w=785:h=195:color=black@0.72:t=fill,
+drawtext=fontfile='/System/Library/Fonts/Supplemental/Arial Bold.ttf':text='STANDARDS MATTER':fontcolor=white:fontsize=54:x=1082:y=776,
+drawtext=fontfile='/System/Library/Fonts/Supplemental/Arial Bold.ttf':text='IN THE MOMENT.':fontcolor=white:fontsize=54:x=1082:y=842
+[s4];
+
+[1:v]trim=start=16.5:end=31.5,setpts=0.30*(PTS-STARTPTS),fps=30,scale=1920:1080:force_original_aspect_ratio=increase,crop=1920:1080,gblur=sigma=34,eq=brightness=-0.46:saturation=0.55[bg5];
+[1:v]trim=start=16.5:end=31.5,setpts=0.30*(PTS-STARTPTS),fps=30,scale=-2:940[fg5];
+[bg5][fg5]overlay=(W-w)/2:(H-h)/2,
+drawbox=x=64:y=64:w=960:h=112:color=black@0.82:t=fill,
+drawtext=fontfile='/System/Library/Fonts/Supplemental/Arial Bold.ttf':text='Capture the context — not just a checkbox.':fontcolor=white:fontsize=42:x=96:y=98
+[s5];
+
+[0:v]trim=start=31:end=58,setpts=0.21*(PTS-STARTPTS),fps=30,scale=1920:1080:force_original_aspect_ratio=increase,crop=1920:1080,gblur=sigma=34,eq=brightness=-0.46:saturation=0.55[bg6];
+[0:v]trim=start=31:end=58,setpts=0.21*(PTS-STARTPTS),fps=30,scale=-2:940[fg6];
+[bg6][fg6]overlay=(W-w)/2:(H-h)/2,
+drawbox=x=64:y=64:w=985:h=112:color=black@0.82:t=fill,
+drawtext=fontfile='/System/Library/Fonts/Supplemental/Arial Bold.ttf':text='Correct it. Document it. Move forward.':fontcolor=white:fontsize=42:x=96:y=98
+[s6];
+
+[4:v]trim=duration=1.9,setpts=PTS-STARTPTS,fps=30,scale=1840:-2,pad=1920:1080:(ow-iw)/2:(oh-ih)/2:color=white,
+drawbox=x=0:y=0:w=1920:h=120:color=0x09090b@0.95:t=fill,
+drawtext=fontfile='/System/Library/Fonts/Supplemental/Arial Bold.ttf':text='ONE DASHBOARD. EVERY SIGNAL.':fontcolor=white:fontsize=43:x=(w-text_w)/2:y=39
+[s7];
+
+[5:v]trim=duration=1.9,setpts=PTS-STARTPTS,fps=30,scale=1840:-2,pad=1920:1080:(ow-iw)/2:(oh-ih)/2:color=white,
+drawbox=x=0:y=0:w=1920:h=120:color=0x09090b@0.95:t=fill,
+drawtext=fontfile='/System/Library/Fonts/Supplemental/Arial Bold.ttf':text='KNOW WHAT NEEDS ATTENTION TODAY.':fontcolor=white:fontsize=42:x=(w-text_w)/2:y=40
+[s8];
+
+[6:v]trim=duration=1.9,setpts=PTS-STARTPTS,fps=30,scale=1840:-2,pad=1920:1080:(ow-iw)/2:(oh-ih)/2:color=white,
+drawbox=x=0:y=0:w=1920:h=120:color=0x09090b@0.95:t=fill,
+drawtext=fontfile='/System/Library/Fonts/Supplemental/Arial Bold.ttf':text='SPOT THE PATTERN ACROSS THE WEEK.':fontcolor=white:fontsize=42:x=(w-text_w)/2:y=40
+[s9];
+
+[7:v]trim=duration=1.9,setpts=PTS-STARTPTS,fps=30,scale=1840:-2,pad=1920:1080:(ow-iw)/2:(oh-ih)/2:color=white,
+drawbox=x=0:y=0:w=1920:h=120:color=0x09090b@0.95:t=fill,
+drawtext=fontfile='/System/Library/Fonts/Supplemental/Arial Bold.ttf':text='FIND RECURRING ITEM ISSUES.':fontcolor=white:fontsize=43:x=(w-text_w)/2:y=39
+[s10];
+
+[8:v]trim=duration=1.9,setpts=PTS-STARTPTS,fps=30,scale=1840:-2,pad=1920:1080:(ow-iw)/2:(oh-ih)/2:color=white,
+drawbox=x=0:y=0:w=1920:h=120:color=0x09090b@0.95:t=fill,
+drawtext=fontfile='/System/Library/Fonts/Supplemental/Arial Bold.ttf':text='COACH WITH REAL SHIFT CONTEXT.':fontcolor=white:fontsize=43:x=(w-text_w)/2:y=39
+[s11];
+
+color=c=0xf6f1e8:s=1920x1080:d=4:r=30[endbase];
+[9:v]trim=duration=4,setpts=PTS-STARTPTS,fps=30,scale=390:390[logo];
+[endbase][logo]overlay=150:345,
+drawbox=x=625:y=338:w=7:h=400:color=0xef4444:t=fill,
+drawtext=fontfile='/System/Library/Fonts/Supplemental/Arial Bold.ttf':text='BETTER CHECKS.':fontcolor=0x111111:fontsize=68:x=700:y=395,
+drawtext=fontfile='/System/Library/Fonts/Supplemental/Arial Bold.ttf':text='BETTER FOLLOW-THROUGH.':fontcolor=0x111111:fontsize=68:x=700:y=475,
+drawtext=fontfile='/System/Library/Fonts/Supplemental/Arial.ttf':text='Start your free trial at themanagerlife.com':fontcolor=0x555555:fontsize=31:x=704:y=610
+[s12];
+
+[s0][s1]xfade=transition=fade:duration=0.3:offset=3.50[x1];
+[x1][s2]xfade=transition=fade:duration=0.3:offset=6.20[x2];
+[x2][s3]xfade=transition=smoothleft:duration=0.3:offset=9.74[x3];
+[x3][s4]xfade=transition=fade:duration=0.3:offset=13.28[x4];
+[x4][s5]xfade=transition=fade:duration=0.3:offset=16.38[x5];
+[x5][s6]xfade=transition=smoothleft:duration=0.3:offset=20.58[x6];
+[x6][s7]xfade=transition=fadeblack:duration=0.3:offset=25.95[x7];
+[x7][s8]xfade=transition=smoothleft:duration=0.3:offset=27.55[x8];
+[x8][s9]xfade=transition=smoothleft:duration=0.3:offset=29.15[x9];
+[x9][s10]xfade=transition=smoothleft:duration=0.3:offset=30.75[x10];
+[x10][s11]xfade=transition=smoothleft:duration=0.3:offset=32.35[x11];
+[x11][s12]xfade=transition=fadeblack:duration=0.3:offset=33.95,format=yuv420p[vout];
+
+[10:a]atrim=start=5:end=43.2,asetpts=PTS-STARTPTS,volume=0.26,afade=t=in:st=0:d=0.8,afade=t=out:st=35.4:d=2.5[aout]

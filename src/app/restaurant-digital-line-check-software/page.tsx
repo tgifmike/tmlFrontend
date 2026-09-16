@@ -263,12 +263,12 @@ export default function RestaurantDigitalLineCheckSoftwarePage() {
 
 				<section className="mx-auto max-w-6xl px-6 py-16 sm:py-24">
 					<div className="grid gap-10 lg:grid-cols-2 lg:items-center">
-						<div className="relative aspect-[4/3] overflow-hidden rounded-3xl border bg-muted shadow-lg">
+						<div className="relative aspect-video overflow-hidden rounded-3xl border bg-white shadow-lg">
 							<Image
-								src="/newDashboard1.png"
+								src="/images/dashboard/operational-overview.png"
 								alt="Restaurant line-check dashboard showing completion activity and operating trends"
 								fill
-								className="object-cover object-top"
+								className="object-contain p-3"
 								sizes="(min-width: 1024px) 560px, 100vw"
 							/>
 						</div>

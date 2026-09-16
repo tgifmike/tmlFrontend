@@ -16,9 +16,11 @@ import { createPortal } from 'react-dom';
 import { Button } from '@/components/ui/button';
 
 const dashboardImages = [
-	'/newDashboard1.png',
-	'/newDashboard2.png',
-	'/newDashboard3.png',
+	'/images/dashboard/operational-overview.png',
+	'/images/dashboard/todays-attention.png',
+	'/images/dashboard/weekday-trends.png',
+	'/images/dashboard/recurring-item-issues.png',
+	'/images/dashboard/team-performance.png',
 ];
 
 const features = [
@@ -94,7 +96,7 @@ export default function DashboardPreview() {
 						<button
 							type="button"
 							onClick={() => setLightboxOpen(true)}
-							className="group relative block aspect-[16/10] w-full overflow-hidden rounded-2xl border bg-muted/30 shadow-lg"
+							className="group relative block aspect-video w-full overflow-hidden rounded-2xl border bg-muted/30 shadow-lg"
 							aria-label="Open the current dashboard screenshot"
 						>
 							<AnimatePresence mode="wait">

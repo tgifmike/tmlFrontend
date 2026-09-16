@@ -12,6 +12,10 @@ export default function sitemap(): MetadataRoute.Sitemap {
 			lastModified: new Date('2026-09-01'),
 		},
 		{
+			url: `${SITE_URL}/demo`,
+			lastModified: new Date('2026-09-16'),
+		},
+		{
 			url: `${SITE_URL}/blog`,
 			lastModified: new Date('2026-09-15'),
 		},
