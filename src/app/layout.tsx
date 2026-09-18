@@ -2,14 +2,7 @@ import type { Metadata, Viewport } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
 import './globals.css';
 
-import { Toaster } from '@/components/ui/sonner';
-import { ThemeProvider } from '@/components/theme/Theme-Provider';
-import NavBar from '@/components/navBar/NavBar';
-import Footer from '@/components/navBar/Footer';
-import { TooltipProvider } from '@/components/ui/tooltip';
-import { SessionProvider } from '@/lib/auth/session-context';
-
-import { Analytics } from '@vercel/analytics/next';
+import AppShell from '@/components/layout/AppShell';
 
 const geistSans = Geist({
 	variable: '--font-geist-sans',
@@ -77,25 +70,8 @@ export default function RootLayout({
 }) {
 	return (
 		<html lang="en" suppressHydrationWarning>
-			<body
-				className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen flex flex-col pt-20`}
-			>
-				{/* GLOBAL PROVIDERS ONLY */}
-				<SessionProvider>
-					<ThemeProvider>
-						<TooltipProvider>
-							{/* PUBLIC SITE */}
-							<NavBar />
-
-							<main className="flex-1 w-full">{children}</main>
-
-							<Footer />
-
-							<Toaster />
-							<Analytics />
-						</TooltipProvider>
-					</ThemeProvider>
-				</SessionProvider>
+			<body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+				<AppShell>{children}</AppShell>
 
 				{/* JSON-LD */}
 				<script
